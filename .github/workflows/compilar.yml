@@ -1,8 +1,8 @@
 name: Compilar ARKEN CONTROL
 
-# Cada cambio en main compila las cuatro apps; los archivos quedan en la pestaña Actions
-# (sección «Artifacts» de cada ejecución). Una etiqueta vX.Y.Z publica además una
-# versión en «Releases» con los cuatro instaladores.
+# Cada cambio en main compila las cuatro apps; los instaladores quedan en la pestaña Actions
+# (sección «Artifacts» de cada ejecución) y se descargan tal cual, sin .zip. Una etiqueta
+# vX.Y.Z publica además una versión en «Releases» con los cuatro instaladores.
 
 on:
   push:
@@ -24,8 +24,8 @@ jobs:
     name: Pruebas
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -52,12 +52,12 @@ jobs:
     env:
       ELECTRON_SKIP_BINARY_DOWNLOAD: 1
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -93,10 +93,10 @@ jobs:
         run: |
           mkdir -p salida
           cp android/app/build/outputs/apk/release/app-release.apk "salida/ARKEN-CONTROL-${{ steps.version.outputs.nombre }}-Android.apk"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: steps.firma.outputs.hay == 'si'
         with:
-          name: ARKEN-CONTROL-Android
+          archive: false
           path: salida/*.apk
           if-no-files-found: error
       - name: Resumen
@@ -115,11 +115,11 @@ jobs:
     env:
       ELECTRON_SKIP_BINARY_DOWNLOAD: 1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest-stable
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -141,9 +141,9 @@ jobs:
           mkdir -p Payload salida
           cp -R build/ios/Build/Products/Release-iphoneos/App.app Payload/
           zip -qry "salida/ARKEN-CONTROL-${{ steps.version.outputs.nombre }}-iOS-sin-firma.ipa" Payload
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: ARKEN-CONTROL-iOS-sin-firma
+          archive: false
           path: salida/*.ipa
           if-no-files-found: error
 
@@ -152,17 +152,17 @@ jobs:
     needs: pruebas
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - name: Instalador
         run: npm run preparar && npx electron-builder --win nsis --x64 --publish never
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: ARKEN-CONTROL-Windows
+          archive: false
           path: dist/*.exe
           if-no-files-found: error
 
@@ -171,17 +171,17 @@ jobs:
     needs: pruebas
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - name: Instalador (Apple Silicon e Intel)
         run: npm run preparar && npx electron-builder --mac dmg --universal --publish never
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: ARKEN-CONTROL-macOS
+          archive: false
           path: dist/*.dmg
           if-no-files-found: error
 
@@ -194,14 +194,18 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: instaladores
           merge-multiple: true
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           name: ARKEN CONTROL ${{ github.ref_name }}
-          files: instaladores/*
+          files: |
+            instaladores/**/*.apk
+            instaladores/**/*.exe
+            instaladores/**/*.dmg
+            instaladores/**/*.ipa
           fail_on_unmatched_files: true
           body: |
             **Android:** ARKEN-CONTROL-…-Android.apk · **Windows:** ARKEN-CONTROL-…-Windows.exe · **macOS:** ARKEN-CONTROL-…-macOS.dmg
