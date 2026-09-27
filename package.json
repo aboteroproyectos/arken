@@ -1,0 +1,110 @@
+{
+  "name": "arken-control",
+  "productName": "ARKEN CONTROL",
+  "version": "1.0.0",
+  "description": "ARKEN CONTROL · Sistema integral para el control de obra, empaquetado para Android, iOS, Windows y macOS.",
+  "private": true,
+  "main": "electron/main.cjs",
+  "author": "ARKEN CONTROL",
+  "scripts": {
+    "preparar": "node herramientas/preparar-web.mjs",
+    "verificar-sin-datos": "node herramientas/verificar-sin-datos.mjs",
+    "iconos": "node herramientas/iconos.mjs",
+    "prueba": "node pruebas/humo.mjs",
+    "escritorio": "npm run preparar && electron .",
+    "android": "npm run preparar && cap sync android",
+    "ios": "npm run preparar && cap sync ios",
+    "dist:windows": "npm run preparar && electron-builder --win nsis --x64",
+    "dist:mac": "npm run preparar && electron-builder --mac dmg --universal",
+    "prueba:escritorio": "node pruebas/escritorio.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/app-launcher": "^8.0.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/filesystem": "^8.1.3",
+    "@capacitor/ios": "^8.5.2",
+    "@capacitor/share": "^8.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.2",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "html2canvas": "1.4.1",
+    "jspdf": "2.5.1",
+    "jspdf-autotable": "3.8.2",
+    "pdfjs-dist": "3.11.174",
+    "playwright-core": "^1.63.0",
+    "xlsx": "0.18.5"
+  },
+  "build": {
+    "appId": "com.aboteroproyectos.arkencontrol",
+    "productName": "ARKEN CONTROL",
+    "copyright": "© ARKEN CONTROL",
+    "directories": {
+      "output": "dist",
+      "buildResources": "recursos"
+    },
+    "files": [
+      "electron/**",
+      "www/**",
+      "package.json",
+      "!**/node_modules/**"
+    ],
+    "asar": true,
+    "icon": "recursos/icono.png",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "ARKEN-CONTROL-${version}-Windows.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ARKEN CONTROL",
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": [
+        "es_ES"
+      ],
+      "language": "3082"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.business",
+      "artifactName": "ARKEN-CONTROL-${version}-macOS.${ext}",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "CFBundleDevelopmentRegion": "es",
+        "NSCameraUsageDescription": "ARKEN CONTROL usa la cámara para tomar fotos de la obra, del personal y de los soportes."
+      }
+    },
+    "dmg": {
+      "title": "ARKEN CONTROL"
+    },
+    "linux": {
+      "target": [
+        "dir"
+      ],
+      "category": "Office"
+    }
+  }
+}

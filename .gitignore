@@ -14,4 +14,3 @@ datos-empresa/
 # Claves de firma sin cifrar
 *.jks
 *.keystore
-!android/firma/*.enc

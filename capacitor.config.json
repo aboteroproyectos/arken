@@ -1,0 +1,21 @@
+{
+  "appId": "com.aboteroproyectos.arkencontrol",
+  "appName": "ARKEN CONTROL",
+  "webDir": "www",
+  "backgroundColor": "#16181A",
+  "android": {
+    "backgroundColor": "#16181A",
+    "allowMixedContent": false
+  },
+  "ios": {
+    "backgroundColor": "#16181A",
+    "contentInset": "never"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover",
+      "style": "DARK"
+    }
+  }
+}
