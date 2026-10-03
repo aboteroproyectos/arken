@@ -1,0 +1,24 @@
+{
+  "name": "arken-precios",
+  "productName": "ARKEN PRECIOS",
+  "version": "0.1.0",
+  "description": "ARKEN PRECIOS · Observatorio de precios de insumos de obra en Colombia, app hermana de ARKEN CONTROL.",
+  "private": true,
+  "type": "module",
+  "author": "ARKEN CONTROL",
+  "scripts": {
+    "verificar-sin-datos": "node herramientas/verificar-sin-datos.mjs",
+    "prueba:unitarias": "node pruebas/unitarias.mjs",
+    "prueba:ida-y-vuelta": "node pruebas/ida-y-vuelta.mjs",
+    "prueba:humo": "node pruebas/humo.mjs",
+    "prueba": "npm run verificar-sin-datos && npm run prueba:unitarias && npm run prueba:ida-y-vuelta && npm run prueba:humo"
+  },
+  "devDependencies": {
+    "html2canvas": "1.4.1",
+    "jspdf": "2.5.1",
+    "jspdf-autotable": "3.8.2",
+    "pdfjs-dist": "3.11.174",
+    "playwright-core": "^1.63.0",
+    "xlsx": "0.18.5"
+  }
+}

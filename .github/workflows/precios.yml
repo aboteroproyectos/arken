@@ -1,0 +1,53 @@
+name: ARKEN PRECIOS
+
+# Pruebas de ARKEN PRECIOS (carpeta precios/): el núcleo de cálculo, la ida y vuelta con el
+# programa/ARKEN_CONTROL.html real de este repositorio y la prueba de humo en Chromium.
+# Corren también cuando cambia ARKEN CONTROL, porque el contrato de importación vive allí.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'precios/**'
+      - 'programa/ARKEN_CONTROL.html'
+      - '.github/workflows/precios.yml'
+  pull_request:
+    paths:
+      - 'precios/**'
+      - 'programa/ARKEN_CONTROL.html'
+      - '.github/workflows/precios.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: precios-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: Pruebas de ARKEN PRECIOS
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: precios
+    env:
+      CHROME_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: precios/package-lock.json
+      # Sin las dependencias opcionales de pdf.js (canvas): las pruebas solo leen el texto de los PDF.
+      - run: npm ci --omit=optional
+      - name: El programa no trae datos de la empresa
+        run: npm run verificar-sin-datos
+      - name: Núcleo de cálculo (formatos de precio, unidades, IVA, AIU, estadística, mano de obra)
+        run: npm run prueba:unitarias
+      - name: Ida y vuelta con ARKEN CONTROL real
+        run: npm run prueba:ida-y-vuelta
+      - name: Prueba de humo en Chromium (módulos, exportaciones, temas, densidades y 360 px)
+        run: npm run prueba:humo

@@ -14,3 +14,6 @@ datos-empresa/
 # Claves de firma sin cifrar
 *.jks
 *.keystore
+ARKEN_PRECIOS_respaldo_*.json
+ARKEN_PRECIOS_respaldo_*.json.gz
+ARKEN_PRECIOS_copia_*.html
