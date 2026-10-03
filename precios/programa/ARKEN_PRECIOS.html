@@ -1079,10 +1079,34 @@ table.t.renglones .pr{ min-width:110px; }
 .parrafo{ font-size:12.5px; color:var(--steel); line-height:1.6; max-width:880px; }
 .parrafo b{ color:var(--ink); }
 
+/* En la cinta de ARKEN los valores son cifras cortas; aquí también hay textos
+   (el nombre del corte, la ciudad). En escritorio se cortan con «…» y en el
+   celular se parten en dos líneas, para que la página nunca se corra de lado. */
+.ledger-cell .val, .ledger-cell .lab{ overflow:hidden; text-overflow:ellipsis; }
 @media(max-width:900px){
   .prog-fila{ grid-template-columns:minmax(90px,1fr) minmax(0,2fr) 52px; }
   .desc-ins{ min-width:200px; }
   .ledger-cell .ledger-bar{ min-width:60px; }
+  .ledger-cell .val, .ledger-cell .lab{ white-space:normal; overflow-wrap:anywhere; }
+}
+/* La barra superior en el celular: la ciudad y el corte ya van en la cinta,
+   así que se quitan de aquí para que la marca y los botones no se monten. */
+.topbar-proj .lab{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#bandaDemo .txt-corto{ display:none; }
+@media(max-width:520px){
+  #bandaDemo{ padding:8px 12px; gap:8px; }
+  #bandaDemo .txt-largo{ display:none; }
+  #bandaDemo .txt-corto{ display:inline; }
+  .topbar-proj{ display:none; }
+  .topbar .brand, .topbar .brand-txt{ flex:none; min-width:auto; }
+  .topbar-actions{ flex:1 1 0; max-width:none; justify-content:flex-start; }
+  .topbar .saved span{ display:none; }
+}
+/* En pantallas angostas la cinta deja de ser fija y va en el flujo: debe
+   empezar debajo de la barra superior, no detrás de ella. */
+@media(max-width:900px){
+  .ledger{ margin-top:var(--top-h-total); }
+  .shell{ padding-top:0; }
 }
 @media print{
   .filtros-fijos, .paginador, .demo-banda{ display:none !important; }
@@ -1247,16 +1271,20 @@ const CONFIANZAS = ['alta','media','baja'];
    de insumo con 3 decimales, totales en pesos enteros y «$» seguido de un
    espacio no separable, para que el signo nunca quede solo al final de una
    línea en un PDF angosto. */
+/** Redondeo «a la mitad hacia arriba» como en una cuenta a mano. El paso por
+    15 cifras significativas quita el ruido binario: 1.750.905 × 4,17 % da
+    73.012,73849999… en coma flotante y debe quedar en 73.012,739. */
+function sinRuido(x){ return Number(x.toPrecision(15)); }
 function redondear(n){
   const x = Number(n);
   if (!isFinite(x)) return 0;
-  return (x < 0 ? -1 : 1) * Math.round(Math.abs(x) + 1e-9);
+  return (x < 0 ? -1 : 1) * Math.round(sinRuido(Math.abs(x)) + 1e-9);
 }
 function redondearDec(n, d){
   const f = Math.pow(10, (d === undefined ? 4 : d));
   const x = Number(n);
   if (!isFinite(x)) return 0;
-  return ((x < 0 ? -1 : 1) * Math.round(Math.abs(x) * f + 1e-9)) / f;
+  return ((x < 0 ? -1 : 1) * Math.round(sinRuido(Math.abs(x) * f) + 1e-9)) / f;
 }
 function redondear3(n){ return redondearDec(n, DEC_INSUMO); }
 /** Prohibido comparar dinero con ===: se compara con tolerancia. */
@@ -1546,11 +1574,26 @@ const LectorPrecios = (function(){
     return null;
   }
 
+  /** Espacios unificados; «$ 1 250 000» se lee como «$ 1.250.000». */
+  function limpiarTexto(texto){
+    const original = String(texto === null || texto === undefined ? '' : texto);
+    return original.replace(/[\u00A0\u2007\u202F]/g, ' ').replace(/\s+/g, ' ')
+      .replace(/\$\s*(\d{1,3}(?: \d{3})+)(?!\d)/g, (m0, g) => '$' + ' '.repeat(m0.length - 1 - g.length) + g.replace(/ (?=\d{3})/g, '.'));
+  }
+
+  /** ¿Está esta cifra escrita, tal cual, en el texto leído? Lo que entregue un
+      lector automático (Fase 3) o la IA (Fase 2) solo se registra si el precio
+      aparece en la página: nadie puede crear un precio que no esté escrito. */
+  function estaEnTexto(valor, texto){
+    const v = Number(valor);
+    if (!(v > 0)) return false;
+    const t = limpiarTexto(texto);
+    return candidatos(t, plano(t)).some(c => Math.abs(c.valor - v) < 0.005);
+  }
+
   /** Punto de entrada. Devuelve el precio vigente y lo que lo acompaña. */
   function leer(texto){
-    const original = String(texto === null || texto === undefined ? '' : texto);
-    const t = original.replace(/[\u00A0\u2007\u202F]/g, ' ').replace(/\s+/g, ' ')
-      .replace(/\$\s*(\d{1,3}(?: \d{3})+)(?!\d)/g, (m0, g) => '$' + ' '.repeat(m0.length - 1 - g.length) + g.replace(/ (?=\d{3})/g, '.'));
+    const t = limpiarTexto(texto);
     const p = plano(t);
     const r = { ok:false, valor:null, moneda:'COP', incluyeIva:null, promocion:false, precioAnterior:null,
                 desde:false, rango:null, esRango:false, unidad:null, presentacion:null, porPaquete:false,
@@ -1655,7 +1698,7 @@ const LectorPrecios = (function(){
     return r;
   }
 
-  return { leer, numero };
+  return { leer, numero, estaEnTexto };
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -2663,7 +2706,9 @@ const Agregados = (function(){
     return porCiudad;
   }
   /** Índice de la canasta por mes (Jevons: media geométrica de relativos
-      frente al mes base, sobre los insumos con dato en ambos meses). */
+      frente al mes base, sobre los insumos con dato en ambos meses). El mes
+      base es el primero del periodo que tiene datos: si los precios empiezan
+      a registrarse a mitad del periodo, el índice arranca ahí. */
   function indice(ag, insumoIds, ciudades, meses, estadistico){
     const est = estadistico || 'med';
     const set = new Set(ciudades || []);
@@ -2675,8 +2720,10 @@ const Agregados = (function(){
       Object.keys(porMes).forEach(mes => m.set(mes, Estadistica.mediana(porMes[mes])));
       val.set(id, m);
     });
-    const base = meses[0];
+    const conDato = mes => { for (const m of val.values()) if (m.get(mes) > 0) return true; return false; };
+    const base = meses.find(conDato);
     return meses.map(mes => {
+      if (!base || mes < base) return { mes, indice:null, insumos:0 };
       const rel = [];
       val.forEach(m => { const a = m.get(base), b = m.get(mes); if (a > 0 && b > 0) rel.push(b / a); });
       return { mes, indice: rel.length ? redondearDec(100 * Estadistica.mediaGeometrica(rel), 2) : null, insumos: rel.length };
@@ -3990,7 +4037,7 @@ const Semilla = (function(){
      auditoría. Verificados el 2 de octubre de 2026. */
   const PARAMETROS = [
     ['smmlv',1423500,'2025-01-01','2025-12-31','Decreto 1572 de 2024','laboral',''],
-    ['smmlv',1750905,'2026-01-01','2026-12-31','Decreto 1469 de 2025','laboral','Vigente tras la decisión del Consejo de Estado del 17 de julio de 2026.'],
+    ['smmlv',1750905,'2026-01-01','2026-12-31','Decreto 1469 de 2025','laboral','Suspendido en febrero de 2026 y vigente de nuevo desde el 17 de julio de 2026, cuando el Consejo de Estado levantó la suspensión; la sentencia de fondo sigue pendiente (revisado el 2 de octubre de 2026).'],
     ['auxilioTransporte',200000,'2025-01-01','2025-12-31','Decreto 1573 de 2024','laboral','Para quienes devengan hasta 2 SMMLV.'],
     ['auxilioTransporte',249095,'2026-01-01','2026-12-31','Decreto 1470 de 2025','laboral','Para quienes devengan hasta 2 SMMLV.'],
     ['jornadaSemanal',46,'2024-07-15','2025-07-14','Ley 2101 de 2021','laboral','Horas semanales.'],
@@ -5481,8 +5528,8 @@ const Documentos = (function(){
 
   function avisoLibreria(nombre, alternativa){
     UI.aviso('Falta una librería',
-      '<p>No fue posible cargar <b>' + esc(nombre) + '</b>. El navegador la descarga de cdnjs la primera vez y después la guarda; sin conexión y sin esa copia no está disponible.</p>' +
-      '<p class="muted small">' + esc(alternativa || 'Conéctese a internet una vez y vuelva a intentarlo.') + '</p>');
+      '<p>No fue posible cargar <b>' + esc(nombre) + '</b>. El programa la descarga de cdnjs al abrirse; si el equipo estaba sin conexión, no está disponible hasta volver a abrirlo con internet.</p>' +
+      '<p class="muted small">' + esc(alternativa || 'Conéctese a internet y vuelva a abrir el programa.') + '</p>');
   }
 
   function encabezado(cfg){
@@ -6078,7 +6125,7 @@ function consultaTablero(E, f){
   const valorMes = mes => { const p = indice.find(x => x.mes === mes); return p && p.indice !== null ? p.indice : null; };
   const rel = (a, b) => (a > 0 && b > 0 ? a / b - 1 : null);
   const ind = ultimo ? {
-    mes:ultimo.mes, valor:ultimo.indice, insumos:ultimo.insumos,
+    mes:ultimo.mes, valor:ultimo.indice, insumos:ultimo.insumos, base:conIndice[0].mes,
     mensual:rel(ultimo.indice, valorMes(N.sumaMeses(ultimo.mes, -1))),
     anio:rel(ultimo.indice, valorMes((Number(ultimo.mes.slice(0,4)) - 1) + '-12')),
     doce:rel(ultimo.indice, valorMes(N.sumaMeses(ultimo.mes, -12)))
@@ -6212,6 +6259,8 @@ const Registro = (function(){
     if (!ins) return { ok:false, motivo:'El insumo no existe en el catálogo.' };
     const precio = Number(d.precioPublicado);
     if (!(precio > 0)) return { ok:false, motivo:'El precio debe ser un número mayor que cero.' };
+    if ((d.metodo === 'ia' || d.exigirLiteral) && !LectorPrecios.estaEnTexto(precio, d.textoLiteral))
+      return { ok:false, motivo:'El precio ' + money(precio) + ' no aparece escrito en el texto leído: no se registra.' };
     const fecha = String(d.fechaCaptura || hoyISO()).slice(0,10);
     const n = Observaciones.normalizar({ precioPublicado:precio, unidadPublicada:d.unidadPublicada || ins.unidad, presentacion:d.presentacion || null,
                                          incluyeIva:d.incluyeIva, tarifaIva:d.tarifaIva, aiu:d.aiu }, ins, parametrosLaborales(fecha));
@@ -6678,7 +6727,7 @@ const Informes = (function(){
 
   /** Construye el libro y lo valida leyéndolo como lo leerá ARKEN. Nada se guarda si falla. */
   function excelArken(op){
-    if (!Documentos.hayXLSX()) throw new Error('No está disponible la librería de Excel (SheetJS). Conéctese a internet una vez y vuelva a intentarlo.');
+    if (!Documentos.hayXLSX()) throw new Error('No está disponible la librería de Excel (SheetJS). Conéctese a internet y vuelva a abrir el programa.');
     const r = renglonesArken(op);
     const lista = Equivalencias.listaArken();
     const nombreRedondeo = { peso:'al peso', centena:'a la centena', ninguno:'' }[op.redondeo || 'ninguno'];
@@ -6714,7 +6763,8 @@ const Informes = (function(){
       renglones:r.renglones.map(x => ({ categoria:x.categoria, unidad:x.unidad, descripcion:x.descripcion, precio:x.precioArken, codigoInterno:x.codigoInterno,
         codigoArken:x.codigoArken, tarifaIva:x.tarifaIva, n:x.n, confianza:x.confianza, fuentes:x.fuentes, enlaces:x.enlaces, demostracion:x.dependeDemo }))
     }, { programa:'ARKEN PRECIOS' });
-    return { texto:JSON.stringify(obj, null, 1), nombre:nombreArchivoSeguro('ARKEN_PRECIOS_' + r.ciudadNombre + '_' + (r.corte ? r.corte.nombre : hoyISO())) + '.json' };
+    const demo = r.renglones.some(x => x.dependeDemo);
+    return { texto:JSON.stringify(obj, null, 1), nombre:nombreArchivoSeguro('ARKEN_PRECIOS_' + r.ciudadNombre + '_' + (r.corte ? r.corte.nombre : hoyISO())) + (demo ? '_DEMO' : '') + '.json' };
   }
 
   /* ═══════════ Excel de análisis (§10.2) ═══════════ */
@@ -6728,6 +6778,7 @@ const Informes = (function(){
     const info = Documentos.filasInformativas('Base de precios · ' + (corte ? corte.nombre : 'precios vigentes'),
       [['Ciudades', ciudades.map(c => Datos.nombreCiudad(c)).join(', ')], ['Precio exportable', NOMBRE_PRECIO[op.precio || 'adoptado']]]);
     const filasP = [];
+    let hayDemo = false;
     const idsIncluidos = new Set();
     const comparativo = new Map();
     ciudades.forEach(c => {
@@ -6735,6 +6786,7 @@ const Informes = (function(){
         const v = f.v || {}, g = Datos.grupo(f.ins.grupo);
         if (op.soloConPrecio && !(f.precio.valor > 0)) return;
         idsIncluidos.add(f.ins.id);
+        if (v.dependeDemo) hayDemo = true;
         if (!comparativo.has(f.ins.id)) comparativo.set(f.ins.id, {});
         comparativo.get(f.ins.id)[c] = f.precio.valor || '';
         filasP.push([f.ins.codigo, f.ins.descripcion, f.ins.especificacion || '', f.ins.unidad, g ? g.codigo + ' · ' + g.nombre : f.ins.grupo, f.ins.categoria,
@@ -6758,6 +6810,7 @@ const Informes = (function(){
         if (o.ciudad && !setC.has(o.ciudad)) return;
         if (o.esDemo && op.incluirDemo === false) return;
         const ins = Datos.insumo(o.insumoId) || {};
+        if (o.esDemo) hayDemo = true;
         filasO.push([o.id, fmtFecha(o.fechaCaptura), ins.codigo || o.insumoId, ins.descripcion || '', Datos.nombreCiudad(o.ciudad), Datos.nombreFuente(o.fuenteId), o.proveedor || '',
           o.precioPublicado, o.unidadPublicada || '', o.presentacion ? (o.presentacion.cantidad + ' ' + (o.presentacion.unidad || '')) : '',
           o.incluyeIva === true ? 'Sí' : (o.incluyeIva === false ? 'No' : 'No dice'), o.precioConIva, o.precioSinIva, o.tipoPrecio, o.estado, o.metodo || '', o.url || '', o.esDemo ? 'Sí' : 'No']);
@@ -6810,7 +6863,7 @@ const Informes = (function(){
       ['Precio con IVA (unidad del insumo)', 'Precio publicado llevado a la unidad canónica del insumo con el factor de conversión, con IVA incluido.'],
       ['Estado', 'válida, atípica, descartada o pendiente de revisión. Solo las válidas entran al cálculo.'],
       ['Datos de demostración', 'Sí cuando el precio sale de datos sintéticos de demostración: no son precios de mercado.']] });
-    const nombre = nombreArchivoSeguro('ARKEN_PRECIOS_analisis_' + (corte ? corte.nombre : hoyISO())) + '.xlsx';
+    const nombre = nombreArchivoSeguro('ARKEN_PRECIOS_analisis_' + (corte ? corte.nombre : hoyISO())) + (hayDemo ? '_DEMO' : '') + '.xlsx';
     return { wb:Documentos.libro(hojas), nombre, filas:filasP.length };
   }
 
@@ -6840,7 +6893,7 @@ const Informes = (function(){
       contexto:ciudadNombre + ' · ' + (r.corte ? r.corte.nombre : 'precios vigentes'),
       subtitulo:(r.corte ? 'Corte «' + r.corte.nombre + '» del ' + fmtFecha(r.corte.fecha) + (r.corte.cerrado ? ' (cerrado)' : ' (abierto)') : 'Precios vigentes al ' + fmtFechaLarga(hoyISO())) +
         ' · precios por unidad, con IVA incluido.',
-      nombre:nombreArchivoSeguro('ARKEN_PRECIOS_base_' + ciudadNombre + '_' + (r.corte ? r.corte.nombre : hoyISO())),
+      nombre:nombreArchivoSeguro('ARKEN_PRECIOS_base_' + ciudadNombre + '_' + (r.corte ? r.corte.nombre : hoyISO())) + (demo ? '_DEMO' : ''),
       bloques:[
         { t:'kv', cols:3, pares:[['Ciudad', ciudadNombre], ['Insumos', visibles.length], ['Con precio de mercado', conMercado],
           ['Solo referencia', refs], ['Precio mostrado', NOMBRE_PRECIO[op.precio || 'adoptado']], ['Categorías', op.descripcionAlcance || 'Todas']] },
@@ -6942,7 +6995,7 @@ const App = (function(){
       '<div class="ledger-cell grow"><div class="lab">Con precio de mercado · ' + esc(r.ciudad) + '</div><div class="val">' + r.conMercado + ' de ' + r.insumos +
         '</div><div class="ledger-bar"><i style="width:' + cob + '%"></i></div></div>' +
       celda('Última actualización', r.ultima ? esc(fmtSello(r.ultima).slice(0, 10)) : 'Nunca', r.ultima ? r.frescos + ' frescos (≤ ' + Consolidacion.parametros(Datos.config('consolidacion', {})).diasDesactualizado + ' días)' : 'Use «Actualizar precios»') +
-      '<div class="ledger-cell total"><div class="lab">Corte activo</div><div class="val">' + esc(r.corte ? r.corte.nombre : 'Sin corte') + '</div></div>';
+      '<div class="ledger-cell total"><div class="lab">Corte activo</div><div class="val" title="' + esc(r.corte ? r.corte.nombre : '') + '">' + esc(r.corte ? r.corte.nombre : 'Sin corte') + '</div></div>';
     const ctx = r.ciudad + ' · ' + (r.corte ? r.corte.nombre + (r.corte.cerrado ? '' : ' (abierto)') : 'sin corte activo');
     $('#tbCtx').textContent = ctx;
     pintarBandas(r);
@@ -6954,7 +7007,8 @@ const App = (function(){
     if (r.demo && !existe){
       const d = document.createElement('div');
       d.className = 'banner'; d.id = 'bandaDemo';
-      d.innerHTML = '<b>DEMOSTRACIÓN</b><span class="grow">Hay datos sintéticos de demostración cargados (rotulados DEMO). No son precios de mercado.</span>' +
+      d.innerHTML = '<b>DEMOSTRACIÓN</b><span class="grow"><span class="txt-largo">Hay datos sintéticos de demostración cargados (rotulados DEMO). No son precios de mercado.</span>' +
+        '<span class="txt-corto">Datos sintéticos: no son precios de mercado.</span></span>' +
         (Permisos.esAdmin() ? '<button class="btn sm" id="bdBorrar" type="button">Borrar la demostración</button>' : '');
       z.appendChild(d);
       const b = $('#bdBorrar'); if (b) b.onclick = () => Admin.borrarDemo();
@@ -7349,7 +7403,7 @@ Vistas.m00 = function(st){
     const activas = fuentes.filter(f => f.salud === 'activa').length, caidas = fuentes.filter(f => f.salud === 'caída' || f.salud === 'degradada').length;
     const ejs = Datos.lista('ejecuciones').filter(e => e.fin).sort((a,b) => a.fin < b.fin ? 1 : -1);
     $('#t0Ind').innerHTML =
-      stat('Índice de la canasta', ind ? cant(ind.valor) : '—', ind ? 'Base 100 = ' + fmtMes(r.meses[0]) + ' · ' + ind.insumos + ' insumos' : 'Sin datos en el periodo', true) +
+      stat('Índice de la canasta', ind ? cant(ind.valor) : '—', ind ? 'Base 100 = ' + fmtMes(ind.base || r.meses[0]) + ' · ' + ind.insumos + ' insumos' : 'Sin datos en el periodo', true) +
       stat('Variación mensual', ind ? UI.variacionHTML(ind.mensual) : '—', ind ? fmtMes(ind.mes) + ' frente al mes anterior' : '') +
       stat('Año corrido · 12 meses', ind ? UI.variacionHTML(ind.anio) + ' · ' + UI.variacionHTML(ind.doce) : '—', 'Frente a diciembre y al mismo mes del año anterior') +
       stat('Cobertura', r.conDato + ' de ' + r.nInsumos, 'Insumos con dato de menos de 30 días') +
@@ -7767,6 +7821,7 @@ const Ficha = (function(){
   }
 
   async function actualizarAhora(ins, estado, pintar){
+    if (Motor.enCurso()){ UI.toast('Ya hay una actualización en curso. Espere a que termine.', 'bad'); return; }
     const ciudades = Array.from(new Set([estado.ciudad].concat(Informes.ciudadesPorDefecto())));
     const antes = Datos.consolidado(ins.id, estado.ciudad);
     const pr = UI.progreso('Actualizando ' + ins.descripcion, 'Recalculando con las observaciones registradas…');
@@ -8222,7 +8277,7 @@ const ActualizarUI = (function(){
           : '<div class="card-body">' + UI.vacio('◌', 'Ningún precio cambió', 'Los insumos del alcance siguen con el mismo precio.') + '</div>') + '</div>' +
       '<div class="btn-row" style="justify-content:space-between;margin-top:var(--gap)"><button class="btn" id="a2Nueva" type="button">Nueva actualización</button>' +
         '<div class="btn-row"><button class="btn" id="a2Revisar" type="button">Revisar cambios en la base</button>' + (Permisos.puede('cortes') ? '<button class="btn primary" id="a2Corte" type="button">Crear corte</button>' : '') + '</div></div>';
-    $$('[data-f]', z).forEach(b => b.onclick = () => Ficha.abrir(b.dataset.f, b.dataset.c, 'resumen'));
+    $$('[data-f]', z).forEach(b => b.onclick = () => Ficha.abrir(b.dataset.f, b.dataset.c, 'obs'));
     $('#a2Nueva', z).onclick = () => { E = nuevo(); pintar($('#c02')); };
     $('#a2Revisar', z).onclick = () => { Sesion.filtros.base = Object.assign({}, Sesion.filtros.base || {}, { fuente:'', mostrar:'mercado', pagina:1 }); Sesion.tabs['01'] = 'precios'; App.ir('01'); };
     if ($('#a2Corte', z)) $('#a2Corte', z).onclick = () => CortesUI.crear();
@@ -8891,9 +8946,10 @@ const CotizacionesUI = (function(){
   /* ── Importar Excel, CSV o PDF con revisión humana ── */
   const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   async function filasPDF(bytes){
-    if (typeof pdfjsLib === 'undefined') throw new Error('No está disponible la librería de PDF (pdf.js). Conéctese a internet una vez y vuelva a intentarlo.');
+    if (typeof pdfjsLib === 'undefined') throw new Error('No está disponible la librería de PDF (pdf.js). Conéctese a internet y vuelva a abrir el programa.');
     pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
-    const doc = await pdfjsLib.getDocument({ data:new Uint8Array(bytes), isEvalSupported:false }).promise;
+    // pdf.js transfiere los bytes a su worker y los deja inservibles: se le entrega una copia.
+    const doc = await pdfjsLib.getDocument({ data:new Uint8Array(bytes).slice(), isEvalSupported:false }).promise;
     const out = [];
     for (let p = 1; p <= doc.numPages; p++){
       const page = await doc.getPage(p);
@@ -8923,17 +8979,20 @@ const CotizacionesUI = (function(){
   async function leerArchivo(f){
     const ext = (String(f.nombre).toLowerCase().match(/\.([a-z0-9]+)$/) || [])[1] || '';
     if (ext === 'pdf') return { tipo:'pdf', hojas:[{ nombre:'PDF', filas:await filasPDF(f.datos) }] };
-    if (!Documentos.hayXLSX()) throw new Error('No está disponible la librería de Excel (SheetJS). Conéctese a internet una vez y vuelva a intentarlo.');
+    if (!Documentos.hayXLSX()) throw new Error('No está disponible la librería de Excel (SheetJS). Conéctese a internet y vuelva a abrir el programa.');
     const wb = (ext === 'csv' || ext === 'txt') ? XLSX.read(texto(f.datos), { type:'string', raw:true }) : XLSX.read(new Uint8Array(f.datos), { type:'array' });
     return { tipo:ext === 'txt' ? 'csv' : (ext || 'excel'), hojas:wb.SheetNames.map(n => ({ nombre:n, filas:XLSX.utils.sheet_to_json(wb.Sheets[n], { header:1, raw:true, defval:'' }) })) };
   }
   /** Encabezado y columnas: por nombre si hay encabezado; si no, por contenido. */
   function detectarColumnas(filas){
     const prueba = (re, c) => re.test(normaliza(c));
-    const R = { desc:/descrip|producto|articulo|item|detalle|material|nombre|concepto/, precio:/precio|valor|vr\b|vlr|unitario|tarifa|costo/, unidad:/^(unidad|und|un|um|u\.m|medida)$|unidad/, codigo:/^(codigo|cod|ref|referencia|sku|item)$/ };
+    // La descripción se busca por orden de preferencia: en las cotizaciones colombianas
+    // «Ítem» suele ser el número del renglón y va antes que «Descripción».
+    const R = { desc:[/descrip/, /producto|articulo|detalle|material|nombre|concepto/, /^item$/], precio:/precio|valor|vr\b|vlr|unitario|tarifa|costo/, unidad:/^(unidad|und|un|um|u\.m|medida)$|unidad/, codigo:/^(codigo|cod|ref|referencia|sku|item)$/ };
+    const columnaDesc = f => { for (const re of R.desc){ const k = f.findIndex(c => prueba(re, c)); if (k >= 0) return k; } return -1; };
     for (let i = 0; i < Math.min(40, filas.length); i++){
       const f = filas[i] || [];
-      const d = f.findIndex(c => prueba(R.desc, c)), p = f.findIndex(c => prueba(R.precio, c) && !/total|cantidad/.test(normaliza(c)));
+      const d = columnaDesc(f), p = f.findIndex(c => prueba(R.precio, c) && !/total|cantidad/.test(normaliza(c)));
       if (d >= 0 && p >= 0) return { encabezado:i, desc:d, precio:p, unidad:f.findIndex((c, k) => k !== d && k !== p && prueba(R.unidad, c)), codigo:f.findIndex((c, k) => k !== d && prueba(R.codigo, c)) };
     }
     const ancho = Math.max.apply(null, filas.slice(0, 200).map(f => (f || []).length).concat([0]));
@@ -9006,11 +9065,12 @@ const CotizacionesUI = (function(){
     UI.pedirArchivo('.xlsx,.xls,.csv,.txt,.pdf', async f => {
       const pr = UI.progreso('Leyendo el archivo', f.nombre);
       try {
+        const hash = Cripto.hex(Cripto.sha256Bytes(new Uint8Array(f.datos)));
         const arch = await leerArchivo(f);
         const hojas = arch.hojas.filter(h => h.filas.length);
         if (!hojas.length) throw new Error('El archivo no tiene filas.');
         const hoja = hojas.slice().sort((a,b) => b.filas.length - a.filas.length)[0];
-        const archivo = { nombre:f.nombre, peso:f.peso, tipo:arch.tipo, hash:Cripto.hex(Cripto.sha256Bytes(new Uint8Array(f.datos))) };
+        const archivo = { nombre:f.nombre, peso:f.peso, tipo:arch.tipo, hash };
         pr.cerrar();
         revisar({ hojas, hoja, archivo, clase });
       } catch(e){ pr.cerrar(); RegistroTecnico.anotar('Importar precios', e); UI.aviso('No fue posible leer el archivo', '<p>' + esc(e.message || e) + '</p>'); }
@@ -9415,7 +9475,7 @@ const ManoObra = (function(){
             (!k.sinSalario && Permisos.puede('adoptar') ? '<button class="btn xs" data-adop="' + esc(ins.id) + '" type="button">Adoptar</button>' : '') + '</div></td></tr>';
       }).join('') + '</tbody></table></div></div>';
     $('#m5Ciudad', c).onchange = e => { Sesion.ciudad = e.target.value; vistaOficios(c); };
-    $$('[data-fi]', c).forEach(b => b.onclick = () => Ficha.abrir(b.dataset.fi, ciudad, 'resumen'));
+    $$('[data-fi]', c).forEach(b => b.onclick = () => Ficha.abrir(b.dataset.fi, ciudad, 'obs'));
     $$('[data-sal]', c).forEach(b => b.onclick = () => registrarSalario(Datos.insumo(b.dataset.sal), ciudad, () => vistaOficios(c)));
     $$('[data-des]', c).forEach(b => b.onclick = () => desglose(Datos.insumo(b.dataset.des), ciudad));
     $$('[data-adop]', c).forEach(b => b.onclick = () => adoptar(Datos.insumo(b.dataset.adop), ciudad, () => vistaOficios(c)));
@@ -9640,7 +9700,9 @@ Vistas.m06 = function(st){
 const Comparador = (function(){
   /* ── Entre ciudades ── */
   function ciudades(c){
-    const F = Sesion.filtros.cmpCiu = Sesion.filtros.cmpCiu || { ciudades:Informes.ciudadesPorDefecto().slice(0, 6), grupo:'', q:'', precio:'adoptado', soloConDato:true };
+    const F = Sesion.filtros.cmpCiu = Sesion.filtros.cmpCiu || { ciudades:[], elegidas:false, grupo:'', q:'', precio:'adoptado', soloConDato:true };
+    // Mientras el usuario no elija, las ciudades siguen a los datos (al cargar precios o la demostración, aparecen).
+    if (!F.elegidas) F.ciudades = Informes.ciudadesPorDefecto().slice(0, 6);
     if (F.ciudades.length < 2){
       const extra = Datos.ciudadesActivas().map(x => x.codigoDivipola).filter(x => F.ciudades.indexOf(x) < 0).slice(0, 2 - F.ciudades.length);
       F.ciudades = F.ciudades.concat(extra);
@@ -9660,7 +9722,7 @@ const Comparador = (function(){
       UI.conectarOrden('#tCmpCiu');
     };
     let tm = null;
-    $('#cpCiu', c).addEventListener('cambio', e => { clearTimeout(tm); tm = setTimeout(() => { F.ciudades = e.detail || UI.valorMulti('cpCiu'); pintar(); }, 450); });
+    $('#cpCiu', c).addEventListener('cambio', e => { clearTimeout(tm); tm = setTimeout(() => { F.ciudades = e.detail || UI.valorMulti('cpCiu'); F.elegidas = true; pintar(); }, 450); });
     $('#cpGrupo', c).onchange = e => { F.grupo = e.target.value; pintar(); };
     $('#cpPrecio', c).onchange = e => { F.precio = e.target.value; pintar(); };
     $('#cpSolo', c).onchange = e => { F.soloConDato = e.target.checked; pintar(); };
@@ -10222,7 +10284,7 @@ const ExportarUI = (function(){
     }
   }
   function alertaLibreria(nombre){
-    return '<div class="alert warn"><div class="ic">!</div><div class="bd"><b>No está disponible la librería ' + esc(nombre) + '.</b> Se carga de internet la primera vez; conéctese una vez y vuelva a abrir el programa.</div></div>';
+    return '<div class="alert warn"><div class="ic">!</div><div class="bd"><b>No está disponible la librería ' + esc(nombre) + '.</b> Se carga de internet al abrir el programa: conéctese y vuelva a abrirlo.</div></div>';
   }
 
   /* ── Paso 6: generar ── */
@@ -10931,12 +10993,12 @@ const ListaMaestraUI = (function(){
           (r.nuevos || 0) + ' a la bandeja · ' + (r.omitidas || 0) + ' sin acción</div></div>' +
         '<h4 style="margin:16px 0 6px">Análisis ABC por valor presupuestado</h4>' +
         (total > 0 ? '<div class="grid g3">' + ['A','B','C'].map(k => '<div class="stat' + (k === 'A' ? ' accent' : '') + '"><div class="lab">Clase ' + k + '</div><div class="val">' + porClase[k].n + ' insumos</div><div class="foot">' +
-            pct(porClase[k].v / total) + ' del valor · ' + money(porClase[k].v) + '</div></div>').join('') + '</div>' +
+            pct(100 * porClase[k].v / total) + ' del valor · ' + money(porClase[k].v) + '</div></div>').join('') + '</div>' +
           '<p class="small muted">Los de clase A concentran el 80 % del valor del presupuesto: son los primeros que conviene cotizar y actualizar.</p>' +
           '<div class="tw" style="max-height:50vh;overflow:auto"><table class="t" id="tAbc"><thead><tr><th>Clase</th><th>Código ARKEN</th><th>Descripción</th><th>Unidad</th><th class="n">Precio en ARKEN</th><th class="n">Valor presupuestado</th><th class="n">Participación</th><th>En el catálogo</th></tr></thead><tbody>' +
           clases.filter(f => f.clase !== 'C').slice(0, 200).map(f => { const e = eqPorDesc.get(normaliza(f.descripcion));
             return '<tr><td><span class="tag ' + (f.clase === 'A' ? 'brass' : 'info') + '">' + f.clase + '</span></td><td><span class="cod">' + esc(f.codigo) + '</span></td><td>' + esc(f.descripcion) + '</td><td>' + esc(f.unidad) + '</td>' +
-              '<td class="n">' + money(f.precio) + '</td><td class="n">' + money(f.valor) + '</td><td class="n">' + pct(f.participacion) + '</td><td>' +
+              '<td class="n">' + money(f.precio) + '</td><td class="n">' + money(f.valor) + '</td><td class="n">' + pct(100 * f.participacion, 2) + '</td><td>' +
               (e ? '<button class="btn xs ghost" type="button" data-fi="' + esc(e.insumoId) + '">' + esc(Piezas.nombreInsumo(e.insumoId)).slice(0, 60) + '</button>' : '<span class="tag warn">sin equivalencia</span>') + '</td></tr>'; }).join('') +
           '</tbody></table></div>' : '<p class="small muted">La lista no trae cantidades presupuestadas (el proyecto aún no tiene presupuesto): no hay análisis ABC.</p>');
     }
@@ -11382,7 +11444,7 @@ const ConfigUI = (function(){
    ══════════════════════════════════════════════════════════════════════════ */
 Vistas.m11 = function(st){
   const temas = [
-    ['Qué es ARKEN PRECIOS', '<p>Un observatorio de precios de insumos de obra que trabaja junto a ARKEN CONTROL. Guarda cada precio con su <b>fuente</b>, su <b>fecha</b>, su <b>ciudad</b> y el <b>texto literal</b> donde apareció, y calcula un precio recomendado por insumo y ciudad.</p><p>Funciona en este equipo, sin internet, salvo para actualizar desde fuentes en línea (Fases 2 y 3). Los datos viven en el navegador: descargue un respaldo con frecuencia.</p>'],
+    ['Qué es ARKEN PRECIOS', '<p>Un observatorio de precios de insumos de obra que trabaja junto a ARKEN CONTROL. Guarda cada precio con su <b>fuente</b>, su <b>fecha</b>, su <b>ciudad</b> y el <b>texto literal</b> donde apareció, y calcula un precio recomendado por insumo y ciudad.</p><p>Funciona en este equipo, sin internet, salvo para actualizar desde fuentes en línea (Fases 2 y 3). Las librerías de Excel y PDF se cargan de internet al abrir el programa, como en ARKEN CONTROL: si lo abre sin conexión, todo lo demás funciona y el PDF sale por la impresión del navegador. Los datos viven en el navegador: descargue un respaldo con frecuencia.</p>'],
     ['Primeros pasos', '<ol><li>Entre con <code>admin</code> y la contraseña inicial, y cámbiela (Administración › Usuarios).</li><li>Configure la empresa, el logo y la ciudad de referencia (Módulo 10).</li><li>Importe la lista maestra de su proyecto de ARKEN (Módulo 09 › Lista maestra).</li><li>Registre cotizaciones o precios (Módulo 04) y actualice (Módulo 02).</li><li>Revise la base (Módulo 01), cree un corte y exporte el Excel para ARKEN (Módulo 08).</li></ol><p>Para conocer el programa sin datos reales, cargue la <b>demostración</b> en Administración: todo queda rotulado DEMO y se borra con un botón.</p>'],
     ['De dónde sale cada precio', '<p>El <b>precio recomendado</b> es la mediana ponderada de las observaciones válidas de los últimos días (45 por defecto). Cada observación pesa según la confiabilidad de su fuente, su frescura y el tipo de precio (una cotización pesa más que una tienda). Antes se descartan los atípicos.</p><p>Si en la ciudad hay pocas observaciones, se completan con la subregión, la región o el país, ajustadas por el factor regional, y el precio lo dice en «Nivel».</p><p>Un insumo que nunca se ha actualizado muestra su <b>precio de referencia</b> (<span class="tag ref">REF</span>): el que trae ARKEN en su catálogo, sin fecha de mercado.</p>'],
     ['Ver el soporte de un precio', '<p>Clic en cualquier precio abre su ficha en la pestaña <b>Observaciones</b>: cada una con su enlace, el texto literal, la fecha, la fuente y si entró o no al cálculo. Son dos clics desde cualquier precio.</p>'],
