@@ -1,0 +1,39 @@
+name: Sondeo de fuentes (desechable)
+
+# Rama de trabajo temporal: lee robots.txt, términos y una muestra de datos de las fuentes
+# candidatas de ARKEN PRECIOS desde un equipo con salida a internet. No va a main.
+
+on:
+  push:
+    branches: [precios-sondeo]
+
+permissions:
+  contents: read
+
+jobs:
+  sondeo:
+    name: Sondeo ${{ matrix.grupo }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        grupo: [dane, socrata, entidades, tiendas]
+    defaults:
+      run:
+        working-directory: precios
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci --omit=optional
+      - name: Sondeo
+        env:
+          SONDEO: ${{ matrix.grupo }}
+        run: node herramientas/sondeo-fuentes.mjs salida-${{ matrix.grupo }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: sondeo-${{ matrix.grupo }}
+          path: precios/salida-${{ matrix.grupo }}
+          if-no-files-found: ignore
