@@ -6,16 +6,17 @@ App hermana de ARKEN CONTROL: investiga, guarda con su historia y consolida los 
 
 Dos piezas, porque una página web no puede leer otros sitios (CORS):
 
-1. **El programa**, `precios/programa/ARKEN_PRECIOS.html`. Un solo archivo, como ARKEN CONTROL, que funciona sin internet. Lleva tres bloques de código: el **núcleo** (cálculo puro: lector de precios, unidades, IVA y AIU, estadística, consolidación, emparejamiento, calculadora laboral y validador del Excel para ARKEN), que corre igual en la página, en un Web Worker y en las pruebas de Node; la **semilla** (taxonomía, catálogo, ciudades, fuentes y parámetros); y la **interfaz** (IndexedDB, módulos 00 a 11, documentos).
-2. **El motor de actualización**, `precios/motor/` (Node 22, Fase 3), dentro de Electron o como servidor opcional `precios/servidor/`. El Investigador IA (Fase 2) puede correr desde el programa porque la búsqueda ocurre en los servidores de Anthropic.
+1. **El programa**, `precios/programa/ARKEN_PRECIOS.html`. Un solo archivo, como ARKEN CONTROL, que funciona sin internet. Lleva cuatro bloques de código: el **SDK oficial de Anthropic** (`@anthropic-ai/sdk`, empaquetado desde versiones fijas); el **núcleo** (cálculo puro: lector de precios, unidades, IVA y AIU, estadística, consolidación, emparejamiento, calculadora laboral, validador del Excel para ARKEN y el Investigador IA sin red: solicitud, lectura de la respuesta, verificación literal, destino de cada hallazgo y costo), que corre igual en la página, en un Web Worker y en las pruebas de Node; la **semilla** (taxonomía, catálogo, ciudades, fuentes y parámetros); y la **interfaz** (IndexedDB, clave cifrada, llamadas a la API, módulos 00 a 11, documentos).
+2. **El motor de actualización**, `precios/motor/` (Node 22, Fase 3), dentro de Electron o como servidor opcional `precios/servidor/`. El Investigador IA (Fase 2) corre desde el programa porque la búsqueda y la lectura de páginas ocurren en los servidores de Anthropic.
 
 ## Estructura de archivos
 
 ```
 precios/
   programa/ARKEN_PRECIOS.html   el programa, sin datos
-  herramientas/                 verificar-sin-datos.mjs
-  pruebas/                      unitarias, ida y vuelta con ARKEN CONTROL, humo en Chromium
+  herramientas/                 verificar-sin-datos.mjs, armar-sdk.mjs (rehace y compara el SDK incrustado)
+  herramientas/sdk/             versiones fijas del SDK de Anthropic y de esbuild
+  pruebas/                      unitarias, Investigador IA (núcleo y de punta a punta), ida y vuelta con ARKEN CONTROL, humo en Chromium
   PLAN.md  DECISIONES.md  CAMBIOS.md  GUIA_DE_PRUEBA.md  README.md
   (Fase 3) motor/  servidor/  app/  electron/  android/  ios/  recursos/
 .github/workflows/precios.yml   pruebas de ARKEN PRECIOS en cada cambio
@@ -24,6 +25,8 @@ precios/
 ## Modelo de datos (IndexedDB `arken_precios`, esquema versionado)
 
 `insumos` · `taxonomia` · `equivalenciasArken` · `ciudades` · `fuentes` · `vinculosProducto` · **`observaciones`** (el corazón: nunca se borran ni se sobrescriben; registro por cambios) · `consolidados` · `cortes` (un corte cerrado es inmutable) · `preciosAdoptados` · `ejecuciones` · `cotizaciones` · `fletes` · `parametros` (por vigencia) · `alertas` · `vistasGuardadas` · `propuestas` (bandejas de nuevos insumos y fuentes) · `usuarios` (PBKDF2) · `auditoria` · `configuracion`. Índices: observaciones por `[insumoId, ciudad, fechaCaptura]`, `fuenteId`, `ejecucionId`; consolidados por `[insumoId, ciudad, fecha]`.
+
+Versión 2 (Fase 2): `hallazgos` (lo que encontró el Investigador IA, con su verificación y su destino), `investigaciones` (cada búsqueda de un insumo en una ciudad, con su costo) y `secretos` (la clave de API cifrada, que no sale del equipo ni entra en los respaldos).
 
 ## Fuentes candidatas (todas por certificar)
 
@@ -41,7 +44,7 @@ precios/
 
 ## Fases
 
-1. **Núcleo sin internet** (este PR): sistema visual de ARKEN, ingreso y roles, catálogo (336 de ARKEN + más de 300 nuevos), ciudades, equivalencias e importación de la lista maestra de ARKEN, cotizaciones y precios manuales, listas históricas, consolidación y cortes, Base de precios, mano de obra, Excel para ARKEN con su validador, Excel de análisis, PDF e impresión, respaldos, tablero básico y modo demostración rotulado.
-2. Investigador IA con verificación, bandejas de revisión, vínculos y centro de actualización completo.
+1. **Núcleo sin internet** (hecha): sistema visual de ARKEN, ingreso y roles, catálogo (336 de ARKEN + más de 300 nuevos), ciudades, equivalencias e importación de la lista maestra de ARKEN, cotizaciones y precios manuales, listas históricas, consolidación y cortes, Base de precios, mano de obra, Excel para ARKEN con su validador, Excel de análisis, PDF e impresión, respaldos, tablero básico y modo demostración rotulado.
+2. **Investigador IA** (hecha): búsqueda abierta con verificación literal, bandejas de revisión, vínculos de producto, centro de actualización completo (alcances, progreso y resultados) y control de costo.
 3. Motor, conectores certificados, escritorio y celular, servidor y paquetes de precios.
 4. Analítica completa, alertas, comparador avanzado, precio puesto en obra y catálogo de más de 1.000 insumos.

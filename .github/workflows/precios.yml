@@ -1,8 +1,10 @@
 name: ARKEN PRECIOS
 
-# Pruebas de ARKEN PRECIOS (carpeta precios/): el núcleo de cálculo, la ida y vuelta con el
+# Pruebas de ARKEN PRECIOS (carpeta precios/): el núcleo de cálculo, el Investigador IA con la
+# API de Claude simulada (nunca con una clave real), la ida y vuelta con el
 # programa/ARKEN_CONTROL.html real de este repositorio y la prueba de humo en Chromium.
-# Corren también cuando cambia ARKEN CONTROL, porque el contrato de importación vive allí.
+# También se comprueba que el SDK de Anthropic que va dentro del programa es el oficial, sin
+# cambios. Corren también cuando cambia ARKEN CONTROL, porque el contrato de importación vive allí.
 
 on:
   push:
@@ -40,13 +42,22 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: precios/package-lock.json
+          cache-dependency-path: |
+            precios/package-lock.json
+            precios/herramientas/sdk/package-lock.json
       # Sin las dependencias opcionales de pdf.js (canvas): las pruebas solo leen el texto de los PDF.
       - run: npm ci --omit=optional
+      # El SDK oficial y esbuild, con sus versiones fijas, para rehacer el bloque del SDK y compararlo.
+      # Aquí sí van las dependencias opcionales: el binario de esbuild es una de ellas.
+      - run: npm run sdk:instalar
       - name: El programa no trae datos de la empresa
         run: npm run verificar-sin-datos
+      - name: El SDK incrustado es el oficial de Anthropic, sin cambios
+        run: npm run sdk:comprobar
       - name: Núcleo de cálculo (formatos de precio, unidades, IVA, AIU, estadística, mano de obra)
         run: npm run prueba:unitarias
+      - name: Investigador IA (verificación literal, bandejas, costo y clave) con la API simulada
+        run: npm run prueba:investigador
       - name: Ida y vuelta con ARKEN CONTROL real
         run: npm run prueba:ida-y-vuelta
       - name: Prueba de humo en Chromium (módulos, exportaciones, temas, densidades y 360 px)
