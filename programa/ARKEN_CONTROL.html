@@ -235,10 +235,17 @@ textarea.av-input{ resize:vertical; }
 /* ============================================================
    REVISIÓN DE PRERREQUISITOS — módulo 09
    ============================================================ */
-.prq-scroll{ max-height:60vh; overflow:auto; }
+.prq-scroll{ max-height:60vh; overflow:auto; position:relative; }
 .prq-tabla{ width:100%; border-collapse:collapse; }
 .prq-tabla th, .prq-tabla td{ border:1px solid var(--line); padding:4px 6px; }
-.prq-tabla thead th{ position:sticky; top:0; background:var(--paper); z-index:2; }
+/* El encabezado numerado queda fijo justo debajo de la leyenda (no en top:0):
+   --prq-ley-h se mide en vivo con el alto real de la leyenda (ver
+   ajustarLeyendaPrereq), así nunca queda un hueco ni se tapan entre sí.
+   Selector reforzado a propósito: ".tw.scroll table.t th" (más genérico,
+   usado por el resto de tablas con scroll de la app) tiene más clases y por
+   especificidad CSS le ganaría a una regla ".prq-tabla thead th" más simple,
+   dejando el top en 0 de nuevo — por eso aquí se igualan clases. */
+.tw.scroll.prq-scroll table.t.prq-tabla thead th{ position:sticky; top:var(--prq-ley-h,0px); background:var(--paper); z-index:6; }
 .prq-actcol{ min-width:220px; max-width:280px; text-align:left; position:sticky; left:0; background:var(--surface); z-index:1; }
 .prq-tabla thead .prq-actcol{ z-index:3; background:var(--paper); }
 .prq-actcod{ font-family:var(--font-mono,monospace); font-size:10px; color:var(--slate); }
@@ -253,8 +260,13 @@ textarea.av-input{ resize:vertical; }
 .prq-row.prq-ok .prq-actcol{ background:var(--ok-soft, #eef7f0); }
 .prq-row:hover td{ background:var(--mist); }
 .prq-row.prq-ok:hover .prq-actcol{ background:var(--ok-soft, #eef7f0); }
-.prq-leyenda{ margin-top:12px; padding:10px 12px; background:var(--paper); border:1px solid var(--line);
-  border-radius:var(--r); font-size:11px; line-height:1.7; color:var(--slate); }
+/* Convenciones: ahora vive DENTRO del mismo recuadro con scroll, pegada a su
+   inicio (top:0 y left:0, como una esquina congelada) — así permanece visible
+   sin bajar, sin importar cuánto se recorra la tabla vertical u horizontalmente. */
+.prq-leyenda{ position:sticky; top:0; left:0; z-index:7; margin:0; padding:9px 12px;
+  background:var(--paper); border-bottom:2px solid var(--brass);
+  box-shadow:0 2px 6px -3px rgba(0,0,0,.18); font-size:11px; line-height:1.7; color:var(--slate); }
+.prq-leyenda b{ color:var(--ink-2); }
 .prq-conv{ white-space:nowrap; }
 
 /* ============================================================
@@ -1550,6 +1562,7 @@ table.t.presu th{ position:sticky; top:0; z-index:6; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js"></script>
 
 <script>
 
@@ -4141,6 +4154,34 @@ const Calculo = (function(){
     return redondearDec(cantidadEnActividad(p, idActividad, idInsumo) -
                         comprometidoEnActividad(p, idActividad, idInsumo, excepto), 4);
   }
+  /** Lo ya consumido de ese insumo, en esa actividad puntual, a través de
+      SALIDAS DE ALMACÉN ya registradas. comprometidoEnActividad (arriba)
+      nunca mira salidas: esa función responde una pregunta de COMPRAS
+      («cuánto más puedo pedir o facturar contra esta actividad»), vigente
+      antes de que el insumo exista en el almacén. Esta otra responde la
+      pregunta de CONSUMO REAL: cuánto de lo presupuestado para esa actividad
+      ya salió físicamente hacia ella. Son dos topes distintos a propósito. */
+  function comprometidoSalidaEnActividad(p, idActividad, idInsumo, exceptoSalida){
+    let q = 0;
+    (p.salidas||[]).forEach(s => {
+      if (exceptoSalida && s.id === exceptoSalida) return;
+      (s.lineas||[]).forEach(l => { if (l.idInsumo === idInsumo && l.idActividad === idActividad) q += Number(l.cantidad||0); });
+    });
+    return redondearDec(q, 4);
+  }
+  /** Cantidad que todavía admite esa actividad para ese insumo, vista desde
+      el almacén: lo presupuestado menos lo que OTRAS salidas ya le
+      consumieron. Si la actividad no presupuesta nada de ese insumo
+      (cantidadEnActividad = 0) esto da 0 o negativo — a propósito: quien use
+      este número para bloquear debe primero comprobar que sí hay algo
+      presupuestado ahí, porque un insumo real a veces llega con una
+      referencia distinta a la presupuestada (un accesorio de marca puntual
+      frente al ítem genérico del APU) y ese caso no debe bloquearse. */
+  function disponibleSalidaEnActividad(p, idActividad, idInsumo, exceptoSalida){
+    if (!idActividad) return Infinity;
+    return redondearDec(cantidadEnActividad(p, idActividad, idInsumo) -
+                        comprometidoSalidaEnActividad(p, idActividad, idInsumo, exceptoSalida), 4);
+  }
 
   /* ═══════════ 7.9-quater ANTICIPOS ═══════════
      Un anticipo es plata girada contra un trabajo que todavía no existe: no es
@@ -4379,6 +4420,7 @@ const Calculo = (function(){
     invalidar, enConsolidado, ESTADOS_FUERA_CONSOLIDADO,
     precioInventarioConIVA,
     cantidadEnActividad, comprometidoEnActividad, disponibleEnActividad,
+    comprometidoSalidaEnActividad, disponibleSalidaEnActividad,
     anticiposPagados, anticiposAmortizados, anticipoSinAmortizar, anticipoPactado,
     totalesRequerimiento, cantidadComprada, cantidadRequerida, saldoPorComprar,
     disponibleRequerir, pendientePorComprar, estadoRequerimiento,
@@ -4730,6 +4772,16 @@ const Reglas = (function(){
           msg:'«' + (ins?ins.nombre:'insumo') + '»: existencia disponible ' + cant(e) + ', solicita ' + cant(q) + '.' });
       }
     });
+    // NOTA — el tope presupuestal POR ACTIVIDAD (cuánto admite cada actividad
+    // puntual para un insumo dado) se muestra y se avisa en la pantalla de
+    // edición (Calculo.disponibleSalidaEnActividad), pero deliberadamente NO
+    // se bloquea aquí: a diferencia de un contrato (un compromiso que apenas
+    // se va a firmar), una salida mueve material que YA se compró y ya está
+    // pagado, y los datos reales de obra muestran sobrecostos de actividad
+    // genuinos y ya aceptados (igual que sobrecostos() a nivel de todo el
+    // presupuesto). Bloquear aquí dejaría sin forma de reabrir o reeditar
+    // salidas históricas legítimas. El control real pasa por el aviso
+    // visible, nunca por impedir que el almacén despache lo que sí tiene.
     return { ok: errores.length === 0, errores };
   }
 
@@ -5822,7 +5874,7 @@ const Documentos = (function(){
     $('#printPageStyle').textContent = '@page{ size: letter ' +
       (cfg.orientacion === 'l' ? 'landscape' : 'portrait') + '; margin: ' + (cfg.margenCSS || '12mm 11mm') + '; }';
     $('#printRoot').innerHTML = bloquesAHTML(cfg);
-    setTimeout(() => { window.print(); }, 120);
+    setTimeout(() => { (window.ARKEN_IMPRIMIR || window.print).call(window, cfg); }, 120);
   }
 
   /** Punto único de salida de documentos. */
@@ -7731,7 +7783,10 @@ function tabPresupuestoVivo(p, cont){
       '<button class="btn" id="b3Mem" type="button">Memorias de cálculo</button>' +
       '<button class="btn" id="b3Apus" type="button">Catálogo de APU</button>' +
       (ro ? '' : '<button class="btn" id="b3Add" type="button">+ Actividad</button>' +
-      '<button class="btn primary" id="b3Cap" type="button">+ Capítulo</button>') +
+      '<button class="btn primary" id="b3Cap" type="button">+ Capítulo</button>' +
+      '<button class="btn brass" id="b3Imp" type="button" ' +
+        'title="Crea capítulos, subcapítulos, actividades, APU e insumos a partir de un archivo de Excel">' +
+        '⇪ Importar desde Excel</button>') +
       '<select id="b3Exp" style="width:auto"><option value="">Exportar…</option>' +
         '<option value="general">PDF — Presupuesto general</option>' +
         '<option value="cap">PDF — Sólo capítulos</option>' +
@@ -7739,7 +7794,8 @@ function tabPresupuestoVivo(p, cont){
         '<option value="capsubact">PDF — Capítulos, subcapítulos y actividades</option>' +
         '<option value="capsubapu">PDF — Capítulos, subcapítulos y APU</option>' +
         '<option value="apu">PDF — Sólo APU</option>' +
-        '<option value="excel">Excel — Capítulos, subcapítulos y actividades</option></select>' +
+        '<option value="excel">Excel — Capítulos, subcapítulos y actividades</option>' +
+        '<option value="excel_editable">Excel — Editable para reimportar (Insumos, APU y Actividades)</option></select>' +
     '</div>' +
     bloqueTarjetasColapsable('presTarjetas',
       '<div class="grid g4" style="margin-bottom:var(--gap)">' +
@@ -7850,6 +7906,7 @@ function conectarPresupuesto(p, ro){
     };
     $('#b3Cap').onclick = () => nuevoCapitulo(p);
     $('#b3Add').onclick = () => nuevaActividad(p);
+    $('#b3Imp').onclick = () => importarPresupuestoExcel(p);
   }
   $('#b3Todo').onclick = () => { (p.capitulos||[]).forEach(c => Sesion.abiertos[c.id] = true); App.render(); };
   $('#b3Nada').onclick = () => { Sesion.abiertos = {}; App.render(); };
@@ -8981,7 +9038,10 @@ function editarAPU(p, id, despues){
       '<div class="p-sec" style="margin-top:12px">Insumos del análisis</div>' +
       '<div class="toolbar"><div class="field grow"><input id="apBuscar" type="search" placeholder="Buscar insumo en la lista maestra…"></div>' +
       '<select id="apCat" style="width:auto"><option value="">Todas las categorías</option>' +
-        CATEGORIAS_INSUMO.map(c => '<option>' + c + '</option>').join('') + '</select></div>' +
+        CATEGORIAS_INSUMO.map(c => '<option>' + c + '</option>').join('') + '</select>' +
+      '<button class="btn sm brass" id="apNuevoIns" type="button" ' +
+        'title="Crea el insumo en la Lista Maestra (módulo 04) y lo agrega aquí mismo, sin salir del APU">' +
+        '+ NUEVO INSUMO</button></div>' +
       '<div class="grid g2">' +
         '<div><div class="eyebrow" style="margin-bottom:6px">Lista maestra</div>' +
           '<div class="tw scroll" style="max-height:320px"><table class="t" id="apDisp"><thead><tr><th>Código</th><th>Insumo</th>' +
@@ -9044,6 +9104,13 @@ function editarAPU(p, id, despues){
       }
       $('#apBuscar', mm.el).oninput = pintaDisp;
       $('#apCat', mm.el).onchange = pintaDisp;
+      // Mismo flujo de creación que en el módulo 04 (nuevoInsumo), con un
+      // "despues" que lo agrega de una vez a este APU: así no hay que salir
+      // de esta ventana, buscar el insumo recién creado y agregarlo aparte.
+      $('#apNuevoIns', mm.el).onclick = () => nuevoInsumo(p, $('#apCat', mm.el).value || undefined, ins => {
+        trabajo.insumos.push({ idInsumo: ins.id, cantidad: 1 });
+        pintaDisp(); pintaComp();
+      });
       pintaDisp(); pintaComp();
     }
   });
@@ -9216,6 +9283,7 @@ function exportarPresupuesto(p, tipo){
       [{ nombre:'Presupuesto', titulo:'Presupuesto de obra — ' + p.nombre, filas, anchos:[12,52,8,12,15,16,16,16,8] }]);
     return;
   }
+  if (tipo === 'excel_editable'){ exportarPresupuestoImportable(p); return; }
   const cfg = { proyecto:p, orientacion:'l', documento:'Presupuesto' };
   const aiu = Calculo.valorAIU(p), cd = Calculo.costoDirecto(p), tot = Calculo.valorTotal(p);
   const totales = { t:'totales', ancho:96, lineas:[
@@ -9284,6 +9352,59 @@ function exportarPresupuesto(p, tipo){
   Documentos.previsualizar(cfg);
 }
 
+/** Exporta el presupuesto ACTUAL en el mismo formato de 3 hojas que acepta
+    "Importar desde Excel" -con los códigos reales de capítulo, subcapítulo,
+    actividad, APU e insumo-, para poder editarlo en Excel (p. ej. un ajuste
+    masivo de precios, o agregar actividades nuevas a mano) y volver a
+    importarlo en modo Adicionar: cada fila se reconoce por su código y se
+    actualiza en el mismo lugar, sin duplicar nada. Sólo incluye los APU e
+    insumos que el presupuesto usa de verdad -no toda la lista maestra-, así
+    que el archivo queda del tamaño justo para esta obra. */
+function exportarPresupuestoImportable(p){
+  let nActs = 0; Modelo.recorrerActividades(p, () => nActs++);
+  if (!nActs){ UI.toast('Este proyecto no tiene actividades que exportar', 'bad'); return; }
+
+  const apusUsados = new Map(), insumosUsados = new Map();
+  Modelo.recorrerActividades(p, a => {
+    (a.apus||[]).forEach(idApu => {
+      if (apusUsados.has(idApu)) return;
+      const apu = Modelo.apu(p, idApu);
+      if (!apu) return;
+      apusUsados.set(idApu, apu);
+      (apu.insumos||[]).forEach(x => {
+        if (insumosUsados.has(x.idInsumo)) return;
+        const ins = Modelo.insumo(p, x.idInsumo);
+        if (ins) insumosUsados.set(ins.id, ins);
+      });
+    });
+  });
+
+  const hInsumos = [['Código (referencia en este archivo)','Categoría','Descripción del insumo','Unidad','Precio unitario (con IVA incluido)']];
+  insumosUsados.forEach(i => hInsumos.push([i.codigo, i.categoria, i.nombre, i.unidad, i.precio]));
+
+  const hApu = [['Código APU','Nombre del APU','Unidad del APU','Código insumo','Cantidad (rendimiento)']];
+  apusUsados.forEach(apu => {
+    (apu.insumos||[]).forEach((x,i) => {
+      const ins = Modelo.insumo(p, x.idInsumo);
+      hApu.push([apu.codigo, i===0 ? apu.nombre : '', i===0 ? apu.unidad : '', ins ? ins.codigo : '', x.cantidad]);
+    });
+  });
+
+  const hAct = [['Código capítulo','Capítulo','Código subcapítulo','Subcapítulo','Código actividad','Actividad','Unidad','Cantidad','Código(s) de APU']];
+  (p.capitulos||[]).forEach(cap => (cap.subs||[]).forEach(sub => (sub.acts||[]).forEach(a => {
+    const codigosApu = (a.apus||[]).map(id => { const x = Modelo.apu(p,id); return x ? x.codigo : ''; }).filter(Boolean).join(', ');
+    hAct.push([cap.codigo, cap.nombre, sub.codigo, sub.nombre, a.codigo, a.nombre, a.unidad, a.cantidad, codigosApu]);
+  })));
+
+  Documentos.excel('ARKEN_presupuesto_' + (p.codigo||'obra') + '_editable', [
+    { nombre:'Insumos', titulo:'Insumos usados en este presupuesto — edítelos aquí y vuelva a importar en Adicionar', filas:hInsumos, anchos:[14,16,44,10,22] },
+    { nombre:'APU', titulo:'Análisis de precios unitarios usados en este presupuesto', filas:hApu, anchos:[12,40,12,16,18] },
+    { nombre:'Actividades', titulo:'Capítulos, subcapítulos y actividades de este presupuesto', filas:hAct, anchos:[12,26,14,26,12,34,8,10,16] }
+  ]);
+  // Documentos.excel ya audita y guarda por su cuenta (como cualquier otra
+  // exportación a Excel del sistema); no hace falta repetirlo aquí.
+}
+
 function cuerpoDetallado(p, sinInvertido){
   const body = [];
   (p.capitulos||[]).forEach(c => {
@@ -9323,6 +9444,701 @@ function cuerpoDetallado(p, sinInvertido){
     });
   });
   return body;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   IMPORTAR PRESUPUESTO DESDE EXCEL — módulo 03
+   El archivo trae tres hojas de datos (Insumos, APU y Actividades) más una
+   de Instrucciones. Se lee y se valida TODO antes de tocar el modelo: si hay
+   un solo error se listan todos de una vez -hoja, fila y motivo exactos- para
+   que se corrijan de un solo golpe en Excel, nunca uno por uno a ciegas.
+   Sólo si no hay errores se crean capítulos, subcapítulos, actividades, APU
+   e insumos -creando de paso los insumos y APU que hagan falta y reutilizando
+   por nombre los que ya existan, para no duplicar la lista maestra.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/** Ubica, dentro de una fila de encabezado, la columna que cumple una regla:
+    debe contener TODAS las palabras de al menos uno de los grupos de "si" (se
+    admite un grupo solo -['capitulo'/'codigo']- o varias alternativas
+    -[['descrip'],['nombre']]-), y NINGUNA de las de "no". Cada columna se
+    reclama una sola vez y en el orden de las reglas, para que "código
+    capítulo" no termine capturando también la celda de "capítulo" a secas. */
+function ubicarColumnas(encabezado, reglas){
+  const normE = (encabezado||[]).map(c => normaliza(c||''));
+  const usada = new Array(normE.length).fill(false);
+  const cumpleGrupo = (texto, grupo) => (grupo||[]).every(w => texto.indexOf(w) >= 0);
+  const col = {};
+  reglas.forEach(r => {
+    const alternativas = Array.isArray(r.si[0]) ? r.si : [r.si];
+    let idx = -1;
+    for (let i = 0; i < normE.length; i++){
+      if (usada[i]) continue;
+      if ((r.no||[]).some(w => normE[i].indexOf(w) >= 0)) continue;
+      if (alternativas.some(alt => cumpleGrupo(normE[i], alt))){ idx = i; break; }
+    }
+    if (idx >= 0) usada[idx] = true;
+    col[r.k] = idx;
+  });
+  return col;
+}
+
+/** Encuentra, dentro del libro, la hoja cuyo nombre contiene "palabraHoja"
+    (sin acentos ni mayúsculas) y, dentro de ella, la fila de encabezado real:
+    la primera con al menos 3 celdas no vacías que además contenga
+    "palabraEncabezado". El mínimo de 3 celdas es lo que evita confundir el
+    encabezado con el título de una sola celda que antepone Documentos.excel
+    a cada hoja (p. ej. "...y Actividades del presupuesto" también contiene
+    "activ", pero cabe en una sola celda). Las filas de datos guardan su
+    número real de Excel (1-based) para que los errores señalen la fila exacta. */
+function leerHojaExcel(wb, palabraHoja, palabraEncabezado){
+  const nombreHoja = wb.SheetNames.find(n => normaliza(n).indexOf(palabraHoja) >= 0);
+  if (!nombreHoja) return null;
+  const filas = XLSX.utils.sheet_to_json(wb.Sheets[nombreHoja], { header:1, defval:'' });
+  const iEnc = filas.findIndex(r => r.filter(c => String(c||'').trim() !== '').length >= 3 &&
+    r.some(c => normaliza(c||'').indexOf(palabraEncabezado) >= 0));
+  if (iEnc < 0) return { nombreHoja, encabezado:null, datos:[] };
+  const datos = [];
+  for (let i = iEnc + 1; i < filas.length; i++){
+    const r = filas[i];
+    if (!r || r.every(c => String(c||'').trim() === '')) continue; // fila en blanco: se ignora, no corta la lectura
+    datos.push({ fila:i + 1, celdas:r });
+  }
+  return { nombreHoja, encabezado:filas[iEnc], datos };
+}
+
+const COLS_ACTIVIDADES_IMP = [
+  // "sub" se excluye de codCap/nomCap porque "subcapitulo" contiene "capitulo"
+  // como subcadena: sin el no:['sub'], la columna de "Código subcapítulo"
+  // podía confundirse con la de "Código capítulo" si aparecía antes en la hoja.
+  { k:'codCap', si:['codigo','capitulo'], no:['sub'] },
+  { k:'nomCap', si:['capitulo'], no:['codigo','sub'] },
+  { k:'codSub', si:['codigo','sub'] },
+  { k:'nomSub', si:['sub'], no:['codigo'] },
+  { k:'codAct', si:['codigo','activ'] },
+  { k:'nomAct', si:['activ'], no:['codigo'] },
+  { k:'unidad', si:['unidad'] },
+  { k:'cantidad', si:['cantidad'] },
+  { k:'apu', si:['apu'] }
+];
+const COLS_APU_IMP = [
+  { k:'codApu', si:['codigo','apu'] },
+  { k:'nomApu', si:['apu'], no:['codigo'] },
+  { k:'unidad', si:['unidad'] },
+  { k:'codIns', si:['codigo','insumo'] },
+  { k:'cantidad', si:['cantidad'] }
+];
+const COLS_INSUMOS_IMP = [
+  { k:'codigo', si:['codigo'] },
+  { k:'categoria', si:['categor'] },
+  { k:'nombre', si:[['descrip'],['nombre']], no:['apu','capitulo','sub','activ'] },
+  { k:'unidad', si:['unidad'] },
+  { k:'precio', si:['precio'] }
+];
+
+/* ─────────── Plantilla de ejemplo ─────────── */
+function plantillaEjemploPresupuesto(){
+  const hInstrucciones = [
+    ['CÓMO IMPORTAR UN PRESUPUESTO A ARKEN CONTROL'],
+    [],
+    ['Este archivo tiene cuatro hojas. Diligencie en este orden: primero Insumos, luego APU, y al final Actividades.'],
+    [],
+    ['1. HOJA "INSUMOS" — los insumos nuevos que necesita el presupuesto'],
+    ['Columnas: Código (referencia en este archivo) · Categoría · Descripción del insumo · Unidad · Precio unitario (con IVA incluido).'],
+    ['El "Código" de esta hoja es sólo una referencia PARA ESTE ARCHIVO: sirve para que la hoja APU diga de qué insumo habla. No tiene que coincidir con ningún código ya existente en ARKEN CONTROL.'],
+    ['Si la Descripción ya existe en el proyecto (se compara por nombre, sin importar tildes ni mayúsculas), se reutiliza el insumo existente en vez de crear uno nuevo — usted decide, al momento de importar, si además quiere actualizar su precio.'],
+    ['Categorías válidas: ' + CATEGORIAS_INSUMO.join(' · ') + '. Si la deja en blanco o escribe otra, se usa "Materiales".'],
+    ['Si deja la Unidad en blanco, se usa "UN". Si deja el Precio en blanco, se usa 0.'],
+    [],
+    ['2. HOJA "APU" — de qué insumos y en qué cantidad se compone cada análisis de precio unitario'],
+    ['Columnas: Código APU · Nombre del APU · Unidad del APU · Código insumo · Cantidad (rendimiento).'],
+    ['Un mismo "Código APU" se repite en varias filas, una por cada insumo que lleve: el Nombre y la Unidad sólo hay que escribirlos en la PRIMERA fila de ese código; en las siguientes se pueden dejar en blanco.'],
+    ['"Código insumo" debe ser un código que exista en la hoja Insumos de este archivo, o el código de un insumo que ya exista en el proyecto.'],
+    [],
+    ['3. HOJA "ACTIVIDADES" — capítulos, subcapítulos y actividades del presupuesto'],
+    ['Columnas: Código capítulo · Capítulo · Código subcapítulo · Subcapítulo · Código actividad · Actividad · Unidad · Cantidad · Código(s) de APU.'],
+    ['Una fila = una actividad. El Código capítulo y el Código subcapítulo se repiten en todas las filas que pertenezcan al mismo grupo (también puede dejarlos en blanco después de la primera fila del grupo: se reutiliza el código del grupo actual).'],
+    ['El Código de actividad debe ser único dentro de su subcapítulo.'],
+    ['Si una actividad necesita más de un APU (por ejemplo, excavación + retiro de escombro), escriba los códigos separados por coma: APU-02, APU-05 — el valor unitario de la actividad será la suma de esos APU.'],
+    [],
+    ['4. AL IMPORTAR'],
+    ['Si el proyecto ya tiene un presupuesto cargado, ARKEN CONTROL preguntará si quiere REEMPLAZARLO (borrar capítulos, subcapítulos y actividades actuales y crear los del archivo) o ADICIONAR (conservar lo que existe: un capítulo o subcapítulo con el mismo código se reutiliza, y una actividad con el mismo código dentro del mismo subcapítulo se actualiza).'],
+    ['Antes de crear nada se muestra un resumen — cuántos capítulos, subcapítulos, actividades, APU e insumos trae el archivo, y cuántos de esos APU e insumos ya existen por nombre — para revisar y confirmar.'],
+    ['Las tres hojas de datos se leen por el texto de sus encabezados, no por la posición de las columnas: puede reordenarlas si lo necesita, siempre que el texto del encabezado conserve las palabras clave de este instructivo (p. ej. una columna de "Código del capítulo" también funciona).']
+  ];
+  const hInsumos = [
+    ['Código (referencia en este archivo)','Categoría','Descripción del insumo','Unidad','Precio unitario (con IVA incluido)'],
+    ['INS-01','Materiales','Cemento gris tipo UG x 50 kg','SC50',32000],
+    ['INS-02','Materiales','Arena de peña lavada','M3',95000],
+    ['INS-03','Materiales','Triturado de 3/4"','M3',88000],
+    ['INS-04','Materiales','Varilla de hierro corrugado 1/2" x 6 m','UN',28500],
+    ['INS-05','Materiales','Alambre negro calibre 18','KG',6200],
+    ['INS-06','Mano de Obra','Oficial de construcción','JORNAL',85000],
+    ['INS-07','Mano de Obra','Ayudante de construcción','JORNAL',62000],
+    ['INS-08','Herramientas','Herramienta menor (porcentaje de mano de obra)','GLB',1]
+  ];
+  const hApu = [
+    ['Código APU','Nombre del APU','Unidad del APU','Código insumo','Cantidad (rendimiento)'],
+    ['APU-01','Localización y replanteo con equipo de precisión','M2','INS-06',0.08],
+    ['APU-01','','','INS-07',0.08],
+    ['APU-02','Excavación manual en material común','M3','INS-07',1.2],
+    ['APU-03','Concreto 3000 PSI para zapatas, vaciado y vibrado','M3','INS-01',7],
+    ['APU-03','','','INS-02',0.5],
+    ['APU-03','','','INS-03',0.7],
+    ['APU-03','','','INS-06',0.6],
+    ['APU-03','','','INS-07',1.2],
+    ['APU-04','Acero de refuerzo 1/2" armado y amarrado','KG','INS-04',1.05],
+    ['APU-04','','','INS-05',0.02],
+    ['APU-04','','','INS-07',0.12]
+  ];
+  const hAct = [
+    ['Código capítulo','Capítulo','Código subcapítulo','Subcapítulo','Código actividad','Actividad','Unidad','Cantidad','Código(s) de APU'],
+    ['01','PRELIMINARES','01.01','Localización y replanteo','01.01.01','Localización y replanteo general de la obra','M2',480,'APU-01'],
+    ['02','CIMENTACIÓN','02.01','Excavaciones','02.01.01','Excavación manual para zapatas','M3',96,'APU-02'],
+    ['02','CIMENTACIÓN','02.02','Concreto y acero de refuerzo','02.02.01','Zapatas en concreto 3000 PSI','M3',24,'APU-03'],
+    ['02','CIMENTACIÓN','02.02','Concreto y acero de refuerzo','02.02.02','Acero de refuerzo para zapatas','KG',850,'APU-04']
+  ];
+  Documentos.excel('ARKEN_plantilla_presupuesto', [
+    { nombre:'Instrucciones', titulo:'Cómo importar un presupuesto a ARKEN CONTROL', filas:hInstrucciones, anchos:[100] },
+    { nombre:'Insumos', titulo:'1. Insumos nuevos (o a reutilizar, si ya existen por nombre)', filas:hInsumos, anchos:[14,16,44,10,22] },
+    { nombre:'APU', titulo:'2. Análisis de precios unitarios (insumos de cada APU)', filas:hApu, anchos:[12,40,12,16,18] },
+    { nombre:'Actividades', titulo:'3. Capítulos, subcapítulos y actividades del presupuesto', filas:hAct, anchos:[12,26,14,26,12,34,8,10,16] }
+  ]);
+}
+
+/** Lee y valida las tres hojas, sin escribir nada todavía en "p". Devuelve
+    {errores, avisos, insumos, apus, capitulos} — si errores.length es mayor
+    que cero, nada de lo demás debe usarse para importar: hay que corregir el
+    Excel primero. Cada insumo y cada APU trae ya resuelto, por nombre, si
+    coincide con uno existente en el proyecto -la decisión de si se reutiliza
+    tal cual o se actualiza es del usuario, en la pantalla de revisión. */
+function validarPresupuestoExcel(p, wb){
+  const errores = [], avisos = [];
+  const err = (hoja, fila, msg) => errores.push({ hoja, fila, msg });
+  const avi = (hoja, fila, msg) => avisos.push({ hoja, fila, msg });
+
+  /* ---- Insumos (opcional: un presupuesto puede usar sólo insumos que ya existen) ---- */
+  const hIns = leerHojaExcel(wb, 'insumo', 'codigo');
+  const insumosPorCodigo = new Map();
+  if (hIns && hIns.encabezado){
+    const col = ubicarColumnas(hIns.encabezado, COLS_INSUMOS_IMP);
+    if (col.codigo < 0 || col.nombre < 0){
+      err(hIns.nombreHoja, 0, 'No se encontraron en el encabezado las columnas "Código" y/o "Descripción".');
+    } else {
+      hIns.datos.forEach(r => {
+        const codigo = String(r.celdas[col.codigo]||'').trim();
+        const nombre = String(r.celdas[col.nombre]||'').trim();
+        if (!codigo && !nombre) return;
+        if (!codigo){ err(hIns.nombreHoja, r.fila, 'Falta el código de referencia del insumo.'); return; }
+        if (!nombre){ err(hIns.nombreHoja, r.fila, 'Falta la descripción del insumo "' + codigo + '".'); return; }
+        const key = normaliza(codigo);
+        if (insumosPorCodigo.has(key)){
+          err(hIns.nombreHoja, r.fila, 'El código "' + codigo + '" ya se usó en la fila ' + insumosPorCodigo.get(key).fila + ' de esta misma hoja.');
+          return;
+        }
+        let categoria = col.categoria >= 0 ? String(r.celdas[col.categoria]||'').trim() : '';
+        if (categoria && CATEGORIAS_INSUMO.indexOf(categoria) < 0){
+          avi(hIns.nombreHoja, r.fila, 'La categoría "' + categoria + '" no es una categoría válida; se usará "Materiales".');
+          categoria = '';
+        }
+        if (!categoria) categoria = 'Materiales';
+        const unidad = (col.unidad >= 0 && String(r.celdas[col.unidad]||'').trim()) || 'UN';
+        let precio = col.precio >= 0 ? Number(r.celdas[col.precio]) : NaN;
+        if (!isFinite(precio) || precio < 0){
+          if (col.precio >= 0 && String(r.celdas[col.precio]||'').trim() !== '')
+            avi(hIns.nombreHoja, r.fila, 'El precio de "' + nombre + '" no es un número válido; se usará 0.');
+          precio = 0;
+        }
+        const existente = p.insumos.find(i => normaliza(i.nombre) === normaliza(nombre) || normaliza(i.codigo) === key) || null;
+        insumosPorCodigo.set(key, { fila:r.fila, codigo, categoria, nombre, unidad, precio, existente });
+      });
+    }
+  }
+
+  /* ---- APU ---- */
+  const hApu = leerHojaExcel(wb, 'apu', 'apu');
+  const apusPorCodigo = new Map();
+  if (!hApu || !hApu.encabezado){
+    err('APU', 0, 'No se encontró la hoja "APU" (o no tiene un encabezado reconocible) en el archivo.');
+  } else {
+    const col = ubicarColumnas(hApu.encabezado, COLS_APU_IMP);
+    const faltan = ['codApu','codIns','cantidad'].filter(k => col[k] < 0);
+    if (faltan.length){
+      err(hApu.nombreHoja, 0, 'No se encontraron en el encabezado las columnas necesarias: ' + faltan.join(', ') + '.');
+    } else {
+      hApu.datos.forEach(r => {
+        const codApu = String(r.celdas[col.codApu]||'').trim();
+        const codIns = String(r.celdas[col.codIns]||'').trim();
+        if (!codApu && !codIns) return;
+        if (!codApu){ err(hApu.nombreHoja, r.fila, 'Falta el código del APU.'); return; }
+        if (!codIns){ err(hApu.nombreHoja, r.fila, 'Falta el código del insumo para el APU "' + codApu + '".'); return; }
+        let cantidad = Number(r.celdas[col.cantidad]);
+        if (!isFinite(cantidad) || cantidad < 0){
+          err(hApu.nombreHoja, r.fila, 'La cantidad del insumo "' + codIns + '" en el APU "' + codApu + '" no es un número válido.');
+          return;
+        }
+        if (cantidad === 0) avi(hApu.nombreHoja, r.fila, 'La cantidad del insumo "' + codIns + '" es cero: no aportará nada al APU "' + codApu + '".');
+
+        const keyIns = normaliza(codIns);
+        const enHoja = insumosPorCodigo.has(keyIns);
+        const existenteProyecto = !enHoja ? p.insumos.find(i => normaliza(i.codigo) === keyIns) : null;
+        if (!enHoja && !existenteProyecto){
+          err(hApu.nombreHoja, r.fila, 'El código de insumo "' + codIns + '" (APU "' + codApu + '") no aparece en la hoja Insumos ni existe en el proyecto.');
+          return;
+        }
+
+        const key = normaliza(codApu);
+        let grupo = apusPorCodigo.get(key);
+        const nomApu = col.nomApu >= 0 ? String(r.celdas[col.nomApu]||'').trim() : '';
+        const unApu = col.unidad >= 0 ? String(r.celdas[col.unidad]||'').trim() : '';
+        if (!grupo){
+          if (!nomApu){ err(hApu.nombreHoja, r.fila, 'El APU "' + codApu + '" no tiene nombre en su primera aparición.'); return; }
+          const existente = p.apus.find(a => normaliza(a.nombre) === normaliza(nomApu)) || null;
+          grupo = { fila:r.fila, codigo:codApu, nombre:nomApu, unidad: unApu || 'UN', insumos:[], existente };
+          apusPorCodigo.set(key, grupo);
+        } else {
+          if (nomApu && normaliza(nomApu) !== normaliza(grupo.nombre))
+            avi(hApu.nombreHoja, r.fila, 'El nombre "' + nomApu + '" no coincide con "' + grupo.nombre + '" (fila ' + grupo.fila + ') para el mismo APU "' + codApu + '"; se usará el de la primera fila.');
+          if (unApu && normaliza(unApu) !== normaliza(grupo.unidad))
+            avi(hApu.nombreHoja, r.fila, 'La unidad "' + unApu + '" no coincide con "' + grupo.unidad + '" (fila ' + grupo.fila + ') para el mismo APU "' + codApu + '"; se usará la de la primera fila.');
+        }
+        grupo.insumos.push({ codigoInsumo:codIns, cantidad, fila:r.fila });
+      });
+    }
+  }
+
+  /* ---- Actividades ---- */
+  const hAct = leerHojaExcel(wb, 'activ', 'activ');
+  const capitulos = [];
+  const capPorCodigo = new Map(), subPorCodigo = new Map(), actPorSub = new Map();
+  if (!hAct || !hAct.encabezado){
+    err('Actividades', 0, 'No se encontró la hoja "Actividades" (o no tiene un encabezado reconocible) en el archivo.');
+  } else {
+    const col = ubicarColumnas(hAct.encabezado, COLS_ACTIVIDADES_IMP);
+    const faltan = ['codCap','nomCap','codSub','nomSub','codAct','nomAct','apu'].filter(k => col[k] < 0);
+    if (faltan.length){
+      err(hAct.nombreHoja, 0, 'No se encontraron en el encabezado las columnas necesarias: ' + faltan.join(', ') + '.');
+    } else {
+      let capActual = null, subActual = null;
+      hAct.datos.forEach(r => {
+        const codCapCelda = String(r.celdas[col.codCap]||'').trim();
+        const codActCelda = String(r.celdas[col.codAct]||'').trim();
+        const nomActCelda = String(r.celdas[col.nomAct]||'').trim();
+        const codSubCelda = String(r.celdas[col.codSub]||'').trim();
+        if (!codCapCelda && !codSubCelda && !codActCelda && !nomActCelda) return;
+
+        if (codCapCelda){
+          const key = normaliza(codCapCelda);
+          let cap = capPorCodigo.get(key);
+          const nomCap = String(r.celdas[col.nomCap]||'').trim();
+          if (!cap){
+            if (!nomCap){ err(hAct.nombreHoja, r.fila, 'El capítulo "' + codCapCelda + '" no tiene nombre en su primera aparición.'); return; }
+            cap = { codigo:codCapCelda, nombre:nomCap, subs:[], fila:r.fila };
+            capPorCodigo.set(key, cap); capitulos.push(cap);
+          } else if (nomCap && normaliza(nomCap) !== normaliza(cap.nombre)){
+            avi(hAct.nombreHoja, r.fila, 'El nombre "' + nomCap + '" no coincide con "' + cap.nombre + '" (fila ' + cap.fila + ') para el capítulo "' + codCapCelda + '"; se usará el de la primera fila.');
+          }
+          capActual = cap;
+        }
+        if (!capActual){ err(hAct.nombreHoja, r.fila, 'Falta el código del capítulo (ninguna fila anterior lo definió).'); return; }
+
+        if (codSubCelda){
+          const key = normaliza(codSubCelda);
+          let sub = subPorCodigo.get(key);
+          const nomSub = String(r.celdas[col.nomSub]||'').trim();
+          if (!sub){
+            if (!nomSub){ err(hAct.nombreHoja, r.fila, 'El subcapítulo "' + codSubCelda + '" no tiene nombre en su primera aparición.'); return; }
+            sub = { codigo:codSubCelda, nombre:nomSub, acts:[], fila:r.fila, capKey:normaliza(capActual.codigo) };
+            subPorCodigo.set(key, sub); capActual.subs.push(sub);
+          } else if (sub.capKey !== normaliza(capActual.codigo)){
+            err(hAct.nombreHoja, r.fila, 'El subcapítulo "' + codSubCelda + '" ya aparece bajo otro capítulo (fila ' + sub.fila + '); un subcapítulo no puede repetirse en dos capítulos distintos.');
+            return;
+          } else if (nomSub && normaliza(nomSub) !== normaliza(sub.nombre)){
+            avi(hAct.nombreHoja, r.fila, 'El nombre "' + nomSub + '" no coincide con "' + sub.nombre + '" (fila ' + sub.fila + ') para el subcapítulo "' + codSubCelda + '"; se usará el de la primera fila.');
+          }
+          subActual = sub;
+        }
+        if (!subActual || subActual.capKey !== normaliza(capActual.codigo)){
+          err(hAct.nombreHoja, r.fila, 'Falta el código del subcapítulo (ninguna fila anterior, dentro de este capítulo, lo definió).');
+          return;
+        }
+
+        if (!codActCelda){ err(hAct.nombreHoja, r.fila, 'Falta el código de la actividad.'); return; }
+        if (!nomActCelda){ err(hAct.nombreHoja, r.fila, 'Falta el nombre de la actividad "' + codActCelda + '".'); return; }
+        const keyAct = subActual.capKey + '|' + normaliza(subActual.codigo) + '|' + normaliza(codActCelda);
+        if (actPorSub.has(keyAct)){
+          err(hAct.nombreHoja, r.fila, 'El código de actividad "' + codActCelda + '" ya se usó en este mismo subcapítulo (fila ' + actPorSub.get(keyAct) + ').');
+          return;
+        }
+        actPorSub.set(keyAct, r.fila);
+
+        const unidad = (col.unidad >= 0 && String(r.celdas[col.unidad]||'').trim()) || 'UN';
+        let cantidad = col.cantidad >= 0 ? Number(r.celdas[col.cantidad]) : 0;
+        if (!isFinite(cantidad) || cantidad < 0){
+          avi(hAct.nombreHoja, r.fila, 'La cantidad de "' + nomActCelda + '" no es un número válido; se usará 0.');
+          cantidad = 0;
+        }
+        const apuTexto = String(r.celdas[col.apu]||'').trim();
+        if (!apuTexto){ err(hAct.nombreHoja, r.fila, 'La actividad "' + nomActCelda + '" no tiene ningún código de APU.'); return; }
+        const codigosApu = apuTexto.split(/[,+]/).map(s => s.trim()).filter(Boolean);
+        const apusResueltos = [];
+        let faltaApu = false;
+        codigosApu.forEach(cod => {
+          if (!apusPorCodigo.has(normaliza(cod))){
+            err(hAct.nombreHoja, r.fila, 'El código de APU "' + cod + '" (actividad "' + nomActCelda + '") no aparece en la hoja APU.');
+            faltaApu = true;
+          } else apusResueltos.push(cod);
+        });
+        if (faltaApu) return;
+
+        subActual.acts.push({ codigo:codActCelda, nombre:nomActCelda, unidad, cantidad, apus:apusResueltos, fila:r.fila });
+      });
+    }
+  }
+
+  return {
+    errores, avisos,
+    capitulos,
+    apus: Array.from(apusPorCodigo.values()),
+    insumos: Array.from(insumosPorCodigo.values())
+  };
+}
+
+/** Cuántos registros YA causados en obra quedarían sin la actividad a la que
+    apuntan si se borraran los capítulos actuales -lo que de verdad arriesga
+    "reemplazar". Sólo cuentan las colecciones cuyas líneas guardan el id de
+    la actividad de forma directa (las demás llegan a ella por el contrato,
+    y ya quedan contempladas al revisar los contratos). */
+function impactoHistoricoActividades(p){
+  const idsActuales = new Set();
+  Modelo.recorrerActividades(p, a => idsActuales.add(a.id));
+  const detalle = {};
+  ['salidas','documentos','contratos','requerimientos'].forEach(col => {
+    detalle[col] = (p[col]||[]).reduce((t,d) => t + (d.lineas||[]).filter(l => idsActuales.has(l.idActividad)).length, 0);
+  });
+  const total = Object.values(detalle).reduce((a,b) => a + b, 0);
+  return { total, detalle };
+}
+
+/** Escribe de verdad lo que trae el Excel. Para entonces ya no hay nada por
+    validar: "plan" viene de validarPresupuestoExcel() sin errores, y
+    "opciones" ya refleja lo que el usuario decidió en las pantallas previas. */
+function ejecutarImportacionPresupuesto(p, plan, opciones){
+  if (opciones.modo === 'reemplazar') p.capitulos = [];
+  let colisionesTotal = [];
+
+  /* ---- Insumos ---- */
+  let insCreados = 0, insActualizados = 0, insReusados = 0;
+  const idInsumoPorCodigoLocal = new Map();
+  plan.insumos.forEach(f => {
+    let id;
+    if (f.existente && !opciones.actualizarPreciosInsumos){
+      id = f.existente.id; insReusados++;
+    } else if (f.existente && opciones.actualizarPreciosInsumos){
+      Object.assign(f.existente, { unidad:f.unidad, categoria:f.categoria, precio:f.precio });
+      const r = Maestro.sincronizar(f.existente, p); colisionesTotal = colisionesTotal.concat(r.colisiones||[]);
+      id = f.existente.id; insActualizados++;
+    } else {
+      const codigo = S.config.listaMaestraUnica ? Modelo.codigoInsumoGlobal(f.categoria) : Modelo.codigoInsumo(p, f.categoria);
+      const ins = { id:uid('in'), codigo, nombre:f.nombre, unidad:f.unidad, categoria:f.categoria, precio:f.precio, proveedorRef:'' };
+      p.insumos.push(ins);
+      const r = Maestro.sincronizar(ins, p); colisionesTotal = colisionesTotal.concat(r.colisiones||[]);
+      id = ins.id; insCreados++;
+    }
+    idInsumoPorCodigoLocal.set(normaliza(f.codigo), id);
+  });
+
+  function resolverIdInsumo(codigoInsumo){
+    const key = normaliza(codigoInsumo);
+    if (idInsumoPorCodigoLocal.has(key)) return idInsumoPorCodigoLocal.get(key);
+    const enProyecto = p.insumos.find(i => normaliza(i.codigo) === key);
+    return enProyecto ? enProyecto.id : null;
+  }
+
+  /* ---- APU ---- */
+  let apuCreados = 0, apuActualizados = 0, apuReusados = 0;
+  const idApuPorCodigoLocal = new Map();
+  plan.apus.forEach(grupo => {
+    const lineas = grupo.insumos.map(x => ({ idInsumo: resolverIdInsumo(x.codigoInsumo), cantidad: x.cantidad }))
+      .filter(l => l.idInsumo);
+    let id;
+    if (grupo.existente && !opciones.actualizarComposicionApu){
+      id = grupo.existente.id; apuReusados++;
+    } else if (grupo.existente && opciones.actualizarComposicionApu){
+      Object.assign(grupo.existente, { unidad:grupo.unidad, insumos:lineas });
+      id = grupo.existente.id; apuActualizados++;
+    } else {
+      const apu = { id:uid('ap'), codigo:grupo.codigo, nombre:grupo.nombre, unidad:grupo.unidad, insumos:lineas };
+      p.apus.push(apu);
+      id = apu.id; apuCreados++;
+    }
+    idApuPorCodigoLocal.set(normaliza(grupo.codigo), id);
+  });
+
+  /* ---- Capítulos → Subcapítulos → Actividades ---- */
+  let capCreados = 0, capReusados = 0, subCreados = 0, subReusados = 0, actCreadas = 0, actActualizadas = 0;
+  plan.capitulos.forEach(capPlan => {
+    let cap = opciones.modo === 'adicionar'
+      ? p.capitulos.find(c => normaliza(c.codigo) === normaliza(capPlan.codigo)) : null;
+    if (!cap){
+      cap = { id:uid('cp'), codigo:capPlan.codigo, nombre:capPlan.nombre, subs:[] };
+      p.capitulos.push(cap); capCreados++;
+    } else { cap.nombre = capPlan.nombre; capReusados++; }
+
+    capPlan.subs.forEach(subPlan => {
+      let sub = cap.subs.find(s => normaliza(s.codigo) === normaliza(subPlan.codigo));
+      if (!sub){
+        sub = { id:uid('sb'), codigo:subPlan.codigo, nombre:subPlan.nombre, acts:[] };
+        cap.subs.push(sub); subCreados++;
+      } else { sub.nombre = subPlan.nombre; subReusados++; }
+
+      subPlan.acts.forEach(actPlan => {
+        const idsApu = actPlan.apus.map(cod => idApuPorCodigoLocal.get(normaliza(cod))).filter(Boolean);
+        let act = sub.acts.find(a => normaliza(a.codigo) === normaliza(actPlan.codigo));
+        if (!act){
+          act = { id:uid('ac'), codigo:actPlan.codigo, nombre:actPlan.nombre, unidad:actPlan.unidad,
+            cantidad:actPlan.cantidad, apus:idsApu };
+          sub.acts.push(act); actCreadas++;
+        } else {
+          Object.assign(act, { nombre:actPlan.nombre, unidad:actPlan.unidad, cantidad:actPlan.cantidad, apus:idsApu });
+          actActualizadas++;
+        }
+      });
+    });
+  });
+
+  const resumen = capCreados + ' capítulo(s) nuevo(s), ' + capReusados + ' existente(s) · ' +
+    subCreados + ' subcapítulo(s) nuevo(s), ' + subReusados + ' existente(s) · ' +
+    actCreadas + ' actividad(es) nueva(s), ' + actActualizadas + ' actualizada(s) · ' +
+    apuCreados + ' APU nuevo(s), ' + apuActualizados + ' actualizado(s), ' + apuReusados + ' reutilizado(s) · ' +
+    insCreados + ' insumo(s) nuevo(s), ' + insActualizados + ' actualizado(s), ' + insReusados + ' reutilizado(s)';
+  Modelo.auditar('importar','presupuesto', 'Excel (' + opciones.modo + '): ' + resumen, p.id);
+  App.guardar();
+  Alertas.revisarSobrecostos(p); Alertas.revisarAvance(p); Alertas.revisarInventario(p);
+  App.render();
+  UI.toast('Presupuesto importado: ' + actCreadas + ' actividad(es) nueva(s), ' + actActualizadas + ' actualizada(s)', 'ok');
+  UI.aviso('Importación completada', '<p>' + resumen.replace(/ · /g, '</p><p>') + '</p>');
+  avisarColisionesMaestra(colisionesTotal);
+}
+
+/* ---- Flujo de pantallas: elegir archivo → revisar → (reemplazar/adicionar) → ejecutar ---- */
+
+function importarPresupuestoExcel(p){
+  if (!Documentos.hayXLSX()){
+    UI.aviso('Librería no disponible', '<p>SheetJS no está cargado; no es posible leer archivos de Excel en este momento.</p>');
+    return;
+  }
+  UI.modal({
+    titulo:'Importar presupuesto desde Excel', ancho:'normal', eyebrow:'Módulo 03 · Presupuesto',
+    cuerpo:
+      '<p>El archivo debe tener las hojas <b>Insumos</b>, <b>APU</b> y <b>Actividades</b> (en cualquier orden; ' +
+      'los nombres de las hojas no distinguen mayúsculas ni tildes). Descargue la plantilla de ejemplo para ver ' +
+      'el formato exacto, con capítulos, subcapítulos, actividades, APU e insumos ya resueltos como modelo.</p>' +
+      (p.capitulos.length ? '<div class="alert info"><div class="ic">ℹ</div><div class="bd">Este proyecto ya tiene un ' +
+        'presupuesto cargado (' + p.capitulos.length + ' capítulo(s)). Más adelante se preguntará si quiere ' +
+        '<b>adicionar</b> lo nuevo conservando lo que ya existe, o <b>reemplazar</b> todo el presupuesto actual.</div></div>' : ''),
+    botones:[
+      { texto:'Cancelar' },
+      { texto:'Descargar plantilla de ejemplo', accion: () => plantillaEjemploPresupuesto() },
+      { texto:'Seleccionar archivo…', clase:'primary', accion: m => { m.cerrar(); elegirArchivoPresupuesto(p); } }
+    ]
+  });
+}
+
+function elegirArchivoPresupuesto(p){
+  UI.pedirArchivo('.xlsx,.xls', f => {
+    let wb;
+    try {
+      wb = XLSX.read(f.datos.split(',')[1], { type:'base64' });
+    } catch(e){
+      UI.aviso('No fue posible leer el archivo', '<p>' + esc(e.message) + '</p>' +
+        '<p class="muted small">Descargue la plantilla de ejemplo y compare el formato de las hojas.</p>');
+      return;
+    }
+    const plan = validarPresupuestoExcel(p, wb);
+    revisarImportacionPresupuesto(p, plan);
+  });
+}
+
+/** Pantalla de revisión: nada se escribe todavía. Si hay errores, se muestran
+    TODOS a la vez -sin crear nada parcialmente- para que el usuario corrija
+    el Excel de una sola pasada. Si sólo hay avisos, se listan pero no
+    impiden continuar: son valores que el sistema completó por su cuenta. */
+function revisarImportacionPresupuesto(p, plan){
+  if (plan.errores.length){
+    UI.modal({
+      titulo:'El archivo tiene ' + plan.errores.length + ' error(es)', ancho:'wide',
+      eyebrow:'Corrija el Excel y vuelva a intentarlo — no se creó nada',
+      cuerpo:
+        '<div class="tw scroll" style="max-height:50vh"><table class="t"><thead><tr>' +
+          '<th>Hoja</th><th>Fila</th><th>Error</th></tr></thead><tbody>' +
+          plan.errores.map(e => '<tr><td class="small">' + esc(e.hoja) + '</td>' +
+            '<td class="n small">' + (e.fila || '—') + '</td><td class="small">' + esc(e.msg) + '</td></tr>').join('') +
+        '</tbody></table></div>',
+      botones:[
+        { texto:'Descargar plantilla de ejemplo', accion: () => plantillaEjemploPresupuesto() },
+        { texto:'Entendido', clase:'primary' }
+      ]
+    });
+    return;
+  }
+
+  let nActs = 0; plan.capitulos.forEach(c => c.subs.forEach(s => nActs += s.acts.length));
+  const nSubs = plan.capitulos.reduce((t,c) => t + c.subs.length, 0);
+  const apuNuevos = plan.apus.filter(a => !a.existente).length, apuExist = plan.apus.length - apuNuevos;
+  const insNuevos = plan.insumos.filter(i => !i.existente).length, insExist = plan.insumos.length - insNuevos;
+
+  const m = UI.modal({
+    titulo:'Revisar antes de importar', ancho:'wide',
+    eyebrow: plan.avisos.length ? plan.avisos.length + ' aviso(s) — revise si quiere, no impiden continuar' : 'Sin errores ni avisos',
+    cuerpo:
+      '<div class="grid g3" style="margin-bottom:12px">' +
+        '<div class="stat"><div class="lab">Capítulos</div><div class="val">' + plan.capitulos.length + '</div></div>' +
+        '<div class="stat"><div class="lab">Subcapítulos</div><div class="val">' + nSubs + '</div></div>' +
+        '<div class="stat"><div class="lab">Actividades</div><div class="val">' + nActs + '</div></div>' +
+        '<div class="stat"><div class="lab">APU</div><div class="val">' + plan.apus.length + '</div>' +
+          '<div class="foot">' + apuNuevos + ' nuevo(s) · ' + apuExist + ' coinciden por nombre</div></div>' +
+        '<div class="stat"><div class="lab">Insumos</div><div class="val">' + plan.insumos.length + '</div>' +
+          '<div class="foot">' + insNuevos + ' nuevo(s) · ' + insExist + ' coinciden por nombre/código</div></div>' +
+      '</div>' +
+      (insExist || apuExist ? '<div class="card" style="padding:10px;margin-bottom:10px">' +
+        (insExist ? '<label class="chk" style="display:block;margin-bottom:6px"><input type="checkbox" id="riActPrecio"> ' +
+          'Actualizar precio, unidad y categoría de los ' + insExist + ' insumo(s) que ya existen (si no, se usa el insumo tal como está)</label>' : '') +
+        (apuExist ? '<label class="chk" style="display:block"><input type="checkbox" id="riActApu"> ' +
+          'Actualizar la composición de los ' + apuExist + ' APU que ya existen (si no, se usa el APU tal como está)</label>' : '') +
+        '</div>' : '') +
+      (plan.avisos.length ? '<div class="tw scroll" style="max-height:28vh"><table class="t"><thead><tr>' +
+        '<th>Hoja</th><th>Fila</th><th>Aviso</th></tr></thead><tbody>' +
+        plan.avisos.map(a => '<tr><td class="small">' + esc(a.hoja) + '</td>' +
+          '<td class="n small">' + (a.fila || '—') + '</td><td class="small">' + esc(a.msg) + '</td></tr>').join('') +
+        '</tbody></table></div>' : '<p class="muted small">El archivo se leyó sin ningún problema.</p>'),
+    botones:[
+      { texto:'Cancelar' },
+      { texto: p.capitulos.length ? 'Continuar…' : 'Importar', clase:'primary', accion: m2 => {
+          const opciones = {
+            actualizarPreciosInsumos: !!$('#riActPrecio', m2.el) && $('#riActPrecio', m2.el).checked,
+            actualizarComposicionApu: !!$('#riActApu', m2.el) && $('#riActApu', m2.el).checked
+          };
+          m2.cerrar();
+          if (p.capitulos.length) preguntarReemplazoPresupuesto(p, plan, opciones);
+          else ejecutarImportacionPresupuesto(p, plan, Object.assign({ modo:'adicionar' }, opciones));
+        } }
+    ]
+  });
+}
+
+/** El paso que el usuario pidió explícitamente: si ya hay un presupuesto
+    cargado, preguntar si se borra o se adiciona -con el impacto en el
+    historial puesto en números, no sólo en advertencia genérica. */
+function preguntarReemplazoPresupuesto(p, plan, opciones){
+  let nActs = 0; Modelo.recorrerActividades(p, () => nActs++);
+  const imp = impactoHistoricoActividades(p);
+  const nombresCol = { salidas:'salida(s) de almacén', documentos:'documento(s) de pago',
+    contratos:'línea(s) de contrato', requerimientos:'requerimiento(s)' };
+  const detalleTxt = Object.keys(imp.detalle).filter(k => imp.detalle[k] > 0)
+    .map(k => '<li>' + imp.detalle[k] + ' ' + nombresCol[k] + '</li>').join('');
+
+  UI.modal({
+    titulo:'Ya existe un presupuesto en este proyecto', ancho:'normal', eyebrow:'Decida qué hacer antes de importar',
+    cuerpo:
+      '<p>El proyecto tiene actualmente <b>' + p.capitulos.length + ' capítulo(s)</b> y <b>' + nActs + ' actividad(es)</b>.</p>' +
+      '<div class="grid g2" style="gap:12px;margin-top:10px">' +
+        '<div class="card" style="padding:12px"><b>Adicionar</b><p class="muted small">Conserva todo lo que ya existe. ' +
+          'Si un capítulo, subcapítulo o actividad del Excel tiene el mismo código que uno actual, se actualiza con ' +
+          'los datos del archivo; lo demás no se toca.</p></div>' +
+        '<div class="card" style="padding:12px"><b>Reemplazar</b><p class="muted small">Borra TODOS los capítulos, ' +
+          'subcapítulos y actividades actuales, y los crea de nuevo únicamente con lo que traiga el Excel. Los ' +
+          'insumos y los APU de la lista maestra no se eliminan.</p></div>' +
+      '</div>' +
+      (imp.total ? '<div class="alert warn" style="margin-top:12px"><div class="ic">!</div><div class="bd">' +
+        '<b>Reemplazar afectará el historial:</b> ' + imp.total + ' registro(s) ya causados quedarán sin la ' +
+        'actividad a la que estaban imputados:<ul style="margin:6px 0 0 18px">' + detalleTxt + '</ul>' +
+        'Esos registros no se borran, pero pierden esa referencia. Si no está seguro, elija Adicionar.</div></div>' : ''),
+    botones:[
+      { texto:'Cancelar' },
+      { texto:'Adicionar', clase:'primary', accion: m => {
+          m.cerrar();
+          const cambios = cambiosActividadesExistentes(p, plan);
+          if (cambios.length) confirmarActividadesExistentes(p, plan, opciones, cambios);
+          else ejecutarImportacionPresupuesto(p, plan, Object.assign({}, opciones, { modo:'adicionar' }));
+        } },
+      { texto:'Reemplazar', clase:'danger', accion: async m => {
+          const ok = await UI.confirmar({
+            titulo:'Confirmar reemplazo total del presupuesto',
+            mensaje:'Se borrarán ' + p.capitulos.length + ' capítulo(s) y ' + nActs + ' actividad(es) actuales, ' +
+              'y se crearán de nuevo únicamente con lo que trae el Excel. Esto no se puede deshacer. ¿Continuar?',
+            textoAceptar:'Sí, reemplazar', claseAceptar:'danger'
+          });
+          if (!ok) return;
+          m.cerrar(); ejecutarImportacionPresupuesto(p, plan, Object.assign({}, opciones, { modo:'reemplazar' }));
+        } }
+    ]
+  });
+}
+
+/** Sólo para modo Adicionar: qué actividades del Excel coinciden, por
+    código, con una que ya existe en el proyecto -y de ésas, cuáles traen
+    algún dato distinto (nombre, unidad, cantidad o los APU que la valoran).
+    No modifica nada; es la misma clase de aviso que ya existe para los
+    insumos cuyo precio va a cambiar, llevado a las actividades. */
+function cambiosActividadesExistentes(p, plan){
+  const cambios = [];
+  plan.capitulos.forEach(capPlan => {
+    const cap = p.capitulos.find(c => normaliza(c.codigo) === normaliza(capPlan.codigo));
+    if (!cap) return; // capítulo nuevo: nada existente que comparar todavía
+    capPlan.subs.forEach(subPlan => {
+      const sub = cap.subs.find(s => normaliza(s.codigo) === normaliza(subPlan.codigo));
+      if (!sub) return;
+      subPlan.acts.forEach(actPlan => {
+        const act = sub.acts.find(a => normaliza(a.codigo) === normaliza(actPlan.codigo));
+        if (!act) return;
+        const apuActualTxt = (act.apus||[]).map(id => { const a = Modelo.apu(p, id); return a ? a.codigo : '?'; }).join(', ');
+        const apuNuevoTxt = actPlan.apus.join(', ');
+        const cambia = normaliza(act.nombre) !== normaliza(actPlan.nombre) ||
+          normaliza(act.unidad) !== normaliza(actPlan.unidad) ||
+          Number(act.cantidad) !== Number(actPlan.cantidad) ||
+          normaliza(apuActualTxt) !== normaliza(apuNuevoTxt);
+        if (cambia) cambios.push({
+          codigo: actPlan.codigo,
+          nombreActual: act.nombre, nombreNuevo: actPlan.nombre,
+          unidadActual: act.unidad, unidadNueva: actPlan.unidad,
+          cantidadActual: act.cantidad, cantidadNueva: actPlan.cantidad,
+          apuActual: apuActualTxt || '—', apuNuevo: apuNuevoTxt || '—'
+        });
+      });
+    });
+  });
+  return cambios;
+}
+
+/** Último paso antes de ejecutar en modo Adicionar, y sólo cuando hace
+    falta: lista, actividad por actividad, qué va a cambiar -lo mismo que
+    "Estos precios van a cambiar" ya hace para insumos-, con lo distinto
+    resaltado para que se note de un vistazo. */
+function confirmarActividadesExistentes(p, plan, opciones, cambios){
+  function celda(actual, nuevo, formato){
+    const f = formato || (x => esc(String(x)));
+    const cambia = String(actual) !== String(nuevo);
+    return cambia ? '<span class="muted" style="text-decoration:line-through">' + f(actual) + '</span><br><b class="bad-txt">' + f(nuevo) + '</b>' : f(actual);
+  }
+  UI.modal({
+    titulo: cambios.length + ' actividad(es) ya existen y van a cambiar', ancho:'wide',
+    eyebrow:'Revise antes de continuar — así quedarían con los datos del Excel',
+    cuerpo:
+      '<div class="tw scroll" style="max-height:48vh"><table class="t"><thead><tr>' +
+        '<th>Código</th><th>Nombre</th><th>Unidad</th><th class="n">Cantidad</th><th>APU</th></tr></thead><tbody>' +
+        cambios.map(c => '<tr><td class="mono small">' + esc(c.codigo) + '</td>' +
+          '<td class="small">' + celda(c.nombreActual, c.nombreNuevo) + '</td>' +
+          '<td class="small">' + celda(c.unidadActual, c.unidadNueva) + '</td>' +
+          '<td class="n small">' + celda(c.cantidadActual, c.cantidadNueva, x => cant(x)) + '</td>' +
+          '<td class="small">' + celda(c.apuActual, c.apuNuevo) + '</td></tr>').join('') +
+      '</tbody></table></div>',
+    botones:[
+      { texto:'Cancelar' },
+      { texto:'Sí, aplicar estos cambios', clase:'primary', accion: m => {
+          m.cerrar(); ejecutarImportacionPresupuesto(p, plan, Object.assign({}, opciones, { modo:'adicionar' }));
+        } }
+    ]
+  });
 }
 
 function docAPU(p, apus){
@@ -10111,6 +10927,7 @@ function editarProveedor(p, id){
 
 function abrirArchivo(f){
   if (!f || !f.datos) return;
+  if (esArchivoDXF(f.nombre)){ abrirVisorDXF(f); return; }
   const w = window.open('', '_blank');
   if (!w){ UI.toast('El navegador bloqueó la ventana emergente', 'bad'); return; }
   const esImg = /^data:image/.test(f.datos);
@@ -10119,6 +10936,159 @@ function abrirArchivo(f){
            : '<iframe src="' + f.datos + '" style="border:0;width:100%;height:100vh"></iframe>') + '</body>');
   w.document.close();
 }
+
+/* ─────────── Visor de planos DXF (solo lectura) ───────────
+   AutoCAD (.dwg) y Revit (.rvt) son formatos cerrados sin lector
+   gratuito para el navegador. Este visor cubre DXF —el formato
+   abierto de AutoCAD— dibujando la geometría real del plano
+   (líneas, polilíneas, círculos, arcos, bloques) con zoom y
+   paneo, 100% en el navegador, sin subir el archivo a ningún
+   servidor externo y sin posibilidad de editarlo. Por ahora no
+   grafica etiquetas de texto ni cotas (se avisa en el propio
+   visor). Para abrir DWG o RVT, se exportan antes como DXF, IFC
+   o PDF desde AutoCAD/Revit — ver Ayudas, módulo 16. */
+const DXF_LIB_THREE  = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.136.0/three.min.js';
+const DXF_LIB_PARSER = 'https://cdnjs.cloudflare.com/ajax/libs/dxf-parser/1.1.2/dxf-parser.js';
+const DXF_LIB_VISOR  = 'https://cdnjs.cloudflare.com/ajax/libs/three-dxf/1.3.1/three-dxf.js';
+
+function esArchivoDXF(nombre){ return /\.dxf$/i.test(String(nombre||'').trim()); }
+
+/** Abre el visor en una pestaña propia navegando a un blob: (no con
+    document.write), para que cargue como una página real de verdad —
+    más confiable entre navegadores que escribir el documento a mano.
+    Los datos del archivo se le entregan por postMessage en cuanto la
+    pestaña avisa que ya está lista para recibirlos. */
+function abrirVisorDXF(f){
+  const w = window.open('', '_blank');
+  if (!w){ UI.toast('El navegador bloqueó la ventana emergente', 'bad'); return; }
+  const blob = new Blob([htmlVisorDXF(f.nombre)], { type:'text/html' });
+  const url = URL.createObjectURL(blob);
+  function alMensaje(ev){
+    if (ev.source !== w || !ev.data || ev.data.tipo !== 'arken-dxf-listo') return;
+    window.removeEventListener('message', alMensaje);
+    w.postMessage({ tipo:'arken-dxf-datos', datos: f.datos, libs:[DXF_LIB_THREE, DXF_LIB_PARSER, DXF_LIB_VISOR] }, '*');
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+  }
+  window.addEventListener('message', alMensaje);
+  w.location.href = url;
+}
+
+function htmlVisorDXF(nombre){
+  return '<!doctype html><html><head><meta charset="utf-8">' +
+    '<title>' + esc(nombre) + ' · ARKEN CONTROL</title>' +
+    '<style>' + CSS_VISOR_DXF + '</style></head>' +
+    '<body>' +
+      '<div id="vdBarra">' +
+        '<b id="vdNombre">' + esc(nombre) + '</b>' +
+        '<span id="vdInfo" class="small"></span>' +
+        '<span class="sep"></span>' +
+        '<button id="vdAjustar" type="button">Ajustar a la vista</button>' +
+        '<span class="small">Clic derecho + arrastrar: mover · Rueda del mouse: zoom</span>' +
+      '</div>' +
+      '<div id="vdLienzo"></div>' +
+      '<div id="vdPie">Visor de solo lectura — geometría del plano (muros, ejes, trazos). ' +
+        'Las etiquetas de texto y cotas no se grafican en esta versión. ' +
+        'Para abrir DWG o RVT, expórtelos antes como DXF, IFC o PDF.</div>' +
+      '<div id="vdError"></div>' +
+    '<script>' + JS_VISOR_DXF + '<\/script>' +
+    '</body></html>';
+}
+
+const CSS_VISOR_DXF =
+  '*{box-sizing:border-box}' +
+  'html,body{margin:0;height:100%;font-family:system-ui,Segoe UI,Arial,sans-serif;background:#2b2e33}' +
+  '#vdBarra{position:absolute;top:0;left:0;right:0;height:40px;display:flex;align-items:center;gap:12px;' +
+    'padding:0 14px;background:#1c1e22;color:#eee;font-size:13px;white-space:nowrap;overflow:hidden}' +
+  '#vdBarra b{font-size:14px;overflow:hidden;text-overflow:ellipsis}' +
+  '#vdBarra .small{opacity:.65;font-size:12px}' +
+  '#vdBarra .sep{flex:1}' +
+  '#vdBarra button{background:#3a3f46;color:#fff;border:1px solid #555;border-radius:6px;padding:6px 12px;' +
+    'cursor:pointer;font-size:13px}' +
+  '#vdBarra button:hover{background:#4a5059}' +
+  '#vdLienzo{position:absolute;top:40px;bottom:30px;left:0;right:0;background:#fff}' +
+  '#vdLienzo canvas{display:block}' +
+  '#vdPie{position:absolute;bottom:0;left:0;right:0;padding:6px 14px;background:#1c1e22;color:#9aa0a6;' +
+    'font-size:11px}' +
+  '#vdError{display:none;position:absolute;top:40px;bottom:30px;left:0;right:0;align-items:center;' +
+    'justify-content:center;background:#fff;color:#a33;font-size:15px;text-align:center;padding:40px}';
+
+const JS_VISOR_DXF =
+  '(function(){' +
+    'function fin(msg){' +
+      'document.getElementById("vdLienzo").style.display="none";' +
+      'var e=document.getElementById("vdError"); e.textContent=msg; e.style.display="flex";' +
+    '}' +
+    'function infoCarga(msg){ var n = document.getElementById("vdInfo"); if (n) n.textContent = msg; }' +
+    // Los tres componentes se cargan en orden DESPUÉS de leer el archivo (no como
+    // <script src> estáticos) para poder avisar de inmediato si el DXF ya viene mal,
+    // y para que cada uno reporte con claridad si falló por falta de conexión.
+    'function cargarScript(src){' +
+      'return new Promise(function(resolve, reject){' +
+        'var s = document.createElement("script");' +
+        's.src = src;' +
+        's.onload = function(){ resolve(); };' +
+        's.onerror = function(){ reject(new Error(src)); };' +
+        'document.head.appendChild(s);' +
+      '});' +
+    '}' +
+    'function procesar(crudo, libs){' +
+      'try{' +
+        'if (!crudo){ fin("No se recibió el archivo. Cierre esta ventana e inténtelo de nuevo."); return; }' +
+        'var i = crudo.indexOf(",");' +
+        'var b64 = i >= 0 ? crudo.slice(i+1) : crudo;' +
+        'var texto;' +
+        'try { texto = atob(b64); } catch(eDec){ fin("El archivo no se pudo leer (datos no válidos)."); return; }' +
+        'if (/^AutoCAD Binary DXF/.test(texto)){' +
+          'fin("Este DXF está en formato binario. Vuelva a exportarlo desde AutoCAD eligiendo DXF (ASCII), no DXF binario.");' +
+          'return;' +
+        '}' +
+        'infoCarga("Cargando visor…");' +
+        'libs = libs || [];' +
+        'cargarScript(libs[0])' +
+          '.then(function(){ return cargarScript(libs[1]); })' +
+          '.then(function(){ return cargarScript(libs[2]); })' +
+          '.then(function(){' +
+            'var dxf;' +
+            'try { dxf = new window.DxfParser().parseSync(texto); }' +
+            'catch(eParse){ fin("No fue posible interpretar este archivo como DXF. Verifique que no esté dañado." +' +
+              '(eParse && eParse.message ? " (" + eParse.message + ")" : "")); return; }' +
+            'if (!dxf || !dxf.entities || !dxf.entities.length){' +
+              'fin("El archivo se leyó pero no contiene geometría dibujable."); return;' +
+            '}' +
+            'var cont = document.getElementById("vdLienzo");' +
+            'var visor = null;' +
+            'function construir(){' +
+              'cont.innerHTML = "";' +
+              'var w0 = cont.clientWidth || 800, h0 = cont.clientHeight || 600;' +
+              'visor = new window.ThreeDxf.Viewer(dxf, cont, w0, h0);' +
+            '}' +
+            'construir();' +
+            'window.addEventListener("resize", function(){ if (visor) visor.resize(cont.clientWidth, cont.clientHeight); });' +
+            'document.getElementById("vdAjustar").onclick = construir;' +
+            'var capas = Object.keys((dxf.tables && dxf.tables.layer && dxf.tables.layer.layers) || {});' +
+            'infoCarga(dxf.entities.length + " entidad(es)" + (capas.length ? " · capas: " + capas.join(", ") : ""));' +
+          '})' +
+          '.catch(function(eLib){' +
+            'fin("No fue posible cargar los componentes del visor. Verifique su conexión a internet e intente de nuevo." +' +
+              '(eLib && eLib.message ? " (" + eLib.message + ")" : ""));' +
+          '});' +
+      '} catch(eTodo){ fin("Ocurrió un problema inesperado al abrir el plano. (" + (eTodo && eTodo.message || eTodo) + ")"); }' +
+    '}' +
+    // La ventana que abre este visor (window.opener) entrega el archivo por
+    // postMessage en cuanto avisamos que ya estamos listos — más confiable
+    // entre navegadores que compartir variables globales entre ventanas.
+    'var yaLlegó = false;' +
+    'window.addEventListener("message", function(ev){' +
+      'if (!ev.data || ev.data.tipo !== "arken-dxf-datos") return;' +
+      'yaLlegó = true;' +
+      'procesar(ev.data.datos, ev.data.libs);' +
+    '});' +
+    'if (window.opener){ window.opener.postMessage({ tipo:"arken-dxf-listo" }, "*"); }' +
+    'else { fin("No fue posible abrir el plano (falta la ventana de origen). Cierre esta ventana e inténtelo de nuevo."); }' +
+    'setTimeout(function(){' +
+      'if (!yaLlegó) fin("No se recibió el archivo a tiempo. Cierre esta ventana e inténtelo de nuevo.");' +
+    '}, 8000);' +
+  '})();';
 
 function conceptosVigentes(fecha){
   const v = vigenciaPara(fecha || hoyISO());
@@ -10255,18 +11225,20 @@ function tabDocumentos(p, cont){
   });
 }
 
-function editarDocumentoPago(p, id){
+function editarDocumentoPago(p, id, borrador){
   const x = id ? p.documentos.find(d => d.id === id) : null;
   if (x && !Reglas.exigirEditable(x, 'documento de pago')) return;
   const original = x ? JSON.parse(JSON.stringify(x)) : null;
   const doc = x ? JSON.parse(JSON.stringify(x))
-    : { id:uid('dp'), consecutivo:'', idProveedor:'', tipo:'factura', numero:'', fecha:hoyISO(), fechaVencimiento:'',
-        lineas:[], retenciones:{ fuente:0, ica:0, iva:0 }, pagado:false, observaciones:'', cuentaPUC:'' };
+    : Object.assign({ id:uid('dp'), consecutivo:'', idProveedor:'', tipo:'factura', numero:'', fecha:hoyISO(), fechaVencimiento:'',
+        lineas:[], retenciones:{ fuente:0, ica:0, iva:0 }, pagado:false, observaciones:'', cuentaPUC:'' }, borrador||{});
 
   UI.modal({
     titulo: x ? 'Documento ' + x.consecutivo : 'Nuevo documento de pago', eyebrow:'Módulo 05 · Causaciones', ancho:'xwide',
     fijo:true,
     cuerpo:
+      (borrador ? '<div class="alert info"><div class="ic">◈</div><div class="bd"><b>Datos traídos desde Lectura de documentos.</b> ' +
+        'Revise el proveedor, el tipo, el número, la fecha y cada línea antes de guardar — quedan totalmente editables.</div></div>' : '') +
       UI.formHTML([
         { k:'idProveedor', lab:'Razón social del proveedor', tipo:'select', val:doc.idProveedor, req:true, col:2,
           opts:[{v:'',n:'— seleccione —'}].concat(p.proveedores.map(v => ({ v:v.id, n:v.razonSocial + ' · ' + v.identificacion }))) },
@@ -10445,6 +11417,7 @@ function editarDocumentoPago(p, id){
         totales();
       }
       pintaProv(); pintaLineas();
+      if (borrador) recalcRet();
     }
   });
 
@@ -10857,7 +11830,8 @@ function tabSalidas(p, cont){
     '<div class="nota-tab">' +
       '<span class="clave">Consume presupuesto</span>' +
       'Estos valores entran a la columna <b>INVERTIDO</b> del módulo 03, con el IVA incluido. ' +
-      'La cantidad no puede exceder la existencia disponible.' +
+      'Cada línea se dirige a un insumo del inventario y luego se imputa a una actividad: la cantidad no puede ' +
+      'exceder ni la existencia del almacén ni lo presupuestado para ese insumo en esa actividad.' +
     '</div>' +
     UI.tabs([{ k:'docs', n:'Salidas registradas' }, { k:'ins', n:'Todos los insumos despachados' }], sub,
       k => { Sesion.tabSal = k; App.render(); }) +
@@ -11134,12 +12108,14 @@ function editarSalida(p, id){
       ], 4) +
       '<div class="p-sec">Insumos — se eligen desde el inventario de obra</div>' +
       '<div class="toolbar"><button class="btn sm primary" id="saAdd" type="button">+ Agregar insumos del inventario</button>' +
-      '<span class="muted small" id="saAviso"></span></div>' +
+      '<span class="muted small" id="saAviso">El precio lo fija el inventario (método ' +
+        (met==='mayor'?'precio mayor':'promedio ponderado') + ') y no se edita a mano.</span></div>' +
       '<div class="tw scroll" style="max-height:340px"><table class="t" id="saLineas"><thead><tr>' +
-      '<th>Insumo</th><th>Un</th><th class="n">Existencia</th><th class="n">Cantidad</th><th class="n">Precio</th>' +
-      '<th class="n">Valor</th><th style="min-width:240px">Imputación: capítulo → subcapítulo → actividad</th><th></th>' +
+      '<th>Insumo</th><th>Un</th><th class="n">Existencia disponible</th><th class="n">Cantidad</th><th class="n">Precio</th>' +
+      '<th class="n">Valor</th><th style="min-width:260px">Imputación: capítulo → subcapítulo → actividad</th><th></th>' +
       '</tr></thead><tbody></tbody><tfoot><tr><td colspan="5">VALOR DE LA SALIDA</td>' +
       '<td class="n" id="saTot">$ 0</td><td colspan="2"></td></tr></tfoot></table></div>' +
+      '<div id="saAvisos"></div>' +
       '<div id="saErr"></div>',
     botones:[
       { texto:'Cancelar' },
@@ -11150,29 +12126,89 @@ function editarSalida(p, id){
       const inv = Calculo.inventario(p, met);
       function pinta(){
         let tot = 0;
+        const avisos = [];
         $('#saLineas tbody', m.el).innerHTML = sal.lineas.map((l,k) => {
           const i = Modelo.insumo(p, l.idInsumo) || {};
           const f = inv.find(z => z.id === l.idInsumo) || { existencia:0, precio:0 };
           let disp = f.existencia;
           if (x) (x.lineas||[]).forEach(o => { if (o.idInsumo === l.idInsumo) disp += Number(o.cantidad||0); });
-          const v = Number(l.cantidad||0) * Number(l.precioUnitario||0);
+          const q = Number(l.cantidad||0);
+          const v = q * Number(l.precioUnitario||0);
           tot += v;
-          const exceso = Number(l.cantidad||0) - disp > 1e-6;
+          const exceso = q - disp > 1e-6;
+          const pctExistencia = disp > 1e-9 ? Math.min(100, Math.max(0, (q/disp)*100)) : (q > 0 ? 100 : 0);
+          const colorExistencia = (exceso || disp <= 1e-9) ? 'bad' : (pctExistencia > 90 ? 'warn' : 'ok');
+
+          // Tope presupuestal POR ACTIVIDAD: cuánto admite esa actividad puntual
+          // para este insumo, mirando lo que OTRAS salidas ya le consumieron.
+          // Si la actividad no presupuesta nada de este insumo, no se bloquea
+          // -es el caso ya aceptado de un insumo real con otra referencia a la
+          // presupuestada- pero sí se avisa, para que no pase inadvertido.
           const r = l.idActividad ? Modelo.actividad(p, l.idActividad) : null;
+          let excesoAct = false, bloqueActividad;
+          if (!l.idActividad){
+            bloqueActividad = '<div class="muted small">Elija dónde se imputa</div>';
+          } else {
+            const presAct = Calculo.cantidadEnActividad(p, l.idActividad, l.idInsumo);
+            if (presAct <= 1e-6){
+              avisos.push('«' + esc(i.nombre||'insumo') + '» se imputa a «' + esc(r?r.act.nombre:'') +
+                '», una actividad que no presupuestó este insumo en su APU. Verifique la imputación.');
+              bloqueActividad = (r ? '<div class="muted small">' + esc(r.cap.codigo + ' ' + r.cap.nombre) + '</div>' : '') +
+                '<span class="tag warn" style="margin-top:3px" title="Esta actividad no tiene este insumo en su APU">' +
+                '⚠ no presupuestado aquí</span>';
+            } else {
+              const dispAct = Calculo.disponibleSalidaEnActividad(p, l.idActividad, l.idInsumo, x ? x.id : null);
+              excesoAct = q - dispAct > 1e-6;
+              const pctAct = Math.min(100, Math.max(0, ((presAct - dispAct + q) / presAct) * 100));
+              const colorAct = excesoAct ? 'bad' : (pctAct > 90 ? 'warn' : 'ok');
+              if (excesoAct) avisos.push('«' + esc(i.nombre||'insumo') + '» en «' + esc(r.act.nombre) +
+                '»: el presupuesto de esa actividad para este insumo es ' + cant(presAct) + ' ' + esc(i.unidad||'') +
+                ' y, con esta salida, quedaría comprometido ' + cant(presAct - dispAct + q) +
+                ' — es un sobrecosto de actividad, verifique que sea real antes de guardar.');
+              bloqueActividad = '<div class="muted small">' + esc(r.cap.codigo + ' ' + r.cap.nombre) + '</div>' +
+                '<div class="small' + (excesoAct?' bad-txt':'') + '" style="margin-top:3px">Presupuesto ' + cant(presAct) +
+                  ' · disponible ' + cant(Math.max(0,dispAct)) + '</div>' +
+                '<div class="meter" style="margin-top:3px"><i class="' + colorAct + '" style="width:' + pctAct + '%"></i></div>';
+            }
+          }
+
+          // Aviso de precio: el costo real del inventario puede superar el
+          // precio con que ese insumo quedó presupuestado. Nunca bloquea -el
+          // material ya está comprado y pagado- pero debe ser imposible de
+          // pasar por alto, igual que ya ocurre con los sobrecostos del
+          // módulo 03.
+          const sobreprecio = Number(i.precio||0) > 0 && Number(l.precioSinIVA||0) - Number(i.precio||0) > TOL;
+          let celdaPrecio = money3(l.precioUnitario);
+          if (sobreprecio){
+            const pctExc = ((Number(l.precioSinIVA)/Number(i.precio)) - 1) * 100;
+            avisos.push('«' + esc(i.nombre||'insumo') + '»: el inventario lo valora ' + pct(pctExc) +
+              ' por encima del precio presupuestado (' + money3(i.precio) + ' sin IVA).');
+            celdaPrecio += '<div class="tag warn" style="margin-top:3px" title="Presupuestado: ' + money3(i.precio) +
+              ' sin IVA · Costo real de inventario: ' + money3(l.precioSinIVA) + ' sin IVA">▲ ' + pct(pctExc) + '</div>';
+          }
+
+          // tr.over (fila en rojo) queda reservado para la existencia: es lo
+          // único que de verdad bloquea el guardado. El sobrecosto de
+          // actividad y el sobreprecio son avisos — se ven en su celda y en
+          // el panel de arriba, pero no tiñen toda la fila como si fueran a
+          // impedir guardar, porque no lo impiden.
           return '<tr' + (exceso ? ' class="over"' : '') + '><td class="small">' + esc(i.nombre||'—') +
             '<div class="muted mono" style="font-size:10px">' + esc(i.codigo||'') + '</div></td>' +
             '<td class="small">' + esc(i.unidad||'') + '</td>' +
-            '<td class="n small' + (exceso?' bad-txt':'') + '">' + cant(disp) + '</td>' +
+            '<td class="n small' + (exceso?' bad-txt':'') + '" style="min-width:92px">' + cant(disp) +
+              '<div class="meter" style="margin-top:3px"><i class="' + colorExistencia + '" style="width:' + pctExistencia + '%"></i></div></td>' +
             '<td class="n"><input type="number" step="0.0001" data-q="' + k + '" value="' + l.cantidad + '" style="width:88px' +
               (exceso ? ';border-color:var(--bad);background:var(--bad-soft)' : '') + '"></td>' +
-            '<td class="n small">' + money3(l.precioUnitario) + '</td><td class="n small">' + money(v) + '</td>' +
+            '<td class="n small">' + celdaPrecio + '</td><td class="n small">' + money(v) + '</td>' +
             '<td><select data-act="' + k + '" style="font-size:11.5px">' +
               '<option value="">— seleccione la actividad —</option>' +
-              actividadOpciones(p, l.idActividad) + '</select>' +
-              (r ? '<div class="muted small">' + esc(r.cap.codigo + ' ' + r.cap.nombre) + '</div>' : '') + '</td>' +
+              actividadOpciones(p, l.idActividad, l.idInsumo) + '</select>' + bloqueActividad + '</td>' +
             '<td class="act"><button class="btn xs danger" data-rm="' + k + '" type="button">✕</button></td></tr>';
         }).join('') || '<tr><td colspan="8" class="muted small" style="padding:14px">Agregue insumos con existencia disponible.</td></tr>';
         $('#saTot', m.el).textContent = money(tot);
+        $('#saAvisos', m.el).innerHTML = avisos.length ?
+          '<div class="alert warn" style="margin-top:var(--gap)"><div class="ic">ℹ</div><div class="bd"><b>Verifique antes de guardar</b>' +
+          avisos.map(a => '· ' + a).join('<br>') + '</div></div>' : '';
         $$('[data-q]', m.el).forEach(e => e.onchange = () => { sal.lineas[+e.dataset.q].cantidad = redondearDec(e.value,4); pinta(); });
         $$('[data-act]', m.el).forEach(e => e.onchange = () => { sal.lineas[+e.dataset.act].idActividad = e.value; pinta(); });
         $$('[data-rm]', m.el).forEach(b => b.onclick = () => { sal.lineas.splice(+b.dataset.rm,1); pinta(); });
@@ -11217,20 +12253,34 @@ function editarSalida(p, id){
   }
 }
 
-function actividadOpciones(p, sel){
-  let h = '';
+/** idInsumo es opcional: cuando se da, las actividades que de verdad
+    presupuestan ese insumo se marcan con ★ y sus grupos suben al principio
+    de la lista — para que, al despachar un insumo concreto, lo primero que
+    se vea sea dónde ese insumo realmente tiene presupuesto. Sin idInsumo
+    (los otros dos llamadores: documentos y requerimientos) el resultado es
+    idéntico al de siempre. */
+function actividadOpciones(p, sel, idInsumo){
+  const grupos = [];
   (p.capitulos||[]).forEach(c => (c.subs||[]).forEach(s => {
     if (!(s.acts||[]).length) return;
     // Una actividad cerrada no admite gasto nuevo, asi que sale del selector
     // -salvo que sea la que la linea ya traia, para no romper ese registro.
     const disponibles = s.acts.filter(a => !a.cerrada || a.id === sel);
     if (!disponibles.length) return;
-    h += '<optgroup label="' + esc(c.codigo + ' ' + c.nombre + ' → ' + s.nombre) + '">' +
-      disponibles.map(a => '<option value="' + a.id + '"' + (a.id === sel ? ' selected' : '') +
-        (a.cerrada ? ' disabled' : '') + '>' +
-        esc(a.codigo + ' ' + a.nombre) + (a.cerrada ? ' (cerrada)' : '') + '</option>').join('') + '</optgroup>';
+    let tieneMatch = false;
+    const html = disponibles.map(a => {
+      const presAqui = !!idInsumo && Calculo.cantidadEnActividad(p, a.id, idInsumo) > 1e-6;
+      if (presAqui) tieneMatch = true;
+      return '<option value="' + a.id + '"' + (a.id === sel ? ' selected' : '') +
+        (a.cerrada ? ' disabled' : '') + '>' + (presAqui ? '★ ' : '') +
+        esc(a.codigo + ' ' + a.nombre) + (a.cerrada ? ' (cerrada)' : '') + '</option>';
+    }).join('');
+    grupos.push({ etiqueta: c.codigo + ' ' + c.nombre + ' → ' + s.nombre, html, tieneMatch });
   }));
-  return h;
+  // Array.prototype.sort es estable: los grupos sin coincidencia conservan
+  // su orden relativo original, sólo los que sí presupuestan el insumo suben.
+  if (idInsumo) grupos.sort((x,y) => (y.tieneMatch?1:0) - (x.tieneMatch?1:0));
+  return grupos.map(g => '<optgroup label="' + esc((g.tieneMatch?'★ ':'') + g.etiqueta) + '">' + g.html + '</optgroup>').join('');
 }
 
 function docSalida(p, s){
@@ -11276,8 +12326,6 @@ function tabRequerimientos(p, cont){
       'No alimenta el inventario ni consume presupuesto. Sólo <b>reserva contra el saldo por comprar</b>, ' +
       'para que un mismo material no se encargue dos veces.' +
     '</div>' +
-      'No alimenta el inventario de obra ni consume presupuesto: sólo reserva contra el saldo por comprar ' +
-      'para que un mismo material no se encargue dos veces.</div></div>' +
     UI.tabs(TABS_REQ, sub, k => { Sesion.tabReq = k; App.render(); }) +
     '<div id="cReq"></div>';
   ({ docs:subReqDocs, lista:subReqLista, disp:subReqDisponible })[sub](p, $('#cReq'));
@@ -11950,6 +12998,25 @@ function abrirDocumentoCerrado(p, doc, queEs, modulo, alTerminar){
   if (!Reglas.puedeAbrirCerrados()){
     UI.aviso('No tiene permiso para abrir documentos cerrados',
       '<p>Sólo pueden hacerlo: ' + esc(Reglas.quienAbreCerrados().join(' · ')) + '.</p>');
+    return;
+  }
+  // Una cosa es el candado individual del documento (este botón) y otra el
+  // cierre contable del periodo (módulo 10): abrir el documento sin mirar el
+  // segundo dejaría cambiar, con toda autorización, una cifra que la empresa
+  // ya dio por cuadrada y presentada. Por eso esta puerta usa el MISMO
+  // criterio que fechaPermitida, y por eso aquí no hay forma de forzarla:
+  // la única salida correcta es revertir el cierre contable primero (una
+  // decisión aparte, reservada al Administrador general y auditada por sí
+  // misma) y recién entonces abrir este documento puntual.
+  if (dentroCierreContable(p, doc.fecha)){
+    const c = p.cierreContable;
+    UI.aviso('No se puede abrir: el periodo sigue cerrado contablemente',
+      '<p>Este ' + esc((queEs||'documento').toLowerCase()) + ' tiene fecha <b>' + fmtFecha(doc.fecha) +
+        '</b>, igual o anterior al cierre contable del <b>' + fmtFecha(c.fecha) + '</b>' +
+        (c.nota ? ' (' + esc(c.nota) + ')' : '') + '.</p>' +
+      '<p>Abrirlo ahora cambiaría una cifra que ya quedó cuadrada y presentada en un periodo cerrado.</p>' +
+      '<p class="muted small">Si de verdad hace falta corregirlo, el <b>Administrador general</b> debe primero ' +
+      'revertir el cierre contable (módulo 10 · Contabilidad) y luego abrir este documento puntual.</p>');
     return;
   }
   UI.modal({
@@ -12830,12 +13897,13 @@ function tabRevision(p, cont){
   });
 
   cont.innerHTML =
-    '<div class="alert info"><div class="ic">◈</div><div class="bd">' +
+    '<div class="nota-tab">' +
+      '<span class="clave">Causación real</span>' +
       '<b>Lo realmente causado contra cada actividad</b> — desde salidas de almacén y cortes de obra, ' +
       'que son los dos movimientos que consumen presupuesto (una compra sólo llena el inventario). ' +
       (puedeEditar ? 'Puede reasignar la actividad de cualquier línea si quedó mal causada.'
                    : 'Sólo Administración, Dirección de obra e Interventoría pueden reasignar la actividad de una línea.') +
-      '</div></div>' +
+    '</div>' +
     '<div class="toolbar">' +
       '<div class="field grow"><input id="revBuscar" type="search" placeholder="Buscar actividad o insumo…" value="' + esc(filtro) + '"></div>' +
       '<label style="display:flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap">' +
@@ -12904,36 +13972,328 @@ function tabRevision(p, cont){
 
 
 /* ═══════════════════ 5.10 LECTURA DE DOCUMENTOS ═══════════════════
-   Sube facturas, remisiones y cuentas de cobro; intenta leerlas para
-   proponer el proveedor y los insumos que traen, y — sólo después de que
-   el usuario revise y apruebe — los crea en la base de datos.
+   Sube facturas, remisiones y cuentas de cobro; las interpreta para
+   proponer de qué tipo de documento se trata, quién es el proveedor, y qué
+   insumos trae — y, sólo después de que el usuario revise y apruebe, crea
+   lo que haga falta en la base de datos y deja LISTO EL DOCUMENTO DE PAGO
+   correspondiente (módulo 05 · Documentos de pago), abierto para su
+   revisión final. Nada se da por cierto sin que el usuario lo confirme.
 
    Qué tan bien lee cada archivo depende de qué es:
    · Factura electrónica DIAN (el XML, o un PDF que lo trae adjunto): la
      lectura es prácticamente exacta, porque el dato ya viene estructurado
      por ley — no hay que adivinar nada.
-   · PDF digital común (no escaneado): se extrae el texto real de las
-     páginas y se buscan los datos con patrones (NIT, nombre, tabla de
-     insumos) — buena tasa de acierto, no perfecta.
-   · Foto o escaneo: no hay reconocimiento óptico de caracteres aquí — se
-     abre el documento para que el usuario digite los datos a mano.
+   · PDF digital común (no escaneado): se reconstruyen las líneas reales de
+     cada página a partir de la posición de cada fragmento de texto (no se
+     mezclan en una sola bolsa de palabras) y se buscan los datos renglón
+     por renglón — buena tasa de acierto, no perfecta.
+   · Foto o escaneo, o una imagen (JPG/PNG): se usa reconocimiento óptico
+     de caracteres (OCR) para obtener el texto y se analiza igual que un
+     PDF común — es la lectura menos confiable de las tres, y así se le
+     advierte al usuario.
    En todos los casos el usuario revisa y corrige antes de que algo entre
-   al sistema, así que un dato mal leído nunca llega solo a la base de datos. */
+   al sistema, así que un dato mal leído nunca llega solo a la base de
+   datos ni a un documento de pago. */
 
 function personeriaOpciones(){ return [{v:'juridica',n:'Persona jurídica'},{v:'natural',n:'Persona natural'}]; }
+
+/* ── Unidades reconocidas en un renglón de ítem (método de respaldo, sin
+   columnas) y sinónimos que toda unidad debe resolver a su forma corta —
+   para el método POR COLUMNAS (ver más abajo) esta lista además decide la
+   forma canónica en la que queda guardada la unidad del insumo, ya nunca
+   con riesgo de confundirse con la descripción porque se lee por POSICIÓN
+   en la tabla, no por coincidencia de palabras. ── */
+const UNIDADES_RECONOCIDAS = ['UN','UND','UNIDAD','UNIDADES','UNI','UDS','U','KG','KGS','KGM','KILOS','KILOGRAMOS',
+  'GR','G','GRAMOS','TON','TONELADA','TONELADAS','M','ML','MT','MTS','MTR','METRO','METROS','M2','MT2','MTS2',
+  'MTK','M3','MT3','MTS3','MTQ','GL','GLB','GLN','GAL','GALON','GALONES','LT','L','LTS','LTR','LITRO','LITROS',
+  'SACO','SACOS','BULTO','BULTOS','VJE','VIAJE','VIAJES','HR','HRS','HORA','HORAS','HC','DIA','DIAS','MES','MESES',
+  'JGO','JGOS','JUEGO','JUEGOS','PAR','PARES','CAJA','CAJAS','CJA','PAQ','PAQUETE','PAQUETES','ROLLO','ROLLOS',
+  'PLIEGO','PLIEGOS','LAMINA','LAMINAS','LB','LBS','LIBRA','LIBRAS','PTO','PUNTO','PUNTOS','GLOBAL'];
+const UNIDADES_SET = new Set(UNIDADES_RECONOCIDAS);
+/** De lo que de verdad escribe cada proveedor en su columna de unidad a la
+    forma corta que usa el resto del sistema ("Unid.", "Mts", "Gal",
+    "Kilos"… todos deben quedar como la misma unidad que ya usa la Lista
+    Maestra). Esto sólo se aplica cuando YA SE SABE, por la posición de la
+    celda en la tabla, que es la unidad — nunca hay que adivinarlo contra
+    la descripción, que es justamente lo que fallaba antes. */
+const UNIDAD_SINONIMOS = {
+  UNIDAD:'UN', UNIDADES:'UN', UND:'UN', UNI:'UN', UDS:'UN', U:'UN',
+  KILOS:'KG', KILOGRAMOS:'KG', KGS:'KG', KGM:'KG', GRAMOS:'G',
+  TONELADA:'TON', TONELADAS:'TON',
+  MTS:'M', MT:'M', METRO:'M', METROS:'M', MTR:'M',
+  MTS2:'M2', MT2:'M2',
+  MTS3:'M3', MT3:'M3',
+  GLN:'GL', GAL:'GL', GALON:'GL', GALONES:'GL', GLB:'GL',
+  LTS:'L', LTR:'L', LITRO:'L', LITROS:'L',
+  VIAJE:'VJE', VIAJES:'VJE',
+  HORA:'HR', HORAS:'HR', HRS:'HR',
+  DIAS:'DIA', MESES:'MES',
+  JGO:'JUEGO', JGOS:'JUEGO', JUEGOS:'JUEGO',
+  PARES:'PAR', CAJAS:'CAJA', CJA:'CAJA',
+  PAQ:'PAQUETE', PAQUETES:'PAQUETE',
+  ROLLOS:'ROLLO', PLIEGOS:'PLIEGO', LAMINAS:'LAMINA',
+  LBS:'LB', LIBRA:'LB', LIBRAS:'LB', PTO:'PUNTO', PUNTOS:'PUNTO'
+};
+/** Lleva el texto de una celda ya identificada como "unidad" a su forma
+    corta canónica; si no se reconoce, se conserva tal cual lo escribió el
+    documento — mejor conservar lo leído que inventar "UN" sin saberlo. */
+function unidadCanonica(txt){
+  const t = String(txt||'').trim().toUpperCase().replace(/[.,]+$/,'');
+  if (!t) return '';
+  if (UNIDADES_SET.has(t)) return UNIDAD_SINONIMOS[t] || t;
+  return t;
+}
+
+/** Interpreta un número como lo escribe el comercio colombiano: punto de
+    miles, coma decimal — pero reconoce también el formato inverso si el
+    texto lo trae así. Resuelve la ambigüedad de algo como "22.300" (¿22.300
+    o 22,3?) a favor de los miles, que es como se maneja el peso colombiano
+    en el comercio (sin fracciones). */
+function numeroCOP(txt){
+  if (txt === undefined || txt === null) return NaN;
+  let t = String(txt).trim().replace(/^\$\s*/, '').replace(/\s+/g,'');
+  if (!t) return NaN;
+  if (/^\d{1,3}(\.\d{3})+,\d+$/.test(t)) return Number(t.replace(/\./g,'').replace(',','.'));
+  if (/^\d{1,3}(,\d{3})+\.\d+$/.test(t)) return Number(t.replace(/,/g,''));
+  if (/^\d{1,3}(\.\d{3})+$/.test(t)) return Number(t.replace(/\./g,''));
+  if (/^\d{1,3}(,\d{3})+$/.test(t)) return Number(t.replace(/,/g,''));
+  if (/^\d+,\d{1,2}$/.test(t)) return Number(t.replace(',','.'));
+  if (/^\d+\.\d{1,2}$/.test(t)) return Number(t);
+  const limpio = t.replace(/[^\d.-]/g,'').replace(/\.(?=.*\.)/g,'');
+  const n = Number(limpio);
+  return isNaN(n) ? NaN : n;
+}
+/** ¿Tiene este fragmento pinta de número (cantidad o dinero)? Para separar,
+    dentro de un renglón, los tokens numéricos de la descripción. */
+function pintaDeNumero(tok){ return /^\$?\d[\d.,]*$/.test(tok) && /\d/.test(tok); }
+
+// "Flete" y "transporte" NO están en esta lista a propósito: son también
+// una descripción de ítem legítima y frecuente ("Flete de arena 2 VJE...").
+// Sale más barato dejarle al usuario un renglón de más por borrar que
+// perderle en silencio un acarreo que sí se debía cobrar.
+const PALABRAS_RESUMEN = ['subtotal','sub total','total','iva','descuento','retencion','retefuente',
+  'rete fuente','ica','cambio','recibido','abono','saldo pendiente','observacion','observaciones',
+  'firma','elaboro','recibi','anticipo','neto a pagar','base gravable','son:','valor en letras'];
+/** Líneas de cierre (totales, IVA, firmas…) que no son un renglón de
+    insumo aunque, igual que uno, terminen en números. */
+function esFilaResumen(linea){
+  const n = normaliza(linea);
+  return PALABRAS_RESUMEN.some(pal => n.startsWith(pal) || (n[0]==='(' && n.slice(1).startsWith(pal)));
+}
+
+/** Intenta leer UN renglón de texto como un ítem de factura/remisión:
+    [descripción] [cantidad] [unidad] [valor unitario] [valor total]. No
+    asume un orden fijo de columnas más allá de que la unidad separa la
+    cantidad (antes) del precio (después); si no hay una unidad reconocible
+    recurre a los números finales del renglón. Nunca se usa tal cual: todo
+    pasa después por la revisión del usuario, por eso devuelve también una
+    "confianza" ('alta'|'media'|'baja') que la pantalla de revisión usa
+    para señalar qué renglones conviene mirar con más cuidado. */
+function parsearRenglonItem(linea){
+  const original = String(linea||'').trim();
+  if (!original || esFilaResumen(original)) return null;
+  const tokens = original.split(/\s+/);
+  if (tokens.length < 2) return null;
+
+  let idxUnidad = -1;
+  for (let i = 1; i < tokens.length; i++){
+    if (UNIDADES_SET.has(tokens[i].toUpperCase().replace(/[.,]$/,''))){ idxUnidad = i; break; }
+  }
+
+  if (idxUnidad >= 0){
+    let idxCant = -1;
+    for (let i = idxUnidad - 1; i >= 0; i--){ if (pintaDeNumero(tokens[i])){ idxCant = i; break; } }
+    if (idxCant < 0) return null;
+    const cantidad = numeroCOP(tokens[idxCant]);
+    const nombre = tokens.slice(0, idxCant).join(' ').replace(/[-–:]+$/,'').trim();
+    if (!nombre || !cantidad) return null;
+    const unidad = tokens[idxUnidad].toUpperCase().replace(/[.,]$/,'');
+    const numerosDespues = tokens.slice(idxUnidad + 1).filter(pintaDeNumero).map(numeroCOP);
+    if (numerosDespues.length >= 2){
+      const valorUnit = numerosDespues[0], valorTotal = numerosDespues[1];
+      const esperado = cantidad * valorUnit;
+      const cuadra = valorTotal > 0 && Math.abs(esperado - valorTotal) / valorTotal < 0.03;
+      return { nombre, cantidad, unidad, valorUnit, valorTotal, confianza: cuadra ? 'alta' : 'media' };
+    }
+    if (numerosDespues.length === 1){
+      const valorTotal = numerosDespues[0];
+      const valorUnit = cantidad ? redondear3(valorTotal / cantidad) : valorTotal;
+      return { nombre, cantidad, unidad, valorUnit, valorTotal, confianza: 'media' };
+    }
+    return null;
+  }
+
+  const numericos = [];
+  for (let i = tokens.length - 1; i >= 0 && numericos.length < 3; i--){
+    if (pintaDeNumero(tokens[i])) numericos.unshift({ i, v: numeroCOP(tokens[i]) }); else break;
+  }
+  if (numericos.length < 2) return null;
+  const nombre = tokens.slice(0, numericos[0].i).join(' ').trim();
+  if (!nombre) return null;
+  if (numericos.length === 3){
+    const [c,u,t] = numericos.map(x => x.v);
+    return { nombre, cantidad:c, unidad:'UN', valorUnit:u, valorTotal:t, confianza:'baja' };
+  }
+  // Dos números al final sin unidad reconocible: la ambigüedad
+  // cantidad-vs-precio se resuelve por magnitud — un precio de materiales
+  // de construcción casi nunca es menor a 100 pesos.
+  const [a,b] = numericos.map(x => x.v);
+  if (a < 100 && b >= 100) return { nombre, cantidad:a, unidad:'UN', valorUnit:b, valorTotal:a*b, confianza:'baja' };
+  return { nombre, cantidad:1, unidad:'UN', valorUnit:a, valorTotal:b, confianza:'baja' };
+}
+
+/** Respaldo para la cuenta de cobro sencilla, de un solo concepto y sin
+    tabla de ítems — el formato más común entre contratistas e
+    independientes pequeños ("Por concepto de… Valor: $…"). Sólo se usa
+    cuando el barrido renglón por renglón no encontró ningún ítem. */
+function hallarConceptoYValorUnico(lineas){
+  const texto = lineas.join('\n');
+  const mValor = texto.match(/(?:valor|total|por\s+valor\s+de)\s*:?\s*\$?\s*([\d.,]{4,15})/i) ||
+    texto.match(/\$\s*([\d.,]{4,15})/);
+  if (!mValor) return null;
+  const valorTotal = numeroCOP(mValor[1]);
+  if (!valorTotal) return null;
+  const mConcepto = texto.match(/por\s+concepto\s+de\s*:?\s*([^\n]+)/i);
+  const nombre = mConcepto ? mConcepto[1].trim().replace(/[.,]+$/,'') : 'Servicio según cuenta de cobro';
+  return { nombre: nombre.charAt(0).toUpperCase() + nombre.slice(1), cantidad:1, unidad:'UN',
+    valorUnit:valorTotal, valorTotal, tarifaIVADefecto:0, confianza:'baja' };
+}
+
+/* ── Quién emite el documento (nunca el destinatario, nunca uno mismo) ── */
+const ETIQUETAS_DESTINATARIO = /^(se[ñn]or(?:es)?|cliente|para|comprador|adquirie?nte|raz[oó]n social cliente)\b/i;
+const ETIQUETAS_NO_NOMBRE = /^(nit|c\.?c\.?|cedula|factura|cuenta|remisi[oó]n|fecha|no\.?|n[°º]|direcci[oó]n|tel[eé]fono|celular|email|correo|ciudad|regimen)\b|^$/i;
+function pintaDeNombreEmpresa(linea){
+  const t = String(linea||'').trim();
+  if (!t || t.length < 3 || t.length > 80) return -1;
+  if (ETIQUETAS_NO_NOMBRE.test(t)) return -1;
+  if (/\d{5,}/.test(t)) return -1; // un número largo en la línea es casi siempre un NIT o teléfono, no un nombre
+  const letras = t.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g,'');
+  if (!letras) return -1;
+  let score = 1;
+  const mayus = letras.replace(/[^A-ZÁÉÍÓÚÑ]/g,'').length;
+  if (mayus / letras.length > 0.6) score += 1; // las razones sociales suelen ir en mayúsculas
+  if (/\b(sas|s\.a\.s|ltda|s\.a\.|cia|y cia|eu)\b\.?$/i.test(t)) score += 1; // sufijo societario
+  return score;
+}
+/** Busca, entre TODAS las líneas, el bloque de identificación (NIT o
+    cédula) que con más probabilidad es el EMISOR del documento — nunca el
+    destinatario (lo marcado "Señor(es)/Cliente/Para…"), y nunca la propia
+    empresa del usuario, así aparezca sin ninguna etiqueta que lo delate
+    (p. ej. en el pie, como referencia de pago). */
+function hallarProveedor(lineas, miEmpresa){
+  const miNit = String((miEmpresa&&miEmpresa.nit)||'').replace(/\D/g,'');
+  const candidatos = [];
+  lineas.forEach((linea, i) => {
+    const esDestinatario = ETIQUETAS_DESTINATARIO.test(linea.trim()) ||
+      (i>0 && ETIQUETAS_DESTINATARIO.test(lineas[i-1].trim()) && !/nit|cedula|c\.c\./i.test(lineas[i-1]));
+    const mNit = linea.match(/\bnit\.?\s*:?\s*(\d[\d.]{5,14})-?\s*(\d)?/i);
+    const mCc = !mNit ? linea.match(/\bc\.?c\.?\s*:?\s*(\d[\d.]{5,14})\b/i) : null;
+    if (!mNit && !mCc) return;
+    const idNum = (mNit ? mNit[1] : mCc[1]).replace(/\./g,'');
+    const esPropia = miNit && idNum === miNit;
+    candidatos.push({ i, linea, tipoDocumento: mNit?'NIT':'Cédula de ciudadanía', identificacion:idNum,
+      dv: mNit && mNit[2] ? mNit[2] : calcularDV(idNum), esDestinatario, esPropia });
+  });
+  if (!candidatos.length) return null;
+  const buenos = candidatos.filter(c => !c.esDestinatario && !c.esPropia);
+  const elegido = buenos[0] || candidatos.find(c => !c.esPropia) || candidatos[0];
+  const antesDeEtiqueta = elegido.linea.split(/\bnit\b|\bc\.?c\.?\b/i)[0];
+  const cands = [ { txt: antesDeEtiqueta, s: pintaDeNombreEmpresa(antesDeEtiqueta) } ];
+  // El nombre casi nunca está exactamente en el renglón anterior al NIT: lo
+  // normal en un membrete real es nombre → una o dos líneas de dirección →
+  // NIT (a veces el nombre trae de paso su propia etiqueta NIT/C.C. en el
+  // mismo renglón, como "FERRETERIA X S.A.S Nit: 1234"). Se revisan hasta 3
+  // renglones hacia atrás y se toma el de mejor puntaje —no sólo el
+  // inmediatamente anterior—, tomando sólo lo que venga ANTES de una
+  // etiqueta NIT/C.C. si la línea trae una, y deteniéndose al llegar al
+  // bloque del destinatario para no salirse del membrete de ESTE emisor.
+  for (let k = 1; k <= 3 && elegido.i - k >= 0; k++){
+    const txtOriginal = String(lineas[elegido.i - k] || '');
+    if (ETIQUETAS_DESTINATARIO.test(txtOriginal.trim())) break;
+    const txt = /\bnit\b|\bc\.?c\.?\b/i.test(txtOriginal) ? txtOriginal.split(/\bnit\b|\bc\.?c\.?\b/i)[0] : txtOriginal;
+    cands.push({ txt, s: pintaDeNombreEmpresa(txt) });
+  }
+  cands.sort((a,b) => b.s - a.s);
+  const nombre = cands[0].s >= 0 ? cands[0].txt.trim().replace(/[,:\-]+$/,'').trim() : '';
+  return {
+    identificacion: elegido.identificacion, dv: elegido.dv, tipoDocumento: elegido.tipoDocumento,
+    razonSocial: nombre, dudoso: buenos.length === 0,
+    confianza: buenos.length ? (cands[0].s >= 0 ? 'alta' : 'media') : 'baja'
+  };
+}
+function hallarNumeroDocumento(lineas){
+  const texto = lineas.join('\n');
+  // El número puede traer varios tramos separados por guion (p. ej.
+  // "C-1-75265" o "FE-2026-00123"), no sólo "letras-guion-dígitos" — por
+  // eso el grupo capturado acepta letras, dígitos y guiones libremente.
+  const m = texto.match(/(?:factura(?:\s+de\s+venta)?|cuenta\s+de\s+cobro|remisi[oó]n|cotizaci[oó]n|presupuesto|documento)\s*(?:electr[oó]nica)?\s*(?:n[úu]mero|no\.?|n[°º]|#)\s*[:\-]?\s*([A-Z0-9][-A-Z0-9]{1,14})/i);
+  if (m) return m[1].replace(/\s+/g,'');
+  // Sin una palabra como "factura"/"cotización" pegada al número, se busca
+  // un "N°"/"Nº"/"No." suelto, pero SOLO entre las primeras líneas del
+  // documento (su encabezado) — más abajo es mucho más probable que sea una
+  // cuenta bancaria, una cédula u otra referencia en el cuerpo o el pie, no
+  // el número del documento mismo. Se exige el signo especial o un punto
+  // después de "No" para no confundir con la palabra "no" de cualquier otra
+  // frase del encabezado.
+  const encabezado = lineas.slice(0, 15).join('\n');
+  const m2 = encabezado.match(/\bn[°º]\.?\s*[:\-]?\s*([A-Z0-9][-A-Z0-9]{1,14})\b/i) ||
+    encabezado.match(/\bno\.\s*[:\-]?\s*([A-Z0-9][-A-Z0-9]{1,14})\b/i);
+  return m2 ? m2[1].replace(/\s+/g,'') : '';
+}
+const MESES_DOC = { enero:1,febrero:2,marzo:3,abril:4,mayo:5,junio:6,julio:7,agosto:8,septiembre:9,setiembre:9,octubre:10,noviembre:11,diciembre:12 };
+function hallarFechaDocumento(lineas){
+  const texto = lineas.join('\n');
+  let m = texto.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+  if (m) return m[1]+'-'+m[2]+'-'+m[3];
+  m = texto.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\b/);
+  if (m) return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0'); // d/m/y → y-m-d
+  m = texto.match(/\b(\d{1,2})\s+de\s+([a-zñáéíóú]+)\s+de\s+(\d{4})\b/i);
+  if (m && MESES_DOC[normaliza(m[2])]) return m[3]+'-'+String(MESES_DOC[normaliza(m[2])]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+  return '';
+}
+
+/** Similitud entre dos descripciones de insumo, para sugerir "¿es este
+    mismo insumo que ya existe?" cuando el nombre leído no coincide exacto
+    con ninguno de la lista maestra. Jaccard sobre el conjunto de palabras:
+    simple, rápido, y suficiente para una sugerencia que el usuario siempre
+    confirma o descarta a mano. */
+function similitudNombres(a, b){
+  const sa = new Set(normaliza(a).split(/\s+/).filter(w => w.length > 2));
+  const sb = new Set(normaliza(b).split(/\s+/).filter(w => w.length > 2));
+  if (!sa.size || !sb.size) return 0;
+  let inter = 0; sa.forEach(w => { if (sb.has(w)) inter++; });
+  return inter / (sa.size + sb.size - inter);
+}
+/** Mejor candidato existente para un nombre de insumo leído, si lo hay. */
+function sugerenciaInsumoParecido(p, nombre){
+  let mejor = null, mejorS = 0;
+  (p.insumos||[]).forEach(i => {
+    const s = similitudNombres(i.nombre, nombre);
+    if (s > mejorS){ mejorS = s; mejor = i; }
+  });
+  return (mejor && mejorS >= 0.5) ? { insumo: mejor, similitud: mejorS } : null;
+}
 
 function documentosLectura(p){ p.documentosLectura = p.documentosLectura || []; return p.documentosLectura; }
 
 function tabLecturaDocumentos(p, cont){
   const docs = documentosLectura(p);
+  const nPendientes = docs.filter(d => d.estado === 'pendiente').length;
   cont.innerHTML =
-    '<div class="alert info"><div class="ic">◈</div><div class="bd"><b>Suba una factura, remisión o cuenta de cobro</b> y ' +
-      'el sistema intenta identificar el proveedor y los insumos que trae, para crearlos en la base de datos con su visto bueno. ' +
-      'La lectura es prácticamente exacta si es una factura electrónica (el XML, o el PDF que lo trae adjunto); en un PDF común ' +
-      'busca los datos por patrones, con buena tasa de acierto pero no perfecta; para una foto o un escaneo, abra el documento y ' +
-      'digite los datos usted mismo — no hay reconocimiento óptico de caracteres.</div></div>' +
-    '<div class="toolbar"><button class="btn primary" id="lecSubir" type="button">+ Subir documento</button>' +
-      '<span class="muted small">Formatos: PDF, XML · ' + docs.length + ' documento(s) en este proyecto</span></div>' +
+    '<div class="nota-tab">' +
+      '<span class="clave">Lectura automática</span>' +
+      '<b>Suba una factura, remisión o cuenta de cobro</b> — en PDF, XML o como foto/escaneo — y el sistema ' +
+      'identifica de qué tipo de documento se trata, quién es el proveedor y qué insumos trae, cada uno con ' +
+      'su cantidad, unidad y precio antes y después de IVA, para dejarle <b>listo el documento de pago</b> ' +
+      'con su visto bueno antes de guardar nada. Lee la tabla de ítems <b>columna por columna</b> cuando el ' +
+      'documento la trae reconocible, y al aprobar avisa si la suma de lo leído no cuadra con el total que el ' +
+      'propio documento declara. Es prácticamente exacta en una factura electrónica, buena en un PDF con ' +
+      'texto, y la menos confiable en una foto o escaneo — revise siempre antes de aprobar.' +
+    '</div>' +
+    '<div class="toolbar"><button class="btn primary" id="lecSubir" type="button">+ Subir documento(s)</button>' +
+      '<input type="file" id="lecInput" accept=".pdf,.xml,.jpg,.jpeg,.png,.webp,application/pdf,text/xml,application/xml,image/*" multiple style="display:none">' +
+      (nPendientes ? '<button class="btn sm brass" id="lecLeerTodos" type="button">Leer todos los pendientes (' + nPendientes + ')</button>' : '') +
+      '<span class="muted small">PDF, XML o foto/escaneo (JPG, PNG) · puede elegir varios a la vez · ' + docs.length + ' documento(s) en este proyecto</span></div>' +
     '<div class="card"><div class="card-body flush"><div class="tw scroll"><table class="t"><thead><tr>' +
       '<th>Documento</th><th>Tipo</th><th class="n">Peso</th><th>Subido</th><th>Estado</th><th></th>' +
     '</tr></thead><tbody>' +
@@ -12941,13 +14301,26 @@ function tabLecturaDocumentos(p, cont){
       '<tr><td colspan="6" class="muted small" style="padding:16px">Aún no se ha subido ningún documento.</td></tr>') +
     '</tbody></table></div></div></div>';
 
-  $('#lecSubir').onclick = () => UI.pedirArchivo('.pdf,.xml,application/pdf,text/xml,application/xml', arch => {
-    const doc = { id:uid('ld'), nombre:arch.nombre, mime:arch.tipo, peso:arch.peso, datos:arch.datos,
-      fechaSubida: Date.now(), estado:'pendiente', proveedorCreado:null, insumosCreados:[] };
-    docs.push(doc);
-    Modelo.auditar('subir','documento de lectura', doc.nombre, p.id);
-    App.guardar(); tabLecturaDocumentos(p, cont);
-  });
+  $('#lecSubir').onclick = () => $('#lecInput', cont).click();
+  $('#lecInput', cont).onchange = e => {
+    const archivos = Array.from(e.target.files||[]);
+    if (!archivos.length) return;
+    let pendientes = archivos.length;
+    const terminar = () => { if (--pendientes === 0){ App.guardar(); tabLecturaDocumentos(p, cont); } };
+    archivos.forEach(f => {
+      const r = new FileReader();
+      r.onload = () => {
+        docs.push({ id:uid('ld'), nombre:f.name, mime:f.type, peso:f.size, datos:r.result,
+          fechaSubida: Date.now(), estado:'pendiente', proveedorCreado:null, insumosCreados:[], resultadoLectura:null });
+        Modelo.auditar('subir','documento de lectura', f.name, p.id);
+        terminar();
+      };
+      r.onerror = () => { UI.toast('No fue posible leer ' + f.name, 'bad'); terminar(); };
+      r.readAsDataURL(f);
+    });
+  };
+  const btnTodos = $('#lecLeerTodos', cont);
+  if (btnTodos) btnTodos.onclick = () => leerTodosPendientes(p, cont, btnTodos);
   $$('[data-lecver]', cont).forEach(b => b.onclick = () => {
     const d = docs[+b.dataset.lecver];
     const url = URL.createObjectURL(dataURLaBlob(d.datos));
@@ -12958,26 +14331,34 @@ function tabLecturaDocumentos(p, cont){
     const d = docs[+b.dataset.lecdesc];
     UI.descargar(d.nombre, dataURLaBlob(d.datos));
   });
-  $$('[data-lecleer]', cont).forEach(b => b.onclick = () => leerDocumentoLectura(p, docs[+b.dataset.lecleer], cont));
+  $$('[data-lecleer]', cont).forEach(b => b.onclick = () => leerDocumentoLectura(p, docs[+b.dataset.lecleer], cont, b));
+  $$('[data-lecreleer]', cont).forEach(b => b.onclick = () => leerDocumentoLectura(p, docs[+b.dataset.lecreleer], cont, b, true));
   $$('[data-lecdel]', cont).forEach(b => b.onclick = () => {
-    UI.confirmar({ titulo:'Eliminar documento', cuerpo:'<p>¿Eliminar <b>' + esc(docs[+b.dataset.lecdel].nombre) + '</b>? Esto no afecta ningún proveedor o insumo que ya se haya creado a partir de él.' })
+    UI.confirmar({ titulo:'Eliminar documento', cuerpo:'<p>¿Eliminar <b>' + esc(docs[+b.dataset.lecdel].nombre) + '</b>? Esto no afecta ningún proveedor, insumo o documento de pago que ya se haya creado a partir de él.' })
       .then(ok => { if (!ok) return; docs.splice(+b.dataset.lecdel,1); App.guardar(); tabLecturaDocumentos(p, cont); });
   });
 }
 
 function filaDocumentoLectura(d, i){
   const esXml = /xml/i.test(d.mime||'') || /\.xml$/i.test(d.nombre||'');
+  const esImagen = /^image\//i.test(d.mime||'') || /\.(jpe?g|png|webp)$/i.test(d.nombre||'');
+  const tipoArchivo = esXml ? 'XML (factura electrónica)' : (esImagen ? 'Imagen (foto/escaneo)' : 'PDF');
   const estados = { pendiente:'<span class="tag">Sin leer</span>', leido:'<span class="tag info">Leído — pendiente de aprobar</span>',
     aprobado:'<span class="tag ok">Aprobado</span>' };
+  // Si ya se leyó, el botón principal reabre la revisión al instante (sin
+  // repetir el OCR ni el análisis) y un botón aparte, más discreto, permite
+  // forzar una lectura nueva desde cero cuando de verdad hace falta.
+  const yaLeido = d.estado !== 'pendiente' && d.resultadoLectura;
   return '<tr><td class="small">' + esc(d.nombre) + '</td>' +
-    '<td class="small">' + (esXml ? 'XML (factura electrónica)' : 'PDF') + '</td>' +
+    '<td class="small">' + tipoArchivo + '</td>' +
     '<td class="n small">' + pesoLegible(d.peso) + '</td>' +
     '<td class="small">' + fmtSello(d.fechaSubida) + '</td>' +
     '<td>' + (estados[d.estado]||estados.pendiente) + '</td>' +
     '<td class="act nowrap">' +
       '<button class="btn xs" data-lecver="' + i + '" type="button">Ver</button> ' +
       '<button class="btn xs" data-lecdesc="' + i + '" type="button">Descargar</button> ' +
-      '<button class="btn xs brass" data-lecleer="' + i + '" type="button">Leer documento</button> ' +
+      '<button class="btn xs brass" data-lecleer="' + i + '" type="button">' + (yaLeido ? 'Revisar lectura' : 'Leer documento') + '</button> ' +
+      (yaLeido ? '<button class="btn xs" data-lecreleer="' + i + '" type="button" title="Descartar esta lectura y volver a leer el documento desde cero">↻</button> ' : '') +
       '<button class="btn xs danger" data-lecdel="' + i + '" type="button">✕</button></td></tr>';
 }
 
@@ -13065,13 +14446,19 @@ function parsearXmlDian(textoXml){
     const impuestoLinea = Number(xmlTexto(taxTotal, 'TaxAmount').replace(',','.')) || 0;
     const precioConIVA = cantidad ? redondear3(precioSinIVA + (impuestoLinea/cantidad)) : precioSinIVA;
     return { nombre: xmlTexto(item,'Description') || '(sin descripción)', cantidad,
-      unidad: unidadLegible(unidad), precioSinIVA: redondear3(precioSinIVA), precioConIVA,
+      unidad: unidadLegible(unidad), precioSinIVA: redondear3(precioSinIVA), precioConIVA, confianza:'alta',
       tarifaIVA: porcentajeIVA || (precioSinIVA ? redondearDec(((precioConIVA/precioSinIVA)-1)*100,2) : 0) };
   });
 
-  return { tipoDocumento, fuenteLectura:'xml_dian',
+  // El número y la fecha del documento ya vienen estructurados por ley
+  // (cbc:ID y cbc:IssueDate) — no hay que adivinarlos como en un PDF común.
+  const numero = xmlTexto(raiz, 'ID');
+  const fecha = xmlTexto(raiz, 'IssueDate');
+
+  return { tipoDocumento, fuenteLectura:'xml_dian', numero, fecha,
     proveedor: { personeria, tipoDocumento:'NIT', identificacion, dv, razonSocial: razonSocial || nombresPersonaNatural,
-      contacto: xmlTexto(contactoNodo,'Telephone'), correo: xmlTexto(contactoNodo,'ElectronicMail') || xmlTexto(partyEmisor,'ElectronicMail') },
+      contacto: xmlTexto(contactoNodo,'Telephone'), correo: xmlTexto(contactoNodo,'ElectronicMail') || xmlTexto(partyEmisor,'ElectronicMail'),
+      confianza:'alta', dudoso:false },
     insumos };
 }
 function unidadLegible(codigo){
@@ -13079,107 +14466,544 @@ function unidadLegible(codigo){
   return mapa[codigo] || codigo || 'UN';
 }
 
-/** Extrae el texto de todas las páginas de un PDF con pdf.js — sólo funciona
-    si el PDF tiene texto real (no es una foto o un escaneo). */
-async function extraerTextoPDF(dataURL){
+/** Extrae el texto real de un PDF con pdf.js y reconstruye las FILAS
+    VISUALES de todas sus páginas, con la posición horizontal de cada
+    fragmento conservada (no las mezcla en una sola bolsa de palabras, que
+    es lo que hacía perder por completo la estructura de la tabla de
+    ítems). Esa posición es la que permite, más abajo, leer la tabla POR
+    COLUMNAS en vez de adivinar sobre una frase larga. Sólo sirve si el PDF
+    tiene texto real, no una foto o un escaneo. */
+async function extraerLineasPDF(dataURL){
   if (typeof pdfjsLib === 'undefined'){
     throw new Error('El lector de PDF no cargó — revise su conexión a internet e intente de nuevo.');
   }
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  const b64 = dataURL.split(',')[1];
-  const bin = atob(b64); const bytes = new Uint8Array(bin.length);
-  for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
-  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
-  let texto = '';
+  const pdf = await pdfjsLib.getDocument({ data: base64ABytes(dataURL) }).promise;
+  let filas = [];
   for (let i=1; i<=pdf.numPages; i++){
     const pagina = await pdf.getPage(i);
     const contenido = await pagina.getTextContent();
-    texto += contenido.items.map(it => it.str).join(' ') + '\n';
+    filas = filas.concat(reconstruirLineasPagina(contenido.items));
   }
-  return texto;
+  return filas;
+}
+function base64ABytes(dataURL){
+  const b64 = dataURL.split(',')[1];
+  const bin = atob(b64); const bytes = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+/** Agrupa los fragmentos de texto de una página por su posición vertical
+    (misma fila visual) y los ordena de izquierda a derecha dentro de cada
+    fila. Devuelve, de cada fila, el texto ya unido (para las búsquedas de
+    proveedor/fecha/número, que sólo necesitan texto plano) Y las celdas
+    SIN unir con su posición horizontal real — eso es lo que permite leer
+    una tabla de ítems por columnas en vez de adivinar sobre una sola frase
+    larga, que es la causa más frecuente de una lectura mal interpretada. */
+function reconstruirLineasPagina(items){
+  const puntos = (items||[]).filter(it => (it.str||'').trim() !== '')
+    .map(it => ({ texto: it.str, x: it.transform[4], y: it.transform[5], h: it.height||10 }));
+  if (!puntos.length) return [];
+  const alturas = puntos.map(pt => pt.h).filter(Boolean).sort((a,b) => a-b);
+  const tolY = Math.max(2, (alturas[Math.floor(alturas.length/2)]||10) * 0.4);
+  const filas = [];
+  puntos.forEach(pt => {
+    let fila = filas.find(f => Math.abs(f.y - pt.y) <= tolY);
+    if (!fila){ fila = { y: pt.y, n: 0, items: [] }; filas.push(fila); }
+    // El "y" de la fila se promedia con cada punto que entra en vez de
+    // quedar fijo en el primero — así una tabla de interlineado estrecho
+    // no va arrastrando el límite de tolerancia hacia un extremo hasta
+    // terminar mezclando dos filas reales en una sola.
+    fila.y = (fila.y * fila.n + pt.y) / (fila.n + 1); fila.n++;
+    fila.items.push(pt);
+  });
+  filas.sort((a,b) => b.y - a.y);
+  return filas.map(f => {
+    f.items.sort((a,b) => a.x - b.x);
+    return { texto: f.items.map(it => it.texto).join(' '), celdas: f.items.map(it => ({ texto: it.texto, x: it.x })) };
+  });
 }
 
-/** Lectura por patrones de un PDF común (no factura electrónica): busca NIT,
-    razón social, contacto y una tabla de insumos dentro del texto plano.
-    Es un intento razonable, no una lectura garantizada — por eso todo pasa
-    después por la revisión del usuario antes de crear nada. */
-function parsearTextoLibre(texto){
-  const t = texto.replace(/\s+/g,' ').trim();
+/* ── Reconocimiento óptico de caracteres (OCR), para fotos y escaneos ── */
+let _ocrWorker = null;
+/** El worker de Tesseract.js se arma una sola vez por sesión —crearlo tiene
+    un costo real la primera vez (descarga del motor y del modelo de
+    idioma)— y se reutiliza en cada lectura siguiente. */
+async function obtenerWorkerOCR(){
+  if (typeof Tesseract === 'undefined'){
+    throw new Error('El lector óptico de caracteres no cargó — revise su conexión a internet e intente de nuevo.');
+  }
+  if (_ocrWorker) return _ocrWorker;
+  _ocrWorker = await Tesseract.createWorker('spa', 1, {
+    workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
+    corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',
+    // Datos de idioma español, variante "best_int" — la que corresponde al modo
+    // LSTM-only (oem=1, usado arriba) para este motor 5.1.1 exactamente.
+    langPath: 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/spa/4.0.0_best_int'
+  });
+  return _ocrWorker;
+}
+/** Pasa una imagen a escala de grises y estira su contraste (lo más oscuro
+    del documento queda negro puro, lo más claro queda blanco puro) antes
+    de reconocerla. Una foto de celular real casi nunca tiene el contraste
+    parejo de un escaneo — con luz dispareja o papel amarillento, el motor
+    de OCR confunde dígitos ("3" por "8", "0" por "6") bastante más de lo
+    que confunde letras, y en una factura un dígito mal leído es justo el
+    tipo de error que nadie quiere pagar sin notar. Es el ajuste de más
+    impacto y menor costo que existe antes de reconocer texto, así que se
+    aplica siempre, tanto a una foto como a un escaneo ya limpio. */
+function prepararImagenParaOCR(fuente){
+  return new Promise((resolve) => {
+    const procesar = (dibujable, w, h) => {
+      if (!w || !h){ resolve(fuente); return; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(dibujable, 0, 0, w, h);
+      let datos;
+      try { datos = ctx.getImageData(0, 0, w, h); }
+      catch(e){ resolve(fuente); return; } // lienzo no accesible (origen cruzado) — se sigue con la imagen tal cual
+      const px = datos.data;
+      const gris = new Uint8ClampedArray(px.length / 4);
+      let min = 255, max = 0;
+      for (let i=0, j=0; i<px.length; i+=4, j++){
+        const g = 0.299*px[i] + 0.587*px[i+1] + 0.114*px[i+2];
+        gris[j] = g; if (g<min) min=g; if (g>max) max=g;
+      }
+      const rango = Math.max(1, max-min);
+      for (let i=0, j=0; i<px.length; i+=4, j++){
+        const v = Math.round((gris[j]-min) * 255 / rango);
+        px[i]=px[i+1]=px[i+2]=v;
+      }
+      ctx.putImageData(datos, 0, 0);
+      resolve(canvas);
+    };
+    if (fuente instanceof HTMLCanvasElement){ procesar(fuente, fuente.width, fuente.height); return; }
+    const img = new Image();
+    img.onload = () => procesar(img, img.naturalWidth, img.naturalHeight);
+    img.onerror = () => resolve(fuente);
+    img.src = fuente;
+  });
+}
+/** Reconoce el texto de una imagen (dataURL, canvas…) y devuelve sus FILAS
+    —texto y posición horizontal de cada palabra, en el MISMO formato que
+    produce un PDF con texto real— para que la detección de tabla por
+    columnas sirva igual para los dos casos, en vez de tener un método
+    distinto (y más débil) sólo para lo que viene de una foto. Cada fila
+    lleva además su propia confianza (0-100) del motor de OCR, para que la
+    revisión señale qué renglones conviene mirar con más cuidado. */
+async function ocrFuente(fuente){
+  const worker = await obtenerWorkerOCR();
+  const preparada = await prepararImagenParaOCR(fuente);
+  const ret = await worker.recognize(preparada);
+  return (ret.data.lines||[]).map(l => ({
+    texto: l.text.replace(/\s+$/,''),
+    celdas: (l.words||[]).map(w => ({ texto:w.text, x:(w.bbox?w.bbox.x0:0) })),
+    confianza: l.confidence
+  }));
+}
+/** Convierte cada página de un PDF escaneado en una imagen y la pasa por
+    OCR, hasta un máximo de páginas — para no colgar el navegador si por
+    error se sube un archivo enorme. */
+async function ocrPDFEscaneado(dataURL){
+  const MAX_PAGINAS = 5;
+  const pdf = await pdfjsLib.getDocument({ data: base64ABytes(dataURL) }).promise;
+  const nPaginas = Math.min(pdf.numPages, MAX_PAGINAS);
+  let filas = [];
+  for (let i=1; i<=nPaginas; i++){
+    const pagina = await pdf.getPage(i);
+    const viewport = pagina.getViewport({ scale: 2.5 }); // ≈180 dpi: buen punto medio para OCR de un documento comercial
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    await pagina.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    filas = filas.concat(await ocrFuente(canvas));
+  }
+  return { filas, paginasOmitidas: Math.max(0, pdf.numPages - nPaginas) };
+}
+
+const MAPA_TIPO_DOC_PAGO = { 'Factura':'factura', 'Remisión':'remision', 'Cuenta de cobro':'cuenta_cobro',
+  'Nota crédito':'nota_credito', 'Nota débito':'nota_debito', 'Otro documento':'factura' };
+function categoriaSugeridaPorTipo(t){ return t === 'Cuenta de cobro' ? 'Mano de Obra' : 'Materiales'; }
+function tipoProveedorSugeridoPorTipo(t){ return t === 'Cuenta de cobro' ? 'servicios' : 'insumos'; }
+/** Recalcula precioConIVA/precioSinIVA de un renglón a partir de su valor
+    tal como se encontró en el documento (ambiguo: puede o no traer el IVA
+    incluido) y de si el usuario confirmó que ese valor YA lo incluye. */
+function recomputarPreciosItem(row, incluyeIVA){
+  const base = Number(row.valorUnit)||0, tiva = Number(row.tarifaIVA)||0;
+  if (incluyeIVA){ row.precioConIVA = redondear3(base); row.precioSinIVA = redondear3(base/(1+tiva/100)); }
+  else { row.precioSinIVA = redondear3(base); row.precioConIVA = redondear3(base*(1+tiva/100)); }
+}
+
+/* ── Lectura de la tabla de ítems POR COLUMNAS ──
+   Esta es la diferencia real frente al método anterior: en vez de unir
+   todos los fragmentos de una fila en una sola frase y después adivinar
+   dónde empieza la cantidad o la unidad dentro de ese texto —lo que
+   fallaba, por ejemplo, con cualquier insumo cuya descripción trajera una
+   palabra que también es una unidad, como "caja" en "caja de inspección"
+   o "rollo" en "cable en rollo"—, aquí cada dato se toma de la columna que
+   de verdad es, por su posición horizontal real en el documento. Un PDF
+   con una tabla reconocible se lee así casi siempre; si no la tiene (el
+   caso típico de una cuenta de cobro sencilla), se cae al método anterior
+   como respaldo. */
+const ENCABEZADOS_TABLA = {
+  codigo:        ['codigo','código','cod.','referencia','ref.','sku','item','ítem'],
+  descripcion:   ['descripcion','descripción','concepto','detalle','producto','articulo','artículo'],
+  cantidad:      ['cantidad','cant.','cant'],
+  unidad:        ['unidad','und.','und','un.','u/m','u.m','umd','presentacion','presentación'],
+  // 'unitario' y 'unit' sueltos cubren el encabezado de dos líneas muy común
+  // en facturas reales ("PRECIO" arriba, "UNITARIO" abajo, como dos celdas
+  // separadas) — sin esto, "UNITARIO" solo se confundía con la columna de
+  // UNIDAD (por la abreviatura corta "un."), arrastrando precio, descuento
+  // e impuestos enteros dentro de esa columna y perdiendo la tabla completa.
+  valorUnitario: ['valor unitario','vlr unitario','vlr. unitario','vr unitario','vr. unitario','precio unitario',
+    'valor unit','vlr unit','vr unit','v.unitario','v/unitario','precio unit','p.unitario','unitario','unit'],
+  valorTotal:    ['valor total','vlr total','vlr. total','vr total','vr. total','valor item','importe',
+    'vlr. item','vr. item','total item','total linea','total línea']
+};
+function normalizaEncabezadoCelda(t){ return normaliza(String(t||'')).replace(/[():$%]/g,'').trim(); }
+/** ¿A qué campo de la tabla corresponde el texto de esta celda, si es que
+    es un encabezado? Se usa coincidencia por inclusión (no exacta) porque
+    un PDF puede traer el rótulo pegado a otra cosa ("Vlr.Unitario$"), y se
+    prefiere siempre la frase reconocida más larga para no confundir
+    "unidad" con "unitario" sólo porque ambas empiezan distinto. */
+function campoDeCelda(textoCelda){
+  const n = normalizaEncabezadoCelda(textoCelda);
+  if (!n || n.length < 2) return null;
+  let mejor = null, mejorLen = 0;
+  Object.keys(ENCABEZADOS_TABLA).forEach(campo => {
+    ENCABEZADOS_TABLA[campo].forEach(frase => {
+      const f = normaliza(frase).replace(/[.]/g,'');
+      const nn = n.replace(/[.]/g,'');
+      if ((nn === f || nn.startsWith(f) || nn.includes(f)) && f.length > mejorLen){ mejor = campo; mejorLen = f.length; }
+    });
+  });
+  return mejor;
+}
+/** Busca, entre las primeras filas del documento, la que con más
+    probabilidad es el ENCABEZADO de la tabla de ítems: la que reconoce al
+    menos dos columnas, con una columna de descripción y al menos una
+    columna numérica (cantidad o valor). Si ninguna fila califica, el
+    documento no tiene una tabla reconocible y se usa el método de
+    respaldo renglón por renglón. */
+function detectarEncabezadoTabla(filas){
+  const LIMITE = Math.min(filas.length, 60);
+  let mejor = null;
+  for (let i = 0; i < LIMITE; i++){
+    const fila = filas[i];
+    if (!fila.celdas || fila.celdas.length < 2) continue;
+    const vistos = new Set(); const columnas = [];
+    fila.celdas.forEach(c => {
+      const campo = campoDeCelda(c.texto);
+      if (!campo || vistos.has(campo)) return;
+      vistos.add(campo); columnas.push({ x:c.x, campo });
+    });
+    const tieneDescripcion = columnas.some(c => c.campo==='descripcion');
+    const tieneNumerico = columnas.some(c => c.campo==='cantidad' || c.campo==='valorUnitario' || c.campo==='valorTotal');
+    if (columnas.length >= 2 && tieneDescripcion && tieneNumerico){
+      if (!mejor || columnas.length > mejor.columnas.length) mejor = { filaIndex:i, columnas };
+    }
+  }
+  if (mejor) mejor.columnas.sort((a,b) => a.x - b.x);
+  return mejor;
+}
+/** A partir del encabezado ya localizado, recorre las filas siguientes y
+    arma cada renglón de ítem asignando cada fragmento de texto a la
+    columna cuyo rango horizontal lo contiene. Se detiene en la primera
+    fila que ya es un renglón de cierre (subtotal, IVA, total, firmas…). */
+function extraerTablaPorColumnas(filas, encabezado){
+  const columnas = encabezado.columnas;
+  // Tolerancia a la izquierda de la primera columna reconocida: un pequeño
+  // corrimiento (sangría de un renglón envuelto, redondeo de fuente) sigue
+  // siendo esa misma columna, pero algo claramente más a la izquierda es una
+  // columna APARTE que el diccionario de encabezados no reconoció (un "Item"
+  // o "#" sin texto que lo identifique) — y debe descartarse, nunca pegarse
+  // por error al principio de la descripción.
+  const TOLERANCIA_IZQ = 25;
+  function campoDeX(x){
+    if (x < columnas[0].x - TOLERANCIA_IZQ) return null;
+    let campo = columnas[0].campo;
+    for (let i=0; i<columnas.length; i++){ if (x >= columnas[i].x - 4) campo = columnas[i].campo; else break; }
+    return campo;
+  }
+  const items = [];
+  for (let i = encabezado.filaIndex + 1; i < filas.length; i++){
+    const fila = filas[i];
+    if (esFilaResumen(fila.texto)) break;
+    if (!fila.celdas || !fila.celdas.length) continue;
+    const porCampo = {};
+    fila.celdas.forEach(c => {
+      const campo = campoDeX(c.x);
+      if (!campo) return;
+      porCampo[campo] = (porCampo[campo] ? porCampo[campo] + ' ' : '') + c.texto;
+    });
+    const descripcion = String(porCampo.descripcion||'').replace(/\s+/g,' ').trim();
+    if (!descripcion) continue; // sin nombre del insumo no hay nada que crear ni vincular
+    const cantidad = numeroCOP(porCampo.cantidad);
+    const vUnit = numeroCOP(porCampo.valorUnitario);
+    const vTotal = numeroCOP(porCampo.valorTotal);
+    let cantidadFinal = (cantidad > 0) ? cantidad : 1;
+    let valorUnitFinal, confianza;
+    if (vUnit > 0 && vTotal > 0){
+      const esperado = cantidadFinal * vUnit;
+      confianza = (Math.abs(esperado - vTotal) / vTotal < 0.03) ? 'alta' : 'media';
+      valorUnitFinal = vUnit;
+    } else if (vUnit > 0){ valorUnitFinal = vUnit; confianza = (cantidad>0) ? 'media' : 'baja'; }
+    else if (vTotal > 0){ valorUnitFinal = cantidadFinal ? redondear3(vTotal/cantidadFinal) : vTotal; confianza = 'media'; }
+    else continue; // ninguna columna de valor trajo un número: no hay con qué armar el precio
+    items.push({ nombre: descripcion, cantidad: cantidadFinal, unidad: unidadCanonica(porCampo.unidad) || 'UN',
+      valorUnit: valorUnitFinal, confianza });
+  }
+  return items;
+}
+/** Busca en el texto plano los montos de cierre que casi cualquier
+    factura o cuenta de cobro declara (subtotal, IVA, total) — para poder
+    avisar si la suma de lo que se leyó no cuadra con lo que el propio
+    documento dice que suma, en vez de dejar pasar en silencio un renglón
+    mal interpretado. */
+function hallarTotalesDocumento(lineas){
+  function buscar(etiquetas){
+    for (const linea of lineas){
+      const n = normaliza(linea);
+      if (!etiquetas.some(et => n.startsWith(et))) continue;
+      const m = linea.match(/\$?\s*([\d.,]{4,15})\s*$/);
+      if (m){ const v = numeroCOP(m[1]); if (!isNaN(v) && v > 0) return v; }
+    }
+    return null;
+  }
+  return {
+    subtotal: buscar(['subtotal','sub total','base gravable']),
+    total: buscar(['total a pagar','neto a pagar','valor total','gran total','total'])
+  };
+}
+/** Analiza un documento ya convertido a FILAS —de un PDF con texto real, o
+    de un OCR, en el mismo formato {texto, celdas, confianza}— con el
+    MISMO motor en los dos casos. Primero intenta leer la tabla de ítems
+    POR COLUMNAS (la lectura más exacta); si el documento no trae una
+    tabla reconocible cae al método anterior renglón por renglón, y si
+    tampoco encuentra nada, al último recurso de "concepto y valor único"
+    (el formato típico de una cuenta de cobro de un solo concepto). Ninguna
+    de las tres es una lectura garantizada — por eso todo pasa después por
+    la revisión del usuario antes de crear nada. */
+function analizarTextoLibre(filas){
+  filas = (filas||[]).filter(f => f && String(f.texto||'').trim());
+  const lineas = filas.map(f => f.texto);
+  const texto = lineas.join(' ');
   let tipoDocumento = 'Otro documento';
-  if (/factura\s+de\s+venta|factura\s+electr/i.test(t)) tipoDocumento = 'Factura';
-  else if (/remisi[oó]n/i.test(t)) tipoDocumento = 'Remisión';
-  else if (/cuenta\s+de\s+cobro/i.test(t)) tipoDocumento = 'Cuenta de cobro';
+  if (/factura\s+de\s+venta|factura\s+electr/i.test(texto)) tipoDocumento = 'Factura';
+  else if (/remisi[oó]n/i.test(texto)) tipoDocumento = 'Remisión';
+  else if (/cuenta\s+de\s+cobro/i.test(texto)) tipoDocumento = 'Cuenta de cobro';
 
-  const nit = t.match(/nit\.?\s*:?\s*(\d[\d.]{5,14})[\s-]*(\d)?/i);
-  const cc = !nit ? t.match(/c\.?c\.?\s*:?\s*(\d[\d.]{5,14})/i) : null;
-  const identificacion = nit ? nit[1].replace(/\./g,'') : (cc ? cc[1].replace(/\./g,'') : '');
-  const dv = nit && nit[2] ? nit[2] : (identificacion ? calcularDV(identificacion) : '');
-  const correo = (t.match(/[\w.+-]+@[\w-]+\.[\w.-]+/) || [])[0] || '';
-  const telefono = (t.match(/(?:tel[eé]fono|cel(?:ular)?|contacto)\.?:?\s*(\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{4})/i) ||
-    t.match(/\b(3\d{2}[\s-]?\d{3}[\s-]?\d{4})\b/) || [])[1] || '';
-  const razonSocialM = t.match(/(?:raz[oó]n\s+social|proveedor|se[ñn]or(?:es)?)\.?:?\s*([A-ZÁÉÍÓÚÑ][\w.,&\s]{4,60}?)(?:\s{2,}|nit|c\.?c\.?|$)/i);
-  const razonSocial = razonSocialM ? razonSocialM[1].trim() : '';
+  const prov = hallarProveedor(lineas, S.empresa) ||
+    { identificacion:'', dv:'', razonSocial:'', tipoDocumento:'NIT', confianza:'baja', dudoso:true };
+  const numero = hallarNumeroDocumento(lineas);
+  const fecha = hallarFechaDocumento(lineas);
+  const incluyeIVA = tipoDocumento === 'Cuenta de cobro';
 
-  // Tabla de insumos: se buscan renglones con el patrón cantidad + unidad + valor,
-  // que es como casi cualquier factura de materiales lista sus ítems.
-  const insumos = [];
-  const patronRenglon = /([A-ZÁÉÍÓÚÑa-záéíóúñ0-9][\w\sÁÉÍÓÚÑáéíóúñ().,\/-]{4,60}?)\s+(\d+(?:[.,]\d+)?)\s*(UN|UND|KG|M2|M3|ML|M|GL|LT|L|SACO|BULTO|VJE|HR|HC|DIA)\b[^\d]{0,15}(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?)/gi;
-  let m;
-  while ((m = patronRenglon.exec(t)) && insumos.length < 60){
-    const cantidad = Number(m[2].replace(',','.'));
-    const valor = Number(m[4].replace(/\./g,'').replace(',','.'));
-    if (!cantidad || !valor) continue;
-    insumos.push({ nombre: m[1].trim(), cantidad, unidad: m[3].toUpperCase(),
-      precioConIVA: redondear3(valor), precioSinIVA: redondear3(valor/1.19), tarifaIVA: 19 });
+  let crudos = [], metodoExtraccion = 'ninguno';
+  const encabezado = detectarEncabezadoTabla(filas);
+  if (encabezado){
+    crudos = extraerTablaPorColumnas(filas, encabezado);
+    if (crudos.length) metodoExtraccion = 'columnas';
+  }
+  if (!crudos.length){
+    lineas.forEach((l,i) => {
+      const it = parsearRenglonItem(l);
+      if (!it) return;
+      if (filas[i] && filas[i].confianza !== undefined && filas[i].confianza < 70) it.confianza = 'baja';
+      crudos.push(it);
+    });
+    if (crudos.length) metodoExtraccion = 'renglon';
+  }
+  if (!crudos.length){
+    const unico = hallarConceptoYValorUnico(lineas);
+    if (unico){ crudos.push(unico); metodoExtraccion = 'unico'; }
+  }
+  const insumos = crudos.map(it => {
+    const tarifaIVA = it.tarifaIVADefecto !== undefined ? it.tarifaIVADefecto : 19;
+    const row = { nombre: it.nombre, cantidad: it.cantidad, unidad: it.unidad,
+      valorUnit: it.valorUnit, tarifaIVA, confianza: it.confianza };
+    recomputarPreciosItem(row, incluyeIVA);
+    return row;
+  });
+
+  // Chequeo cruzado: si el documento declara un total y lo que se armó no
+  // suma parecido, es mucho mejor avisarlo de una vez que dejar pasar un
+  // renglón mal leído sin que nadie lo note.
+  const sumaConIVA = insumos.reduce((t,i) => t + Number(i.cantidad||0)*Number(i.precioConIVA||0), 0);
+  const totalesDoc = hallarTotalesDocumento(lineas);
+  let chequeoTotales = null;
+  if (totalesDoc.total && sumaConIVA > 0){
+    const diferencia = sumaConIVA - totalesDoc.total;
+    chequeoTotales = { sumaItems: redondear(sumaConIVA), totalDocumento: totalesDoc.total,
+      coincide: Math.abs(diferencia) / totalesDoc.total < 0.015, diferencia: redondear(diferencia) };
   }
 
-  return { tipoDocumento, fuenteLectura:'pdf_texto',
-    proveedor: { personeria: nit ? 'juridica' : 'natural', tipoDocumento: nit ? 'NIT' : 'Cédula de ciudadanía',
-      identificacion, dv, razonSocial, contacto: telefono, correo },
+  return { tipoDocumento, numero, fecha, incluyeIVA, metodoExtraccion, chequeoTotales,
+    proveedor: { tipoDocumento: prov.tipoDocumento, identificacion: prov.identificacion, dv: prov.dv,
+      razonSocial: prov.razonSocial, contacto:'', correo:'', confianza: prov.confianza, dudoso: prov.dudoso },
     insumos };
 }
+/** Completa, sin pisar lo que el analizador ya haya resuelto, las
+    sugerencias que dependen sólo del tipo de documento —categoría de cada
+    insumo y tipo de proveedor— para que la pantalla de revisión siempre
+    tenga algo razonable preseleccionado, cualquiera sea la fuente. */
+function completarSugerencias(resultado){
+  const cat = categoriaSugeridaPorTipo(resultado.tipoDocumento);
+  (resultado.insumos||[]).forEach(it => { if (!it.categoria) it.categoria = cat; if (!it.confianza) it.confianza = 'media'; });
+  if (!resultado.proveedor.tipoProveedor) resultado.proveedor.tipoProveedor = tipoProveedorSugeridoPorTipo(resultado.tipoDocumento);
+  if (resultado.proveedor.personeria === undefined) resultado.proveedor.personeria = resultado.proveedor.tipoDocumento === 'NIT' ? 'juridica' : 'natural';
+  return resultado;
+}
 
-/** Orquesta la lectura: decide qué analizador usar según el archivo, y abre
-    el modal de revisión con lo que haya encontrado (aunque sea poco). */
-async function leerDocumentoLectura(p, doc, cont){
+/** Orquesta la lectura: decide qué analizador usar según el archivo —XML
+    DIAN, PDF con texto, o reconocimiento óptico para una imagen o un PDF
+    escaneado— y abre el modal de revisión con lo que haya encontrado
+    (aunque sea poco). */
+/** La extracción en sí —decide qué analizador usar según el archivo (XML
+    DIAN, PDF con texto, o reconocimiento óptico para una imagen o un PDF
+    escaneado), arma el resultado y lo deja guardado en el propio documento
+    (doc.resultadoLectura) — separada de abrir la pantalla de revisión,
+    para que "Leer todos los pendientes" pueda recorrer varios documentos
+    uno detrás de otro sin que el usuario tenga que esperar y revisar cada
+    uno al toque: la lectura queda lista de una vez, y abrir la revisión
+    después —uno a uno, con calma— es instantáneo. Lanza un error si no
+    pudo leer nada; nunca deja el documento a medias. */
+async function ejecutarLecturaDocumento(p, doc){
   const esXml = /xml/i.test(doc.mime||'') || /\.xml$/i.test(doc.nombre||'');
-  UI.toast('Leyendo documento…', 'info');
-  try{
-    let resultado;
-    if (esXml){
-      const texto = await fetch(doc.datos).then(r => r.text());
-      resultado = parsearXmlDian(texto);
-      if (!resultado) throw new Error('El XML no tiene la estructura de una factura electrónica reconocible.');
+  const esImagen = /^image\//i.test(doc.mime||'') || /\.(jpe?g|png|webp)$/i.test(doc.nombre||'');
+  let resultado;
+  if (esXml){
+    const texto = await fetch(doc.datos).then(r => r.text());
+    resultado = parsearXmlDian(texto);
+    if (!resultado) throw new Error('El XML no tiene la estructura de una factura electrónica reconocible.');
+  } else if (esImagen){
+    const filas = await ocrFuente(doc.datos);
+    if (!filas.some(f => f.texto.trim())) throw new Error('No se pudo reconocer texto en esta imagen — verifique que esté enfocada y bien iluminada, o digite los datos manualmente desde «+ Documento de pago».');
+    resultado = analizarTextoLibre(filas);
+    resultado.fuenteLectura = 'ocr';
+  } else {
+    const filas = await extraerLineasPDF(doc.datos);
+    if (filas.some(f => f.texto.trim())){
+      resultado = analizarTextoLibre(filas);
+      resultado.fuenteLectura = 'pdf_texto';
     } else {
-      const texto = await extraerTextoPDF(doc.datos);
-      if (!texto.trim()) throw new Error('No se encontró texto en este PDF — probablemente es una foto o un escaneo. Ábralo con «Ver» y digite los datos manualmente.');
-      resultado = parsearTextoLibre(texto);
+      const r = await ocrPDFEscaneado(doc.datos);
+      if (!r.filas.some(f => f.texto.trim())) throw new Error('Este PDF es una foto o un escaneo y no se pudo reconocer texto en él — ábralo con «Ver» y digite los datos manualmente desde «+ Documento de pago».');
+      resultado = analizarTextoLibre(r.filas);
+      resultado.fuenteLectura = 'ocr';
+      if (r.paginasOmitidas) UI.toast('Este PDF tiene más de 5 páginas — sólo se leyeron las primeras 5.', 'warn');
     }
-    doc.estado = 'leido';
+  }
+  completarSugerencias(resultado);
+  doc.estado = 'leido';
+  doc.resultadoLectura = resultado;
+  return resultado;
+}
+/** Lee un documento (o reutiliza lo ya leído, si lo había) y abre la
+    pantalla de revisión. "forzar" ignora la caché y vuelve a leer desde
+    cero — para cuando el usuario quiere reintentar una lectura. */
+async function leerDocumentoLectura(p, doc, cont, boton, forzar){
+  if (doc.resultadoLectura && !forzar){
+    modalRevisionLectura(p, doc, JSON.parse(JSON.stringify(doc.resultadoLectura)), cont);
+    return;
+  }
+  const esImagen = /^image\//i.test(doc.mime||'') || /\.(jpe?g|png|webp)$/i.test(doc.nombre||'');
+  const textoOriginalBoton = boton ? boton.textContent : '';
+  if (boton){ boton.disabled = true; boton.textContent = 'Leyendo…'; }
+  UI.toast(esImagen ? 'Reconociendo el texto de la imagen (OCR)… puede tardar unos segundos, sobre todo la primera vez.' : 'Leyendo documento…', 'info');
+  try{
+    const resultado = await ejecutarLecturaDocumento(p, doc);
     App.guardar();
     modalRevisionLectura(p, doc, resultado, cont);
   }catch(err){
     UI.aviso('No se pudo leer el documento', '<p>' + esc(err.message||String(err)) + '</p>' +
-      '<p class="muted small">Puede abrir el documento con «Ver» y crear el proveedor o el insumo manualmente desde sus propias pestañas.</p>');
+      '<p class="muted small">Puede abrir el documento con «Ver» y crear el proveedor, el insumo o el documento de pago manualmente desde sus propias pestañas.</p>');
+  } finally {
+    if (boton){ boton.disabled = false; boton.textContent = textoOriginalBoton || 'Leer documento'; }
+  }
+}
+/** Lee, en segundo plano y uno detrás de otro (nunca en paralelo: el OCR ya
+    exige bastante del navegador), todos los documentos aún sin leer — así
+    el usuario sube el lote completo de facturas del día y, en vez de tener
+    que esperar y revisar cada una al toque, las deja leyéndose solas y
+    vuelve cuando terminó a revisarlas una por una, ya instantáneo. Los
+    errores de lectura de un documento no detienen a los demás. */
+async function leerTodosPendientes(p, cont, boton){
+  const pendientes = documentosLectura(p).filter(d => d.estado === 'pendiente');
+  if (!pendientes.length) return;
+  const textoOriginal = boton ? boton.textContent : '';
+  let ok = 0; const fallidos = [];
+  for (let i = 0; i < pendientes.length; i++){
+    const d = pendientes[i];
+    if (boton){ boton.disabled = true; boton.textContent = 'Leyendo ' + (i+1) + ' de ' + pendientes.length + '…'; }
+    try{ await ejecutarLecturaDocumento(p, d); ok++; }
+    catch(err){ fallidos.push(d.nombre + ': ' + (err.message||String(err))); }
+  }
+  App.guardar();
+  if (boton){ boton.disabled = false; boton.textContent = textoOriginal || 'Leer todos los pendientes'; }
+  tabLecturaDocumentos(p, cont);
+  if (fallidos.length){
+    UI.aviso('Lectura terminada con ' + fallidos.length + ' documento(s) sin poder leer',
+      '<p>' + ok + ' documento(s) se leyeron correctamente y ya están listos para revisar.</p>' +
+      '<p class="muted small">' + fallidos.map(esc).join('<br>') + '</p>');
+  } else {
+    UI.toast(ok + ' documento(s) leído(s) — ya puede revisarlos y aprobarlos uno por uno', 'ok');
   }
 }
 
 /** El modal de revisión: todo lo leído queda editable, y nada se crea hasta
     que el usuario pulse «Aprobar y crear». */
+const BANNER_FUENTE_LECTURA = {
+  xml_dian: { clase:'ok', icono:'✓', texto:'<b>Factura electrónica DIAN.</b> Estos datos vienen del XML estructurado por ley — revíselos de todas formas antes de aprobar.' },
+  pdf_texto: { clase:'warn', icono:'!', texto:'<b>Lectura de un PDF con texto.</b> Buena tasa de acierto, pero no perfecta — revise con cuidado antes de aprobar.' },
+  ocr: { clase:'bad', icono:'!', texto:'<b>Lectura óptica (OCR) de una imagen o un escaneo.</b> Es la menos confiable de las tres — el reconocimiento de texto en una foto nunca es perfecto. Revise CADA dato antes de aprobar, sobre todo los números.' }
+};
+const NOTA_METODO_EXTRACCION = {
+  columnas: '<div class="small" style="margin-top:4px">La tabla de ítems se reconoció <b>columna por columna</b> (se identificó el encabezado y cada dato se tomó de su propia columna) — es la forma más exacta de las tres.</div>',
+  renglon: '<div class="small" style="margin-top:4px">No se reconoció un encabezado de tabla claro; los ítems se interpretaron renglón por renglón. Revise con más cuidado la cantidad, la unidad y los precios.</div>',
+  unico: '<div class="small" style="margin-top:4px">No se encontró una tabla de ítems; se tomó como un documento de un solo concepto y valor (típico de una cuenta de cobro sencilla).</div>'
+};
+/** ¿Ya existe, en este proyecto, un documento de pago del mismo proveedor
+    con el mismo número? Pagar dos veces la misma factura por descuido es
+    de los errores más costosos que puede cometer causaciones, y es
+    exactamente el tipo de error que una lectura automática —que crea el
+    documento de pago de una vez— podría facilitar si nadie lo avisa. */
+function documentoPagoDuplicado(p, idProveedor, numero){
+  const n = normaliza(numero);
+  if (!n || !idProveedor) return null;
+  return (p.documentos||[]).find(d => d.idProveedor === idProveedor && normaliza(d.numero) === n) || null;
+}
+
+/** El modal de revisión: todo lo leído queda editable, y nada se crea ni se
+    guarda hasta que el usuario pulse «Aprobar y continuar». Al aprobar, de
+    ahí se pasa directo al documento de pago ya armado. */
 function modalRevisionLectura(p, doc, resultado, contTab){
   const insumos = (resultado.insumos||[]).map(x => Object.assign({ incluir:true }, x));
+  const banner = BANNER_FUENTE_LECTURA[resultado.fuenteLectura] || BANNER_FUENTE_LECTURA.pdf_texto;
+  const notaMetodo = NOTA_METODO_EXTRACCION[resultado.metodoExtraccion] || '';
+  const mostrarIVA = resultado.fuenteLectura !== 'xml_dian';
+  const ct = resultado.chequeoTotales;
+  const bannerTotales = ct ? (ct.coincide
+    ? '<div class="alert ok"><div class="ic">✓</div><div class="bd">La suma de los ítems leídos (' + money(ct.sumaItems) +
+      ') coincide con el total que declara el documento (' + money(ct.totalDocumento) + ').</div></div>'
+    : '<div class="alert bad"><div class="ic">!</div><div class="bd"><b>La suma de los ítems leídos (' + money(ct.sumaItems) +
+      ') NO coincide con el total que declara el documento (' + money(ct.totalDocumento) + ')</b> — diferencia de ' +
+      money(Math.abs(ct.diferencia)) + '. Es señal de que algún renglón se leyó mal o falta un ítem; revise la tabla con cuidado antes de aprobar.</div></div>')
+    : '';
   UI.modal({
     titulo:'Revisión de lectura — ' + doc.nombre, eyebrow:'Módulo 05 · Lectura de documentos', ancho:'xwide', fijo:true,
     cuerpo:
-      '<div class="alert ' + (resultado.fuenteLectura==='xml_dian' ? 'ok' : 'warn') + '"><div class="ic">' +
-        (resultado.fuenteLectura==='xml_dian' ? '✓' : '!') + '</div><div class="bd">' +
-        (resultado.fuenteLectura==='xml_dian' ? '<b>Factura electrónica DIAN.</b> Estos datos vienen del XML estructurado — revíselos de todas formas antes de aprobar.'
-          : '<b>Lectura por patrones de texto.</b> Revise con cuidado — un PDF común no trae los datos estructurados como una factura electrónica.') +
-      '</div></div>' +
+      '<div class="alert ' + banner.clase + '"><div class="ic">' + banner.icono + '</div><div class="bd">' + banner.texto + notaMetodo + '</div></div>' +
+      bannerTotales +
       '<div class="p-sec">Tipo de documento</div>' +
-      '<div class="field" style="max-width:260px"><select id="rlTipoDoc">' +
+      '<div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">' +
+      '<div class="field"><label for="rlTipoDoc">Tipo</label><select id="rlTipoDoc">' +
         ['Factura','Remisión','Cuenta de cobro','Nota crédito','Nota débito','Otro documento'].map(t =>
           '<option' + (t===resultado.tipoDocumento?' selected':'') + '>' + t + '</option>').join('') + '</select></div>' +
+      '<div class="field"><label for="rlNumero">Número del documento</label><input id="rlNumero" type="text" value="' + esc(resultado.numero||'') + '" autocomplete="off"></div>' +
+      '<div class="field"><label for="rlFecha">Fecha del documento</label><input id="rlFecha" type="date" value="' + esc(resultado.fecha||'') + '"></div>' +
+      '</div>' +
+      '<div id="rlAvisoDup"></div>' +
       '<div class="p-sec">Proveedor (emisor del documento)</div>' +
       UI.formHTML([
         { k:'personeria', lab:'Tipo de proveedor', tipo:'select', val:resultado.proveedor.personeria||'juridica', opts:personeriaOpciones(), req:true },
@@ -13187,63 +15011,174 @@ function modalRevisionLectura(p, doc, resultado, contTab){
         { k:'identificacion', lab:'Número de identificación', tipo:'text', val:resultado.proveedor.identificacion||'', req:true },
         { k:'dv', lab:'Dígito de verificación', tipo:'text', val:resultado.proveedor.dv||'' },
         { k:'razonSocial', lab:'Nombre o razón social', tipo:'text', val:resultado.proveedor.razonSocial||'', req:true, col:2 },
+        { k:'tipoProveedor', lab:'Tipo de proveedor', tipo:'select', val:resultado.proveedor.tipoProveedor||'insumos', opts:TIPOS_PROVEEDOR },
         { k:'contacto', lab:'Número de contacto', tipo:'text', val:resultado.proveedor.contacto||'' },
         { k:'correo', lab:'Correo electrónico', tipo:'text', val:resultado.proveedor.correo||'' }
       ], 4) +
+      (resultado.proveedor.dudoso ? '<div class="alert warn"><div class="ic">!</div><div class="bd">No quedó claro, dentro del documento, cuál identificación es la del proveedor y cuál la del cliente — ' +
+        'verifique estos datos con especial cuidado.</div></div>' : '') +
       '<div id="rlAvisoProv"></div>' +
       '<div class="p-sec">Insumos leídos en el documento</div>' +
       '<div class="toolbar"><button class="btn sm" id="rlAgregarFila" type="button">+ Agregar renglón</button>' +
-      '<span class="muted small">Desmarque los que no quiera crear.</span></div>' +
-      '<div class="tw scroll" style="max-height:280px"><table class="t" id="rlTablaInsumos"><thead><tr>' +
-      '<th></th><th>Nombre</th><th>Cantidad</th><th>Unidad</th><th class="n">Precio con IVA</th>' +
+      (mostrarIVA ? '<label class="small" style="margin-left:auto"><input type="checkbox" id="rlIncluyeIVA"' + (resultado.incluyeIVA?' checked':'') +
+        '> Los precios de este documento YA incluyen el IVA</label>' : '<span class="muted small" style="margin-left:auto">Desmarque los que no quiera crear.</span>') +
+      '</div>' +
+      '<div class="tw scroll" style="max-height:300px"><table class="t" id="rlTablaInsumos"><thead><tr>' +
+      '<th></th><th></th><th>Nombre</th><th>Cantidad</th><th>Unidad</th><th>Categoría</th><th class="n">Precio con IVA</th>' +
       '<th class="n">Precio sin IVA</th><th class="n">IVA %</th><th></th>' +
       '</tr></thead><tbody></tbody></table></div>' +
       '<div id="rlAvisoIns"></div>',
     botones:[
       { texto:'Cancelar' },
-      { texto:'Aprobar y crear', clase:'primary', accion: m => aprobarLecturaYCrear(p, doc, m, contTab) }
+      { texto:'Aprobar y continuar →', clase:'primary', accion: m => aprobarLecturaYCrear(p, doc, m, contTab) }
     ],
     alAbrir: m => {
+      // Lo que ya coincide EXACTO con un insumo existente se enlaza de una
+      // vez, para que la tabla abra mostrando desde el principio que no se
+      // va a duplicar nada.
+      insumos.forEach(it => {
+        if (it.vincularA || !it.nombre) return;
+        const exacto = (p.insumos||[]).find(x => normaliza(x.nombre) === normaliza(it.nombre));
+        if (exacto) it.vincularA = exacto.id;
+      });
+      const puntoConfianza = { alta:'var(--ok)', media:'var(--brass)', baja:'var(--bad)' };
+      const tituloConfianza = { alta:'Lectura confiable', media:'Revise este dato', baja:'Poco confiable — revise con cuidado' };
+      function sugerenciaHtml(it, i){
+        if (!it.nombre) return '';
+        const sug = sugerenciaInsumoParecido(p, it.nombre);
+        if (!sug) return '<div class="small muted">Insumo nuevo — se creará en la Lista Maestra.</div>';
+        return '<div class="small" style="color:var(--brass)">¿Es el mismo «' + esc(sug.insumo.nombre) + '» (' + esc(sug.insumo.codigo) + ', ' + money(sug.insumo.precio) + ')? ' +
+          '<a href="#" data-rlusar="' + i + '" data-rlid="' + sug.insumo.id + '">Usar este</a></div>';
+      }
       function pintaInsumos(){
         $('#rlTablaInsumos tbody', m.el).innerHTML = insumos.map((it,i) =>
           '<tr><td><input type="checkbox" data-rlinc="' + i + '"' + (it.incluir?' checked':'') + '></td>' +
-          '<td><input type="text" data-rlnom="' + i + '" value="' + esc(it.nombre) + '" style="width:220px"></td>' +
-          '<td><input type="number" step="0.0001" data-rlcant="' + i + '" value="' + it.cantidad + '" style="width:80px"></td>' +
-          '<td><input type="text" data-rlun="' + i + '" value="' + esc(it.unidad) + '" style="width:60px"></td>' +
-          '<td><input type="number" step="0.01" data-rlpiva="' + i + '" value="' + it.precioConIVA + '" style="width:100px"></td>' +
-          '<td><input type="number" step="0.001" data-rlpsin="' + i + '" value="' + it.precioSinIVA + '" style="width:100px"></td>' +
-          '<td><input type="number" step="0.01" data-rltiva="' + i + '" value="' + it.tarifaIVA + '" style="width:70px"></td>' +
+          '<td><span title="' + esc(tituloConfianza[it.confianza]||'') + '" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' +
+            (puntoConfianza[it.confianza]||puntoConfianza.media) + '"></span></td>' +
+          '<td><input type="text" data-rlnom="' + i + '" value="' + esc(it.nombre) + '" style="width:190px">' +
+            (it.vincularA ? '<div class="small" style="color:var(--ok)">✓ usa el existente <b>' + esc((Modelo.insumo(p,it.vincularA)||{}).codigo||'') + '</b> ' +
+              '<a href="#" data-rldesvinc="' + i + '">(crear uno nuevo en su lugar)</a></div>' : sugerenciaHtml(it, i)) + '</td>' +
+          '<td><input type="number" step="0.0001" data-rlcant="' + i + '" value="' + it.cantidad + '" style="width:72px"></td>' +
+          '<td><input type="text" data-rlun="' + i + '" value="' + esc(it.unidad) + '" style="width:56px"></td>' +
+          '<td><select data-rlcat="' + i + '" style="font-size:11.5px">' + CATEGORIAS_INSUMO.map(c =>
+            '<option' + (c===it.categoria?' selected':'') + '>' + c + '</option>').join('') + '</select></td>' +
+          '<td><input type="number" step="0.01" data-rlpiva="' + i + '" value="' + it.precioConIVA + '" style="width:92px"></td>' +
+          '<td><input type="number" step="0.001" data-rlpsin="' + i + '" value="' + it.precioSinIVA + '" style="width:92px"></td>' +
+          '<td><input type="number" step="0.01" data-rltiva="' + i + '" value="' + it.tarifaIVA + '" style="width:60px"></td>' +
           '<td><button class="btn xs danger" data-rlrm="' + i + '" type="button">✕</button></td></tr>').join('') ||
-          '<tr><td colspan="8" class="muted small" style="padding:12px">No se encontró ningún insumo — agregue renglones a mano si el documento sí trae.</td></tr>';
+          '<tr><td colspan="10" class="muted small" style="padding:12px">No se encontró ningún insumo — agregue renglones a mano si el documento sí trae.</td></tr>';
         $$('[data-rlinc]', m.el).forEach(e => e.onchange = () => insumos[+e.dataset.rlinc].incluir = e.checked);
-        $$('[data-rlnom]', m.el).forEach(e => e.onchange = () => insumos[+e.dataset.rlnom].nombre = e.value);
+        $$('[data-rlnom]', m.el).forEach(e => e.onchange = () => { const it = insumos[+e.dataset.rlnom]; it.nombre = e.value; it.vincularA = null; pintaInsumos(); });
         $$('[data-rlcant]', m.el).forEach(e => e.onchange = () => insumos[+e.dataset.rlcant].cantidad = Number(e.value)||0);
         $$('[data-rlun]', m.el).forEach(e => e.onchange = () => insumos[+e.dataset.rlun].unidad = e.value);
+        $$('[data-rlcat]', m.el).forEach(e => e.onchange = () => insumos[+e.dataset.rlcat].categoria = e.value);
         $$('[data-rlpiva]', m.el).forEach(e => e.onchange = () => insumos[+e.dataset.rlpiva].precioConIVA = Number(e.value)||0);
         $$('[data-rlpsin]', m.el).forEach(e => e.onchange = () => insumos[+e.dataset.rlpsin].precioSinIVA = Number(e.value)||0);
         $$('[data-rltiva]', m.el).forEach(e => e.onchange = () => insumos[+e.dataset.rltiva].tarifaIVA = Number(e.value)||0);
         $$('[data-rlrm]', m.el).forEach(b => b.onclick = () => { insumos.splice(+b.dataset.rlrm,1); pintaInsumos(); });
+        $$('[data-rlusar]', m.el).forEach(a => a.onclick = ev => { ev.preventDefault();
+          const i = +a.dataset.rlusar, ins = Modelo.insumo(p, a.dataset.rlid); if (!ins) return;
+          Object.assign(insumos[i], { vincularA: ins.id, nombre: ins.nombre, unidad: ins.unidad, categoria: ins.categoria });
+          pintaInsumos();
+        });
+        $$('[data-rldesvinc]', m.el).forEach(a => a.onclick = ev => { ev.preventDefault(); insumos[+a.dataset.rldesvinc].vincularA = null; pintaInsumos(); });
+        const nAlta = insumos.filter(x=>x.confianza==='alta').length, nMedia = insumos.filter(x=>x.confianza==='media').length, nBaja = insumos.filter(x=>x.confianza==='baja').length;
+        $('#rlAvisoIns', m.el).innerHTML = insumos.length ? ('<p class="muted small">● ' + nAlta + ' con lectura confiable · ● ' + nMedia + ' para revisar · ● ' + nBaja + ' poco confiables.</p>') : '';
       }
-      $('#rlAgregarFila', m.el).onclick = () => { insumos.push({ incluir:true, nombre:'', cantidad:0, unidad:'UN', precioConIVA:0, precioSinIVA:0, tarifaIVA:19 }); pintaInsumos(); };
+      const chkIVA = $('#rlIncluyeIVA', m.el);
+      if (chkIVA) chkIVA.onchange = () => { insumos.forEach(it => recomputarPreciosItem(it, chkIVA.checked)); pintaInsumos(); };
+      $('#rlAgregarFila', m.el).onclick = () => { insumos.push({ incluir:true, nombre:'', cantidad:1, unidad:'UN', categoria:categoriaSugeridaPorTipo($('#rlTipoDoc', m.el).value), precioConIVA:0, precioSinIVA:0, tarifaIVA:19, confianza:'media' }); pintaInsumos(); };
+      function revisarProveedorParecido(){
+        const ident = $('#f_identificacion', m.el).value.trim(), nom = $('#f_razonSocial', m.el).value.trim();
+        const av = $('#rlAvisoProv', m.el); if (!av) return;
+        if (!nom){ av.innerHTML = ''; return; }
+        const exacto = (p.proveedores||[]).find(x => normaliza(x.identificacion) === normaliza(ident) && ident);
+        if (exacto){
+          av.innerHTML = '<div class="alert info" style="margin-top:8px"><div class="ic">◈</div><div class="bd">Ya existe un proveedor con esta identificación: ' +
+            '<b>' + esc(exacto.razonSocial) + '</b> — se usará el que ya existe, no se crea uno nuevo.</div></div>';
+          return;
+        }
+        const parecido = (p.proveedores||[]).map(x => ({ x, s: similitudNombres(x.razonSocial, nom) })).sort((a,b) => b.s-a.s)[0];
+        av.innerHTML = (parecido && parecido.s >= 0.5)
+          ? '<div class="alert warn" style="margin-top:8px"><div class="ic">!</div><div class="bd">Hay un proveedor con un nombre parecido ya registrado: ' +
+            '<b>' + esc(parecido.x.razonSocial) + '</b> (' + esc(parecido.x.tipoDocumento) + ' ' + esc(parecido.x.identificacion) + '). ' +
+            'Revise si es el mismo y la identificación se leyó mal — de ser así, corríjala arriba para que no quede duplicado.</div></div>'
+          : '';
+      }
+      /* Pagar dos veces la misma factura es el riesgo real de volver tan
+         rápida la lectura automática: por eso se avisa EN VIVO, apenas el
+         número de documento y la identificación del proveedor coinciden con
+         algo que ya está en el sistema, y no hasta después de crear todo. */
+      function revisarAvisoDuplicado(){
+        const av = $('#rlAvisoDup', m.el); if (!av) return;
+        const ident = $('#f_identificacion', m.el).value.trim();
+        const numero = $('#rlNumero', m.el).value.trim();
+        if (!ident || !numero){ av.innerHTML = ''; return; }
+        const prov = (p.proveedores||[]).find(x => normaliza(x.identificacion) === normaliza(ident));
+        const dup = prov ? documentoPagoDuplicado(p, prov.id, numero) : null;
+        av.innerHTML = dup
+          ? '<div class="alert bad"><div class="ic">!</div><div class="bd"><b>Ya existe un documento de pago con este mismo número para este proveedor:</b> ' +
+            tipoDocNombre(dup.tipo) + ' N.° ' + esc(dup.numero) + ' del ' + fmtFecha(dup.fecha) + ' (' + (dup.pagado ? 'ya pagado' : 'pendiente de pago') + '). ' +
+            'Verifique que no se trate de la misma factura — si continúa, se le pedirá confirmar antes de crear un documento adicional.</div></div>'
+          : '';
+      }
+      $('#f_identificacion', m.el).oninput = () => { revisarProveedorParecido(); revisarAvisoDuplicado(); };
+      $('#f_razonSocial', m.el).oninput = revisarProveedorParecido;
+      $('#f_personeria', m.el).onchange = e => { $('#f_tipoDocumento', m.el).value = e.target.value === 'natural' ? 'Cédula de ciudadanía' : 'NIT'; };
+      $('#rlNumero', m.el).oninput = revisarAvisoDuplicado;
       pintaInsumos();
+      revisarProveedorParecido();
+      revisarAvisoDuplicado();
       m._leerDatos = () => ({
         tipoDocumento: $('#rlTipoDoc', m.el).value,
         proveedor: UI.leerForm(m.el),
-        insumos: insumos.filter(x => x.incluir)
+        insumos: insumos.filter(x => x.incluir),
+        numeroDocumento: $('#rlNumero', m.el).value.trim(),
+        fechaDocumento: $('#rlFecha', m.el).value || ''
       });
     }
   });
 }
 
-/** Al aprobar: crea el proveedor si no existe (o avisa que ya existe), y
-    cada insumo si no existe (o avisa que ya existe) — nunca duplica. */
-function aprobarLecturaYCrear(p, doc, modal, contTab){
+/** Al aprobar: resuelve o crea el proveedor, resuelve o crea cada insumo
+    (nunca duplica), y con eso deja ABIERTO el documento de pago ya armado
+    —proveedor, tipo, número, fecha y cada línea— listo para su revisión
+    final en la misma pantalla de siempre. */
+async function aprobarLecturaYCrear(p, doc, modal, contTab){
   const d = modal._leerDatos();
   if (!d.proveedor.identificacion.trim() || !d.proveedor.razonSocial.trim()){
     UI.toast('La identificación y la razón social del proveedor son obligatorias', 'bad'); return;
   }
+  if (!d.insumos.length){
+    UI.toast('Incluya al menos un insumo para poder armar el documento de pago', 'bad'); return;
+  }
+  // Último filtro antes de crear nada: si ya existe un documento de pago con
+  // el mismo número para este mismo proveedor, se exige confirmación
+  // explícita — pagar dos veces la misma factura es un error caro y es
+  // justo el que una lectura automática podría facilitar si nadie lo frena.
+  const provExistente = (p.proveedores||[]).find(x => normaliza(x.identificacion) === normaliza(d.proveedor.identificacion));
+  if (provExistente && d.numeroDocumento.trim()){
+    const dup = documentoPagoDuplicado(p, provExistente.id, d.numeroDocumento);
+    if (dup){
+      const ok = await UI.confirmar({ titulo:'Posible documento duplicado',
+        cuerpo:'<p>Ya existe un documento de pago <b>' + tipoDocNombre(dup.tipo) + ' N.° ' + esc(dup.numero) + '</b> del ' + fmtFecha(dup.fecha) +
+          ' para <b>' + esc(provExistente.razonSocial) + '</b> (' + (dup.pagado ? 'ya pagado' : 'pendiente de pago') + ').</p>' +
+          '<p>¿Está seguro de crear otro documento de pago con el mismo número? Verifique primero que no sea la misma factura — pagarla dos veces no es fácil de deshacer.</p>',
+        textoAceptar:'Sí, crear de todas formas', claseAceptar:'danger' });
+      if (!ok) return;
+    }
+  }
   const resProv = crearProveedorDesdeLectura(p, d.proveedor);
-  const resInsumos = d.insumos.filter(x => x.nombre.trim()).map(x => crearInsumoDesdeLectura(p, x, resProv.proveedor.id));
+  let colisionesTotal = [];
+  const resInsumos = d.insumos.filter(x => x.nombre.trim()).map(x => {
+    if (x.vincularA){
+      const ins = Modelo.insumo(p, x.vincularA);
+      if (ins) return { creado:false, insumo:ins, fila:x };
+    }
+    const r = crearInsumoDesdeLectura(p, x, resProv.proveedor.id);
+    if (r.colisiones && r.colisiones.length) colisionesTotal = colisionesTotal.concat(r.colisiones);
+    return Object.assign(r, { fila:x });
+  });
   doc.estado = 'aprobado';
   doc.proveedorCreado = resProv.proveedor.id;
   doc.insumosCreados = resInsumos.filter(r => r.creado).map(r => r.insumo.id);
@@ -13251,10 +15186,20 @@ function aprobarLecturaYCrear(p, doc, modal, contTab){
   App.guardar();
   modal.cerrar();
   const creados = resInsumos.filter(r => r.creado).length, existentes = resInsumos.length - creados;
-  UI.aviso('Lectura aprobada',
-    '<p><b>Proveedor:</b> ' + esc(resProv.proveedor.razonSocial) + (resProv.creado ? ' — creado.' : ' — ya existía en la base de datos, no se duplicó.') + '</p>' +
-    '<p><b>Insumos:</b> ' + creados + ' creado(s) en la Lista Maestra' + (existentes ? ', ' + existentes + ' ya existían y no se duplicaron' : '') + '.</p>');
+  UI.toast('Proveedor ' + (resProv.creado ? 'creado' : 'ya existía') + ' · ' + creados + ' insumo(s) nuevo(s)' +
+    (existentes ? ', ' + existentes + ' ya existían' : '') + ' · ahora complete el documento de pago', 'ok');
+  avisarColisionesMaestra(colisionesTotal);
   tabLecturaDocumentos(p, contTab);
+
+  const borrador = {
+    idProveedor: resProv.proveedor.id, tipo: MAPA_TIPO_DOC_PAGO[d.tipoDocumento] || 'factura',
+    numero: d.numeroDocumento || '', fecha: d.fechaDocumento || hoyISO(), fechaVencimiento:'',
+    lineas: resInsumos.map(r => ({ idInsumo: r.insumo.id, cantidad: Number(r.fila.cantidad)||1,
+      precioSinIVA: Number(r.fila.precioSinIVA)||0, tarifaIVA: Number(r.fila.tarifaIVA)||0 })),
+    retenciones:{ fuente:0, ica:0, iva:0 }, pagado:false,
+    observaciones:'Creado desde Lectura de documentos — ' + doc.nombre, cuentaPUC:''
+  };
+  editarDocumentoPago(p, null, borrador);
 }
 
 /** Crea el proveedor si su identificación no existe todavía; si ya existe,
@@ -13263,8 +15208,9 @@ function crearProveedorDesdeLectura(p, datos){
   const existente = (p.proveedores||[]).find(x => normaliza(x.identificacion) === normaliza(datos.identificacion));
   if (existente) return { creado:false, proveedor:existente };
   const reg = { id:uid('pv'), identificacion:datos.identificacion.trim(), dv:datos.dv||calcularDV(datos.identificacion),
-    razonSocial:datos.razonSocial.trim(), tipoDocumento:datos.tipoDocumento||'NIT', personeria:datos.personeria||'juridica',
-    tipoProveedor:'insumos', correo:datos.correo||'', contacto:datos.contacto||'', direccion:'',
+    razonSocial:datos.razonSocial.trim(), tipoDocumento:datos.tipoDocumento||'NIT',
+    tipoProveedor: TIPOS_PROVEEDOR.some(t => t.v===datos.tipoProveedor) ? datos.tipoProveedor : 'insumos',
+    correo:datos.correo||'', contacto:datos.contacto||'', direccion:'',
     regimen:'comun', autorretenedor:false, responsableIVA:true, tarifaIVA:19,
     retencionFuente:{ concepto:'', tarifa:0 }, retencionICA:{ tarifaMilaje:0, municipio:'' },
     cuentaPUC:'', banco:'', tipoCuenta:'Ahorros', numeroCuenta:'', documentos:{} };
@@ -13274,18 +15220,20 @@ function crearProveedorDesdeLectura(p, datos){
 }
 
 /** Igual, pero para insumos en la Lista Maestra: si el nombre ya existe no
-    duplica, sólo avisa; si no existe, lo crea con su propio código. */
+    duplica, sólo avisa; si no existe, lo crea con su propio código y su
+    precio CON IVA incluido —así como lo guarda el resto del sistema en la
+    Lista Maestra— y propaga el alta a los demás proyectos si corresponde. */
 function crearInsumoDesdeLectura(p, datos, idProveedor){
   const existente = (p.insumos||[]).find(x => normaliza(x.nombre) === normaliza(datos.nombre));
-  if (existente) return { creado:false, insumo:existente };
-  const categoria = 'Materiales';
+  if (existente) return { creado:false, insumo:existente, colisiones:[] };
+  const categoria = CATEGORIAS_INSUMO.indexOf(datos.categoria) >= 0 ? datos.categoria : 'Materiales';
   const codigoNuevo = S.config.listaMaestraUnica ? Modelo.codigoInsumoGlobal(categoria) : Modelo.codigoInsumo(p, categoria);
   const ins = { id:uid('in'), codigo:codigoNuevo, nombre:datos.nombre.trim(), unidad:datos.unidad||'UN',
-    categoria, precio: Number(datos.precioSinIVA)||0, proveedorRef: idProveedor||'' };
+    categoria, precio: Number(datos.precioConIVA)||0, proveedorRef: idProveedor||'' };
   p.insumos.push(ins);
-  Maestro.sincronizar(ins, p);
+  const propag = Maestro.sincronizar(ins, p);
   Modelo.auditar('crear','insumo', ins.codigo + ' ' + ins.nombre + ' (lectura de documento)', p.id);
-  return { creado:true, insumo:ins };
+  return { creado:true, insumo:ins, colisiones: propag.colisiones||[] };
 }
 
 function docCorte(p, c, borrador){
@@ -13875,9 +15823,12 @@ function seleccionDe(p, comp){
 function tabComparativos(p, cont){
   const sub = Sesion.tabComp || 'docs';
   cont.innerHTML =
-    '<div class="alert info"><div class="ic">ℹ</div><div class="bd">El cuadro comparativo es <b>informativo</b>: ' +
-      'deja constancia de que se pidieron varias ofertas y de por qué se escogió una. ' +
-      'No alimenta el inventario ni el invertido de obra — eso ocurre con la factura y con la salida de almacén.</div></div>' +
+    '<div class="nota-tab">' +
+      '<span class="clave">Cuadro informativo</span>' +
+      'El cuadro comparativo es <b>informativo</b>: deja constancia de que se pidieron varias ofertas y de ' +
+      'por qué se escogió una. No alimenta el inventario ni el invertido de obra — eso ocurre con la factura ' +
+      'y con la salida de almacén.' +
+    '</div>' +
     UI.tabs(TABS_COMP, sub, k => { Sesion.tabComp = k; App.render(); }) +
     '<div id="cComp"></div>';
   ({ docs:subCompDocs, sel:subCompSeleccion, ahorro:subCompAhorro })[sub](p, $('#cComp'));
@@ -14015,9 +15966,11 @@ function subCompAhorro(p, cont){
     mixta: t.mixta + (x.mixta||0) }), { ref:0, mejor:0, adj:0, mixta:0 });
 
   cont.innerHTML =
-    '<div class="alert info"><div class="ic">ℹ</div><div class="bd">La columna que importa es la última: ' +
-      '<b>lo que se dejó de ahorrar</b> por no adjudicar ítem por ítem. En obras con muchos comparativos ' +
-      'esa cifra suele pagar el sueldo de quien los hace.</div></div>' +
+    '<div class="nota-tab">' +
+      '<span class="clave">Lo que se dejó de ahorrar</span>' +
+      'La columna que importa es la última: <b>lo que se dejó de ahorrar</b> por no adjudicar ítem por ítem. ' +
+      'En obras con muchos comparativos esa cifra suele pagar el sueldo de quien los hace.' +
+    '</div>' +
     '<div class="grid g4" style="margin-bottom:var(--gap)">' +
       '<div class="stat"><div class="lab">Referencia del presupuesto</div><div class="val">' + money(tot.ref) + '</div></div>' +
       '<div class="stat"><div class="lab">Mejor oferta total</div><div class="val">' + money(tot.mejor) + '</div>' +
@@ -17964,7 +19917,7 @@ function tabPlanoteca(p, cont){
           (x.vigente ? '' : '<button class="btn xs" data-plm="' + x.id + '" type="button">Marcar vigente</button> ') +
           '<button class="btn xs danger" data-plx="' + x.id + '" type="button">✕</button></td></tr>';
       }).join('')).join('')
-      : '<tr><td colspan="9">' + UI.vacio('◳','Sin planos','Cargue los planos por especialidad y controle sus versiones.') + '</td></tr>') +
+      : '<tr><td colspan="9">' + UI.vacio('◳','Sin planos','Cargue los planos por especialidad y controle sus versiones. Los PDF e imágenes se ven directamente; los DXF se abren en un visor interactivo (para DWG o RVT, expórtelos antes como DXF, IFC o PDF).') + '</td></tr>') +
     '</tbody></table></div></div>';
   UI.conectarBusqueda('#plB', '#tPl');
   $('#plNuevo').onclick = () => subirPlano(p);
@@ -21716,10 +23669,12 @@ function tabBibliotecaSupervision(p, cont){
   const dilig = (p.bibliotecaSupervision||[]).filter(x => x.clase === 'diligenciado').length;
 
   cont.innerHTML =
-    '<div class="alert info"><div class="ic">ℹ</div><div class="bd">Aquí se guardan los formatos que se ' +
-      'diligencian <b>a mano</b> en el frente de trabajo. Suba el formato en blanco para imprimirlo, y el ' +
-      'escaneado ya firmado como soporte. Sólo ' + esc(Reglas.quienBorraBiblioteca().join(' · ')) +
-      ' pueden borrar un documento subido.</div></div>' +
+    '<div class="nota-tab">' +
+      '<span class="clave">Formatos a mano</span>' +
+      'Aquí se guardan los formatos que se diligencian <b>a mano</b> en el frente de trabajo. Suba el formato ' +
+      'en blanco para imprimirlo, y el escaneado ya firmado como soporte. Sólo ' +
+      esc(Reglas.quienBorraBiblioteca().join(' · ')) + ' pueden borrar un documento subido.' +
+    '</div>' +
     '<div class="grid g4" style="margin-bottom:var(--gap)">' +
       '<div class="stat"><div class="lab">Documentos en la biblioteca</div><div class="val">' +
         (p.bibliotecaSupervision||[]).length + '</div></div>' +
@@ -23365,10 +25320,11 @@ function editarNomina(p, id){
 function nmLiquidaciones(p, cont, v){
   const l = (p.liquidaciones||[]).slice().sort((a,b) => String(b.fechaRetiro).localeCompare(String(a.fechaRetiro)));
   cont.innerHTML =
-    '<div class="alert warn"><div class="ic">!</div><div class="bd">La liquidación definitiva se paga ' +
-      '<b>al terminar el contrato</b>. Si no se paga oportunamente, el artículo 65 del Código Sustantivo ' +
-      'del Trabajo obliga a pagar un día de salario por cada día de retardo. Ese es el error más caro de la obra.' +
-      '</div></div>' +
+    '<div class="nota-tab">' +
+      '<span class="clave">El error más caro</span>' +
+      'La liquidación definitiva se paga <b>al terminar el contrato</b>. Si no se paga oportunamente, el ' +
+      'artículo 65 del Código Sustantivo del Trabajo obliga a pagar un día de salario por cada día de retardo.' +
+    '</div>' +
     '<div class="toolbar"><div class="field grow"><label>Buscar</label>' +
       '<input id="lqB" type="search" placeholder="Trabajador, consecutivo…"></div>' +
       '<button class="btn primary" id="lqNuevo" type="button">+ Liquidación de retiro</button></div>' +
@@ -24657,9 +26613,14 @@ const Ayuda = (function(){
     '<h4>Inventario de obra</h4><p>Se calcula, nunca se almacena: un solo renglón por insumo, con la cantidad ' +
     'sumada y el precio mayor registrado (o el promedio ponderado, según la configuración). El método activo se ' +
     'imprime en el encabezado de todo reporte de inventario.</p>' +
-    '<h4>Salidas de almacén</h4><p>Elija insumos <b>desde el inventario</b> e impute cada línea a un capítulo → ' +
-    'subcapítulo → actividad. La cantidad no puede exceder la existencia disponible. Estos son los valores que ' +
-    'ingresan a la columna INVERTIDO del presupuesto.</p>' +
+    '<h4>Salidas de almacén</h4><p>Cada línea se dirige primero a un <b>insumo del inventario</b> — nunca a una ' +
+    'actividad directamente — y sólo después se imputa a un capítulo → subcapítulo → actividad del presupuesto; ' +
+    'así se controla con precisión qué se causa a cada insumo presupuestado. El precio lo fija el inventario (precio ' +
+    'mayor o promedio ponderado, con IVA incluido) y no se edita a mano. La cantidad no puede exceder ni la ' +
+    'existencia disponible en el almacén ni lo presupuestado para ese insumo en esa actividad puntual; si el insumo ' +
+    'no está presupuestado en la actividad elegida, o si su costo real supera el precio presupuestado, la salida se ' +
+    'puede guardar igual pero queda una advertencia visible para que nada pase inadvertido. Estos son los valores ' +
+    'que ingresan a la columna INVERTIDO del presupuesto.</p>' +
     '<h4>Contratos</h4><p>La cantidad contratada no puede superar la presupuestada. Si se excede, el campo se marca ' +
     'en rojo, <b>el contrato no se guarda y la ventana no se cierra</b>: usted corrige sin perder nada de lo digitado. ' +
     'El valor de las actividades ya incluye IVA; el sistema calcula la base hacia atrás y expone por separado ' +
@@ -27157,11 +29118,20 @@ function revertirCierreContable(p){
   });
 }
 
+/** true cuando esa fecha queda protegida por un cierre contable ACTIVO: es
+    decir, cuando tocar un documento con esa fecha alteraría un periodo que
+    la empresa ya dio por cuadrado y presentado. Ambas puertas de fecha del
+    módulo 05 — registrar (fechaPermitida) y reabrir (abrirDocumentoCerrado)
+    — comparten este único criterio, para que nunca queden desalineadas. */
+function dentroCierreContable(p, fecha){
+  const c = p && p.cierreContable;
+  if (!c || !c.activo) return false;
+  return String(fecha||'') <= c.fecha;
+}
 /** Puerta de fecha: ningún documento del módulo 05 puede quedar antes del cierre. */
 function fechaPermitida(p, fecha, queEs){
-  const c = p && p.cierreContable;
-  if (!c || !c.activo) return true;
-  if (String(fecha||'') > c.fecha) return true;
+  if (!dentroCierreContable(p, fecha)) return true;
+  const c = p.cierreContable;
   UI.aviso('El periodo está cerrado contablemente',
     '<p>El cierre contable del <b>' + fmtFecha(c.fecha) + '</b> impide registrar ' +
     (queEs || 'documentos') + ' con fecha igual o anterior.</p>' +
@@ -27460,10 +29430,21 @@ function pintarSeccionAyuda(k, cont){
   cont.style.display = '';
   const datos = AYUDA_CONTENIDO[k] || [];
   if (k === 'info'){ cont.innerHTML = ayudaInfoSoftware(); return; }
-  cont.innerHTML = '<div class="card"><div class="card-body">' +
+  // En "Creación de presupuestos" se deja a la mano la plantilla de ejemplo,
+  // para quien apenas está armando su primer presupuesto y aún no ha abierto
+  // el flujo de "Importar desde Excel" dentro del módulo 03.
+  const descarga = k === 'presupuesto'
+    ? '<div class="alert info" style="margin-bottom:var(--gap)"><div class="ic">⇪</div><div class="bd">' +
+      '<b>¿Tiene su presupuesto en Excel?</b> Desde el módulo 03 · Presupuesto, el botón «Importar desde Excel» lo ' +
+      'trae con capítulos, subcapítulos, actividades, APU e insumos ya organizados.<br>' +
+      '<button class="btn sm brass" id="ayDescargarPlantilla" type="button" style="margin-top:8px">Descargar la plantilla de ejemplo</button>' +
+      '</div></div>'
+    : '';
+  cont.innerHTML = descarga + '<div class="card"><div class="card-body">' +
     datos.map(x => '<details class="ay-item"><summary>' + esc(x.q) + '</summary>' +
       '<div class="ay-body">' + x.a + '</div></details>').join('') +
     '</div></div>';
+  if (k === 'presupuesto') $('#ayDescargarPlantilla', cont).onclick = () => plantillaEjemploPresupuesto();
 }
 
 function buscarEnAyuda(q){
@@ -27746,9 +29727,25 @@ const AYUDA_CONTENIDO = {
     { q:'¿De dónde salen los insumos del APU?',
       a:'<p>De la <b>lista maestra de insumos</b> (módulo 04), que es única para toda la constructora. Si el insumo ' +
         'que necesita no existe, créelo ahí — quedará disponible para todos los proyectos.</p>' },
+    { q:'¿Puedo importar mi presupuesto desde Excel?',
+      a:'<p>Sí. El botón <b>«⇪ Importar desde Excel»</b> del módulo 03 lee un archivo con tres hojas —Insumos, APU y ' +
+        'Actividades— y crea de una vez los capítulos, subcapítulos, actividades, APU e insumos que haga falta. ' +
+        'Descargue primero <b>«Descargar plantilla de ejemplo»</b> (en ese mismo botón, o aquí arriba) para ver el ' +
+        'formato exacto: las columnas se reconocen por su encabezado, así que se pueden reordenar sin que el sistema ' +
+        'se confunda.</p>' +
+        '<p>Un insumo o un APU que ya exista <b>por nombre</b> se reutiliza en vez de duplicarse —con una casilla ' +
+        'aparte para decidir si además se le actualiza el precio o la composición—, y una actividad puede traer ' +
+        'varios APU a la vez, separados por coma.</p>' +
+        '<p>Si el proyecto ya tiene presupuesto, se pregunta <b>Adicionar</b> (conserva lo existente y agrega o ' +
+        'actualiza por código lo del Excel —si algo cambia, se muestra antes de aplicarlo—) o <b>Reemplazar</b> ' +
+        '(borra todo el presupuesto actual y deja únicamente lo del archivo; si hay salidas, documentos, contratos o ' +
+        'requerimientos que ya se imputaron a esas actividades, el sistema avisa cuántos antes de dejar continuar).</p>' },
     { q:'¿Cómo exporto el presupuesto?',
       a:'<p>El botón <b>Exportar</b> del módulo 03 ofrece PDF en cinco niveles de detalle —desde el presupuesto ' +
-        'general hasta el desglose completo de APU— y Excel con capítulos, subcapítulos y actividades.</p>' },
+        'general hasta el desglose completo de APU— y dos formatos de Excel: uno de solo lectura con capítulos, ' +
+        'subcapítulos y actividades, y otro <b>«Editable para reimportar»</b> con el mismo formato de tres hojas que ' +
+        'acepta «Importar desde Excel» —útil para hacer un ajuste masivo de precios en Excel y volver a traerlo: cada ' +
+        'fila se reconoce por su código y se actualiza en el mismo lugar, sin duplicar nada.</p>' },
     { q:'¿Cómo fijo el presupuesto inicial?',
       a:'<p>Una vez el presupuesto está completo, «Fijar presupuesto inicial» (módulo 08) congela una fotografía para ' +
         'compararla después contra el presupuesto actual y detectar sobrecostos por capítulo, subcapítulo o ' +
@@ -27770,7 +29767,20 @@ const AYUDA_CONTENIDO = {
   biblioteca: [
     { q:'Archivos y Planoteca',
       a:'<p>Repositorio general de documentos y de planos versionados del proyecto. Cada archivo queda con su ' +
-        'descripción, para poder encontrarlo sin abrir uno por uno.</p>' },
+        'descripción, para poder encontrarlo sin abrir uno por uno.</p>' +
+        '<p>Al pulsar <b>«Ver»</b> sobre un plano en formato <b>DXF</b> —el formato abierto de AutoCAD—, se abre un ' +
+        '<b>visor interactivo</b> con la geometría real del plano (muros, ejes, columnas, trazos), con zoom con la ' +
+        'rueda del mouse y desplazamiento con clic derecho, además de un botón para «Ajustar a la vista». Es sólo de ' +
+        'lectura —no se puede editar desde aquí— y por ahora no grafica etiquetas de texto ni cotas, sólo la ' +
+        'geometría. Los PDF e imágenes se siguen abriendo directamente, como siempre.</p>' +
+        '<p>Los archivos nativos de <b>AutoCAD (.dwg)</b> y de <b>Revit (.rvt)</b> son formatos cerrados de Autodesk ' +
+        'y, hasta ahora, no hay forma gratuita de abrirlos tal cual en un navegador. Mientras tanto, la forma de ' +
+        'traerlos a la Planoteca es exportarlos primero desde el programa de origen: un <b>.dwg</b> se guarda como ' +
+        '<b>DXF</b> (en AutoCAD: «Guardar como → DXF») para verlo en el visor interactivo, y un <b>.rvt</b> se exporta ' +
+        'como <b>IFC</b> (si se necesita el modelo) o como <b>PDF</b> de las vistas y plantas (si basta con consultarlas) ' +
+        '— ambas son opciones de exportación propias de Revit, sin necesitar otro programa. Ver DWG y RVT nativos sin ' +
+        'exportar nada requeriría integrar el visor oficial de Autodesk, con costo recurrente y subiendo los archivos ' +
+        'a su nube —una posible mejora futura, no incluida todavía.</p>' },
     { q:'Comité de obra',
       a:'<p>Registra el acta con asistentes, temas tratados y compromisos. Un compromiso que sigue abierto se ' +
         'arrastra automáticamente al comité siguiente; uno cerrado desaparece de la lista. El botón «Enviar» de cada ' +
@@ -27820,6 +29830,28 @@ const AYUDA_CONTENIDO = {
         'alimenta el inventario, calcula retenciones y, si es un anticipo, queda marcado como saldo pendiente de ' +
         'amortizar. La columna <b>Deducciones</b> suma de una vez retención en la fuente, ICA e IVA, para no tener que ' +
         'sumarlas aparte.</p>' },
+    { q:'Lectura de documentos',
+      a:'<p>Sube una factura electrónica (XML), un PDF o incluso la <b>foto de una factura o cuenta de cobro</b>, y el ' +
+        'programa la lee por usted: reconoce el tipo de documento, el proveedor y toda su información, y cada insumo ' +
+        'con su cantidad, unidad, precio antes y después de IVA. Puede subir varios documentos de una vez y pulsar ' +
+        '<b>«Leer todos los pendientes»</b> para que se lean en bloque; cada lectura queda guardada, así que volver a ' +
+        'abrir «Revisar lectura» no repite el trabajo, y hay un botón aparte para forzar una lectura nueva si hace falta.</p>' +
+        '<p>Tiene tres niveles de confiabilidad, según lo que se suba: <b>factura electrónica DIAN</b> (la más exacta, ' +
+        'viene del XML estructurado por ley), <b>PDF con texto</b> (reconoce la tabla de ítems columna por columna ' +
+        'cuando el documento trae un encabezado reconocible — la forma más precisa de leer una tabla, porque nunca ' +
+        'confunde la unidad con una palabra parecida dentro del nombre del insumo, como «caja» en «caja de inspección» ' +
+        '— y recurre a una lectura renglón por renglón sólo si no hay un encabezado claro) y <b>foto o escaneo</b> ' +
+        '(lectura óptica de caracteres, con la imagen mejorada en contraste antes de leerla — aun así, la menos ' +
+        'confiable de las tres). Cuando el documento declara un total, el programa <b>compara ese total con la suma de ' +
+        'los ítems leídos</b> y avisa si no cuadran, como señal de que algo se leyó mal.</p>' +
+        '<p>Nada se guarda automáticamente: primero se abre una pantalla de revisión con todo editable —incluido el ' +
+        'número y la fecha del documento—, donde el programa ya avisa si el proveedor o algún insumo se parecen a uno ' +
+        'que ya existe en la base de datos (para no duplicar) y permite vincular a ese existente con un clic, o crear ' +
+        'uno nuevo sólo con su aprobación. Si el número de documento coincide con uno que ya tiene registrado para ese ' +
+        'mismo proveedor, se lo advierte y le pide confirmar antes de seguir —para no pagar la misma factura dos ' +
+        'veces por descuido. Al aprobar, se crean el proveedor y los insumos que hagan falta y, de una vez, se abre el ' +
+        '<b>documento de pago ya armado</b> —proveedor, tipo, número, fecha y cada línea— listo para su revisión ' +
+        'final, en vez de tener que digitarlo todo a mano.</p>' },
     { q:'Inventario',
       a:'<p>Se calcula, no se almacena: un renglón por insumo con la cantidad sumada y el precio mayor registrado ' +
         '(o el promedio ponderado, según el método elegido en Configuración).</p>' },
@@ -29659,20 +31691,41 @@ function tabRevisionPrerrequisitos(p, cont){
       '<span class="muted small grow"></span>' +
       '<span class="muted small">Columnas: pase el cursor por el encabezado para ver el nombre completo.</span>' +
     '</div>' +
-    '<div class="tw scroll prq-scroll"><table class="t prq-tabla"><thead><tr>' +
-      '<th class="prq-actcol">Actividad</th>' +
-      PRERREQUISITOS.map((c,i) => '<th class="prq-chkcol" title="' + esc(c.n) + '"><span>' + (i+1) + '</span></th>').join('') +
-      '<th class="prq-ejec">Contratista / proveedor ejecutor</th>' +
-      '<th class="prq-estado">Estado</th>' +
-    '</tr></thead><tbody>' +
-      filasPrereqHTML(p, filas) +
-    '</tbody></table></div>' +
-    '<div class="prq-leyenda"><b>Convenciones:</b> ' +
-      PRERREQUISITOS.map((c,i) => '<span class="prq-conv"><b>' + (i+1) + '.</b> ' + esc(c.n) + (c.aplica ? ' <i>(si aplica)</i>' : '') + '</span>').join(' · ') +
+    '<div class="tw scroll prq-scroll">' +
+      '<div class="prq-leyenda"><b>Convenciones:</b> ' +
+        PRERREQUISITOS.map((c,i) => '<span class="prq-conv"><b>' + (i+1) + '.</b> ' + esc(c.n) + (c.aplica ? ' <i>(si aplica)</i>' : '') + '</span>').join(' · ') +
+      '</div>' +
+      '<table class="t prq-tabla"><thead><tr>' +
+        '<th class="prq-actcol">Actividad</th>' +
+        PRERREQUISITOS.map((c,i) => '<th class="prq-chkcol" title="' + esc(c.n) + '"><span>' + (i+1) + '</span></th>').join('') +
+        '<th class="prq-ejec">Contratista / proveedor ejecutor</th>' +
+        '<th class="prq-estado">Estado</th>' +
+      '</tr></thead><tbody>' +
+        filasPrereqHTML(p, filas) +
+      '</tbody></table>' +
     '</div>';
 
   conectarPrereq(p, cont, filas);
+  ajustarLeyendaPrereq(cont);
   $('#prqPdf', cont).onclick = () => imprimirPrerrequisitos(p, filas);
+}
+
+/** La leyenda de Convenciones queda fija al inicio del cuadro (dentro del
+    mismo recuadro con scroll de la tabla, no debajo de ella): así siempre
+    está visible mientras se revisan o marcan prerrequisitos, sin tener que
+    bajar hasta el final para recordar qué significa cada columna.
+    Su alto cambia según el ancho disponible (el texto se reparte en más o
+    menos líneas), así que se mide en vivo y se expone como variable CSS
+    (--prq-ley-h) para que el encabezado numerado de la tabla se acomode
+    exactamente debajo, sin huecos ni traslapes. Un ResizeObserver mantiene
+    la medida correcta si la ventana cambia de tamaño mientras la pestaña
+    está abierta. */
+function ajustarLeyendaPrereq(cont){
+  const caja = $('.prq-scroll', cont), ley = $('.prq-leyenda', cont);
+  if (!caja || !ley) return;
+  const medir = () => caja.style.setProperty('--prq-ley-h', ley.offsetHeight + 'px');
+  medir();
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(medir).observe(ley);
 }
 
 function filasPrereqHTML(p, filas){

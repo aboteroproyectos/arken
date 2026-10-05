@@ -204,6 +204,9 @@ async function ingresar(pagina, usuario, clave, nuevaClave) {
   await pagina.click('#gBtn');
   if (nuevaClave) {
     await pagina.waitForSelector('#ccA', { timeout: 30000 });
+    // El programa enfoca la primera casilla 40 ms después de abrir el cuadro; si se escribe antes,
+    // ese foco tardío se lleva lo que iba en la segunda casilla.
+    await pagina.waitForFunction(() => document.activeElement && document.activeElement.id === 'ccA', null, { timeout: 5000 });
     await pagina.fill('#ccA', nuevaClave);
     await pagina.fill('#ccB', nuevaClave);
     await pagina.click('text=Cambiar y continuar');

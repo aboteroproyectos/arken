@@ -29,6 +29,7 @@ const LIBRERIAS = {
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js': 'node_modules/xlsx/dist/xlsx.full.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js': 'node_modules/html2canvas/dist/html2canvas.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js': 'node_modules/pdfjs-dist/build/pdf.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js': 'node_modules/tesseract.js/dist/tesseract.min.js',
 };
 // Archivos de apoyo que no aparecen como <script> en el programa.
 const APOYO = {
@@ -95,7 +96,9 @@ html = html.replace('</head>', '<link rel="stylesheet" href="app/arken-app.css" 
 // 4 · Impresión de documentos: la capa de la app recibe el documento completo
 const impresion = 'setTimeout(() => { window.print(); }, 120);';
 const vecesImpresion = html.split(impresion).length - 1;
-if (vecesImpresion === 1) {
+if (html.includes('(window.ARKEN_IMPRIMIR || window.print).call(window, cfg)')) {
+  // El programa ya trae el enlace con la capa de la app
+} else if (vecesImpresion === 1) {
   html = html.replace(impresion, 'setTimeout(() => { (window.ARKEN_IMPRIMIR || window.print).call(window, cfg); }, 120);');
 } else {
   avisos.push(
