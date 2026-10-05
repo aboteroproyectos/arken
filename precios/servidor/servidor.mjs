@@ -274,6 +274,8 @@ export async function crearServidor(o = {}) {
         ej.error = String((e && e.message) || e).slice(0, 500);
         registro.error('[' + iso(reloj()) + '] La lectura ' + id + ' falló: ' + ej.error);
       } finally {
+        // La caché no crece sin límite: después de cada lectura se borra lo más viejo si pasa del máximo
+        if (typeof cache.podar === 'function') await cache.podar().catch((e) => registro.error('No se pudo podar la caché: ' + e.message));
         ej.fin = iso(reloj());
         if (ocupado && ocupado.id === id) ocupado = null;
         estado.ultimaEjecucion = resumenEjecucion(ej);

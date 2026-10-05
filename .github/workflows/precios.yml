@@ -1,10 +1,12 @@
 name: ARKEN PRECIOS
 
 # Pruebas de ARKEN PRECIOS (carpeta precios/): el núcleo de cálculo, el Investigador IA con la
-# API de Claude simulada (nunca con una clave real), la ida y vuelta con el
-# programa/ARKEN_CONTROL.html real de este repositorio y la prueba de humo en Chromium.
-# También se comprueba que el SDK de Anthropic que va dentro del programa es el oficial, sin
-# cambios. Corren también cuando cambia ARKEN CONTROL, porque el contrato de importación vive allí.
+# API de Claude simulada (nunca con una clave real), el motor de recolección y sus conectores con
+# sitios de prueba locales (nunca los sitios reales), el servidor opcional, la ida y vuelta con el
+# programa/ARKEN_CONTROL.html real de este repositorio, la prueba de humo y la capa de las apps en
+# Chromium. También se comprueba que el SDK de Anthropic que va dentro del programa es el oficial,
+# sin cambios. Corren también cuando cambia ARKEN CONTROL, porque el contrato de importación vive
+# allí. Las apps se compilan y la de escritorio se prueba empacada en compilar-precios.yml.
 
 on:
   push:
@@ -36,6 +38,8 @@ jobs:
         working-directory: precios
     env:
       CHROME_PATH: /usr/bin/google-chrome
+      # Estas pruebas no abren Electron: la app empacada se prueba en compilar-precios.yml.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -58,7 +62,17 @@ jobs:
         run: npm run prueba:unitarias
       - name: Investigador IA (verificación literal, bandejas, costo y clave) con la API simulada
         run: npm run prueba:investigador
+      - name: Motor (robots.txt, ritmo por dominio, caché, salud y conectores) con sitios de prueba
+        run: npm run prueba:motor
+      - name: Recolección (emparejamiento, verificación de cada hallazgo y paquetes)
+        run: npm run prueba:recoleccion
+      - name: El motor dentro del programa (certificar, probar, activar y leer una fuente)
+        run: npm run prueba:motor-navegador
+      - name: Servidor de recolección opcional (token, programación y paquetes)
+        run: npm run prueba:servidor
       - name: Ida y vuelta con ARKEN CONTROL real
         run: npm run prueba:ida-y-vuelta
       - name: Prueba de humo en Chromium (módulos, exportaciones, temas, densidades y 360 px)
         run: npm run prueba:humo
+      - name: Capa de las apps (copia interna, bóveda, Android simulado) en Chromium
+        run: npm run prueba:app

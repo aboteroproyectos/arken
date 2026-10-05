@@ -1,5 +1,51 @@
 # ARKEN PRECIOS · Registro de cambios
 
+## 0.3.0 · Fase 3, motor y escritorio · 5 de octubre de 2026
+
+El programa lee por su cuenta las fuentes que la empresa certifique, desde la app de escritorio o desde un servidor, y sigue sin dejar entrar un precio que no esté escrito en lo que se leyó. ARKEN PRECIOS llega como app para Windows, macOS, Android e iOS.
+
+**Motor de recolección** (`motor/`)
+
+- **Red respetuosa** (§4.4): agente identificado con un correo de contacto (sin él no lee nada), robots.txt según la norma, una solicitud a la vez por sitio con pausa mínima y límite por minuto, reintentos solo ante fallas pasajeras y respetando `Retry-After`, caché con revalidación y cada redirección revisada antes de seguirla. Un CAPTCHA, un inicio de sesión o un acceso negado bloquean la fuente: nada se evade.
+- **Salud de fuentes:** activa, degradada, caída (con enfriamiento y un solo intento después), bloqueada hasta que una persona la revise, y suspendida.
+- **Seis conectores certificados:** Easy, La Casita Roja y Aldia (tiendas en línea), la base de precios del IDU (entidad pública, en Excel), la Tienda Virtual del Estado (datos abiertos) y el ICOCED del DANE. **Cinco genéricos**, configurables en la ficha: HTML, API JSON, Socrata, Excel y PDF.
+- Los archivos de internet se leen encerrados: SheetJS en un contexto aparte y pdf.js sin evaluar código.
+
+**Programa**
+
+- **03 · Fuentes:** certificación de cada fuente (revisión legal con lo que dicen su robots.txt y sus términos, la fecha y el responsable; conector; prueba técnica con la configuración actual), **Probar ahora**, activar, suspender y reactivar, salud, últimas lecturas y errores. Las nueve fuentes candidatas traen la evidencia de su revisión y una recomendación, para que la empresa firme. Pestaña nueva **Índices (ICOCED)**.
+- **02 · Actualizar precios:** «Leer las fuentes certificadas antes de recalcular», con vista previa (fuentes, solicitudes y tiempo estimado), avance y resultado por fuente. Lo dudoso va a **Revisar hallazgos** (a lo sumo 3 por insumo y fuente). Pestaña nueva **Programación**: actualización diaria, semanal o mensual, sin el Investigador IA, y los paquetes del servidor (enviar el plan, descargar e importar).
+- **10 · Configuración › Motor y servidor:** correo de contacto, topes de lectura, dirección y token del servidor, y descargar los paquetes al abrir.
+- Base de datos versión 3: almacén de índices. Una base anterior se actualiza sola.
+- **Ayuda:** fuentes automáticas y conectores, y app de escritorio y celular.
+
+**Apps**
+
+- **Escritorio** (Windows, macOS y Linux, con Electron): el motor corre en el equipo; la clave de API y el token del servidor quedan cifrados por el sistema operativo; copia interna de los datos y una copia por día de los últimos 10 días; una sola ventana; los enlaces se abren en el navegador del sistema; menú **Ayuda** con la carpeta de copias diarias y la bitácora de la última lectura.
+- **Celular** (Android e iOS, con Capacitor): los PDF y los archivos se abren en un visor o en Compartir, imprimir entrega el PDF, los enlaces se abren en la app del teléfono, copia interna de los datos y descarga de los paquetes del servidor.
+- Las librerías van dentro de las apps, que funcionan sin internet desde la primera vez, y una política de seguridad de contenido (CSP) solo deja correr los scripts del programa.
+- Compilación en GitHub Actions (`compilar-precios.yml`) y versiones publicables con la etiqueta `precios-vX.Y.Z`.
+
+**Servidor de recolección** (`servidor/`, opcional): lee las fuentes certificadas a su hora, con el mismo motor, y deja paquetes de precios con su hash que el programa descarga y vuelve a verificar. Pide un token; instrucciones en `servidor/LEAME.md`.
+
+**Pruebas**
+
+- `pruebas/motor.mjs`: 155 comprobaciones del motor con sitios de prueba (un servidor local y páginas guardadas con la forma de los sitios reales).
+- `pruebas/recoleccion.mjs`: 92 del plan, la programación, el reparto de lo leído, los índices y los paquetes.
+- `pruebas/motor-navegador.mjs`: 63 del motor dentro del programa en Chromium (certificar, probar, activar y leer las seis fuentes, y revisar lo que traen).
+- `pruebas/servidor.mjs`: 69 del servidor de verdad en un puerto local.
+- `pruebas/app.mjs`: 65 de la capa de la app (copia interna, bóveda, Android simulado y CSP) en Chromium.
+- `pruebas/escritorio.mjs`: 46 de la app de escritorio empacada, con Electron de verdad.
+- `pruebas/humo.mjs`: una comprobación más, 38 en total: a 360 px tampoco se desplaza de lado ninguna otra pestaña de los módulos ni la ficha de una fuente.
+- Los flujos `precios.yml` y `compilar-precios.yml` corren los pasos nuevos.
+
+**Correcciones antes de entregar**
+
+- Una segunda lectura igual de una fuente repetía sus precios. Ahora el registro reconoce el duplicado y suma una vista al precio que ya estaba (decisión 74).
+- En Linux sin llavero, el programa decía que la clave quedaría cifrada, pero Electron la guardaba con una clave fija. Ahora sabe de entrada que ese equipo no cifra y ofrece usarla solo en la sesión (decisión 82).
+- En la app de escritorio, un PDF que el programa abre en otra ventana se abría en blanco. Ahora se ofrece para guardar (decisión 84).
+- Faltaba la política de seguridad de contenido que el prompt pide para las apps (§16). Se agregó y se probó en Chromium y en la app empacada (decisión 81).
+
 ## 0.2.0 · Fase 2, Investigador IA · 4 de octubre de 2026
 
 El programa busca precios publicados en internet con la API de Claude y solo deja entrar los que están escritos en la página que leyó. Es opcional: se enciende con la clave de API de Anthropic del usuario.

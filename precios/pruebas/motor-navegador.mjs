@@ -1,7 +1,7 @@
 // ARKEN PRECIOS · los conectores de punta a punta en Chromium (Fase 3, §7.1, §7.2, §11 y §17.3).
 //
 // La app de escritorio se simula con el mismo puente que pone su preload
-// (window.arkenPreciosEscritorio): el motor de verdad (precios/motor) corre en Node y lee las
+// (window.arkenPrecios): el motor de verdad (precios/motor) corre en Node y lee las
 // páginas guardadas (pruebas/fixtures/motor), sin internet, y los secretos van a una bóveda en
 // memoria, como la del sistema operativo.
 //
@@ -125,7 +125,7 @@ try {
   await ctx.addInitScript(() => {
     const oyentes = new Set();
     window.__arkenEvento = (ev) => oyentes.forEach((cb) => { try { cb(ev); } catch (e) { /* solo pinta */ } });
-    window.arkenPreciosEscritorio = {
+    window.arkenPrecios = {
       version: 'prueba',
       secretos: {
         disponible: () => Promise.resolve(true),

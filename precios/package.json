@@ -1,14 +1,22 @@
 {
   "name": "arken-precios",
   "productName": "ARKEN PRECIOS",
-  "version": "0.2.0",
-  "description": "ARKEN PRECIOS · Observatorio de precios de insumos de obra en Colombia, app hermana de ARKEN CONTROL.",
+  "version": "0.3.0",
+  "description": "ARKEN PRECIOS · Observatorio de precios de insumos de obra en Colombia, app hermana de ARKEN CONTROL, empaquetada para Windows, macOS, Linux, Android e iOS.",
   "private": true,
   "type": "module",
+  "main": "electron/main.cjs",
   "author": "ARKEN CONTROL",
   "scripts": {
     "verificar-sin-datos": "node herramientas/verificar-sin-datos.mjs",
+    "preparar": "node herramientas/preparar-web.mjs",
     "servidor": "node servidor/iniciar.mjs",
+    "escritorio": "npm run preparar && electron .",
+    "android": "npm run preparar && cap sync android",
+    "ios": "npm run preparar && cap sync ios",
+    "dist:windows": "npm run preparar && electron-builder --win nsis --x64 --publish never",
+    "dist:mac": "npm run preparar && electron-builder --mac dmg --universal --publish never",
+    "dist:linux": "npm run preparar && electron-builder --linux dir --publish never",
     "sdk:instalar": "npm ci --prefix herramientas/sdk",
     "sdk:armar": "node herramientas/armar-sdk.mjs",
     "sdk:comprobar": "node herramientas/armar-sdk.mjs --comprobar",
@@ -20,9 +28,18 @@
     "prueba:servidor": "node pruebas/servidor.mjs",
     "prueba:ida-y-vuelta": "node pruebas/ida-y-vuelta.mjs",
     "prueba:humo": "node pruebas/humo.mjs",
-    "prueba": "npm run verificar-sin-datos && npm run prueba:unitarias && npm run prueba:investigador && npm run prueba:motor && npm run prueba:recoleccion && npm run prueba:motor-navegador && npm run prueba:servidor && npm run prueba:ida-y-vuelta && npm run prueba:humo"
+    "prueba:app": "node pruebas/app.mjs",
+    "prueba:escritorio": "node pruebas/escritorio.mjs",
+    "prueba": "npm run verificar-sin-datos && npm run prueba:unitarias && npm run prueba:investigador && npm run prueba:motor && npm run prueba:recoleccion && npm run prueba:motor-navegador && npm run prueba:servidor && npm run prueba:ida-y-vuelta && npm run prueba:humo && npm run prueba:app"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/app-launcher": "^8.0.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/filesystem": "^8.1.3",
+    "@capacitor/ios": "^8.5.2",
+    "@capacitor/share": "^8.0.2",
     "css-select": "7.0.0",
     "domhandler": "6.0.1",
     "domutils": "4.0.2",
@@ -31,9 +48,89 @@
     "xlsx": "0.18.5"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
     "html2canvas": "1.4.1",
     "jspdf": "2.5.1",
     "jspdf-autotable": "3.8.2",
     "playwright-core": "^1.63.0"
+  },
+  "build": {
+    "appId": "com.aboteroproyectos.arkenprecios",
+    "productName": "ARKEN PRECIOS",
+    "executableName": "arken-precios",
+    "copyright": "© ARKEN PRECIOS",
+    "directories": {
+      "output": "dist",
+      "buildResources": "recursos"
+    },
+    "files": [
+      "electron/**",
+      "motor/**",
+      "www/**",
+      "package.json",
+      "!node_modules/@capacitor/**",
+      "!node_modules/canvas/**",
+      "!node_modules/path2d-polyfill/**",
+      "!node_modules/pdfjs-dist/{build,web,image_decoders,types,cmaps,standard_fonts}/**",
+      "!node_modules/pdfjs-dist/legacy/{web,image_decoders}/**",
+      "!node_modules/xlsx/{bin,types}/**",
+      "!**/*.{map,d.ts,md}"
+    ],
+    "asar": true,
+    "npmRebuild": false,
+    "icon": "recursos/icono.png",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "ARKEN-PRECIOS-${version}-Windows.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ARKEN PRECIOS",
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": [
+        "es_ES"
+      ],
+      "language": "3082"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.business",
+      "artifactName": "ARKEN-PRECIOS-${version}-macOS.${ext}",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "CFBundleDevelopmentRegion": "es"
+      }
+    },
+    "dmg": {
+      "title": "ARKEN PRECIOS"
+    },
+    "linux": {
+      "target": [
+        "dir"
+      ],
+      "category": "Office"
+    },
+    "publish": null
   }
 }

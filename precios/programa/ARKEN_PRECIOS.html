@@ -7462,7 +7462,9 @@ const Documentos = (function(){
       ' @bottom-center{ content:"ARKEN PRECIOS"; ' + letra + ' }' +
       ' @bottom-right{ content:"Página " counter(page) " de " counter(pages); ' + letra + ' } }';
     $('#printRoot').innerHTML = bloquesAHTML(cfg);
-    setTimeout(() => { window.print(); }, 120);
+    // En el celular no hay impresión del navegador: la capa de la app abre el PDF del documento
+    const app = window.arkenApp;
+    setTimeout(() => { if (app && typeof app.imprimir === 'function') app.imprimir(cfg); else window.print(); }, 120);
   }
 
   /** Punto único de salida: 'pdf' guarda el archivo; 'imprimir' va a la impresora
@@ -7579,8 +7581,15 @@ const Documentos = (function(){
    claves de API, y todo se restaura con una revisión previa.
    ══════════════════════════════════════════════════════════════════════════ */
 const Respaldos = (function(){
-  /** Plantilla del programa tal como se abrió: de aquí sale «Guardar copia». */
-  const PLANTILLA = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  /** Plantilla del programa tal como se abrió: de aquí sale «Guardar copia». En las apps, la capa
+      de la app la devuelve como el archivo del repositorio (librerías de cdnjs y sin la capa), para
+      que la copia se abra igual en cualquier navegador. */
+  const PLANTILLA = plantillaPortable('<!DOCTYPE html>\n' + document.documentElement.outerHTML);
+  function plantillaPortable(h){
+    const app = window.arkenApp;
+    try { return app && typeof app.plantillaPortable === 'function' ? String(app.plantillaPortable(h)) : h; }
+    catch(e){ return h; }
+  }
 
   async function comprimir(texto){
     if (typeof CompressionStream === 'undefined') return null;
@@ -8787,8 +8796,24 @@ function usd(x){
    navegador no deja exportar, en el almacén «secretos». En ningún caso entra
    en respaldos, paquetes ni copias. */
 const Boveda = (function(){
-  function escritorio(){ const e = window.arkenPreciosEscritorio; return e && e.secretos ? e.secretos : null; }
-  function disponible(){ return !!escritorio() || (!!(window.crypto && crypto.subtle) && BD.backend === 'indexeddb'); }
+  let cifraEscritorio = null;   // app de escritorio: ¿el sistema operativo cifra? Se pregunta al iniciar
+  function escritorio(){ const e = window.arkenPrecios; return e && e.secretos ? e.secretos : null; }
+  /** En la app de escritorio pregunta si el sistema operativo ofrece cifrado (en Linux, sin llavero no lo ofrece). */
+  async function revisar(){
+    const E = escritorio();
+    if (!E) return;
+    try { cifraEscritorio = !!(await E.disponible()); }
+    catch(e){ cifraEscritorio = false; RegistroTecnico.anotar('Revisar el cifrado del equipo', e); }
+  }
+  function disponible(){
+    if (escritorio()) return cifraEscritorio !== false;
+    return !!(window.crypto && crypto.subtle) && BD.backend === 'indexeddb';
+  }
+  /** Por qué aquí no se puede guardar un secreto cifrado. */
+  function sinCifrado(){
+    return escritorio() ? 'El sistema operativo de este equipo no ofrece cifrado (en Linux hace falta el llavero del escritorio)'
+      : 'Este navegador no deja guardar cifrado (la base está en memoria o no hay cifrado)';
+  }
   async function llave(id){
     const r = await BD.obtener('secretos', id);
     if (r && r.llave) return r.llave;
@@ -8833,7 +8858,7 @@ const Boveda = (function(){
     if (E){ try { await E.borrar(id); } catch(e){ RegistroTecnico.anotar('Borrar un secreto del equipo', e); } }
     if (BD.backend === 'indexeddb') await BD.borrarVarios('secretos', [id, idLlave].filter(Boolean));
   }
-  return { escritorio, disponible, guardar, info, leer, borrar };
+  return { escritorio, revisar, disponible, sinCifrado, guardar, info, leer, borrar };
 })();
 
 /* ─────────────────────────  CLAVE DE API  ─────────────────────────
@@ -8851,6 +8876,7 @@ const ClaveIA = (function(){
   function cifradoDisponible(){ return Boveda.disponible(); }
   async function iniciar(){
     info = null;
+    await Boveda.revisar();
     try {
       const m = await Boveda.info(ID_CLAVE);
       if (m) info = { final:m.final || '', guardada:m.guardada || '', usuario:m.usuario || '' };
@@ -8869,7 +8895,7 @@ const ClaveIA = (function(){
     const k = String(clave || '').trim();
     if (!formatoValido(k)) throw new Error('Eso no tiene la forma de una clave de API de Anthropic: empieza por «sk-ant-».');
     if (recordar){
-      if (!cifradoDisponible()) throw new Error('Este navegador no deja guardar la clave cifrada (la base está en memoria o no hay cifrado). Úsela solo en esta sesión.');
+      if (!cifradoDisponible()) throw new Error(Boveda.sinCifrado() + ': use la clave solo en esta sesión.');
       const meta = { final:k.slice(-4), guardada:ahoraISO(), usuario:Sesion.usuario ? Sesion.usuario.usuario : '' };
       await Boveda.guardar(ID_CLAVE, ID_LLAVE, k, meta);
       info = meta;
@@ -9716,7 +9742,7 @@ const ServidorRecoleccion = (function(){
 const Recolector = (function(){
   let actual = null;
 
-  function escritorio(){ const e = window.arkenPreciosEscritorio; return e && e.motor ? e : null; }
+  function escritorio(){ const e = window.arkenPrecios; return e && e.motor ? e : null; }
   function cfgMotor(){ return Object.assign({ contacto:'', limites:{} }, Datos.config('motor', {})); }
   function contacto(){ return String(cfgMotor().contacto || '').trim(); }
   /** Dónde corre el motor desde este programa: la app de escritorio, el servidor o ninguno. */
@@ -15294,7 +15320,7 @@ const ConfigUI = (function(){
   function motor(c){
     const admin = soloAdmin();
     const m = Recolector.cfgMotor(), lim = Recoleccion.limites(m.limites), T = Recoleccion.TOPES, s = ServidorRecoleccion.cfg();
-    const escritorio = !!(window.arkenPreciosEscritorio && window.arkenPreciosEscritorio.motor);
+    const escritorio = !!(window.arkenPrecios && window.arkenPrecios.motor);
     const tk = ClaveServidor.estado(), donde = Recolector.donde(), listo = ServidorRecoleccion.configurado();
     const num = (k, lab, val, max) => ({ k, lab, tipo:'number', val, min:1, max, step:1, dis:!admin, ayuda:'Máximo ' + max + '.' });
     c.innerHTML = (admin ? '' : avisoAdmin) +
@@ -15327,7 +15353,7 @@ const ConfigUI = (function(){
           { k:'descargarAlAbrir', lab:'Descargar los paquetes nuevos al abrir el programa', tipo:'check', val:s.descargarAlAbrir !== false, dis:!admin, col:2 }
         ], 2) +
         '<p class="small muted">' + esc(tk.donde === 'equipo' ? 'El token está guardado cifrado en este equipo' + (tk.usuario ? ' (lo guardó ' + tk.usuario + ')' : '') + '. No viaja en respaldos, copias ni paquetes.'
-          : (tk.donde === 'sesión' ? 'El token está solo en esta sesión: este navegador no permite guardarlo cifrado.' : 'Todavía no hay token.')) + '</p>' +
+          : (tk.donde === 'sesión' ? 'El token está solo en esta sesión. ' + Boveda.sinCifrado() + '.' : 'Todavía no hay token.')) + '</p>' +
         '<div id="cfSrvEstado" class="small" style="margin-top:6px"></div>' +
         (admin ? '<div class="btn-row" style="margin-top:12px"><button class="btn primary" id="cfSrvG" type="button">Guardar</button>' +
           '<button class="btn" id="cfSrvP" type="button"' + (listo ? '' : ' disabled') + '>Probar la conexión</button>' +
@@ -15352,7 +15378,7 @@ const ConfigUI = (function(){
       try {
         if (String(d.token || '').trim()){
           const donde2 = await ClaveServidor.guardar(d.token);
-          if (donde2 === 'sesión') UI.toast('Este navegador no permite guardar el token cifrado: queda solo en esta sesión.', '');
+          if (donde2 === 'sesión') UI.toast(Boveda.sinCifrado() + ': el token queda solo en esta sesión.', '');
         }
         await ServidorRecoleccion.guardarCfg({ url:url ? urlSegura(url).replace(/\/+$/, '') : '', descargarAlAbrir:!!d.descargarAlAbrir });
         await Auditoria.registrar('configuración', 'Servidor de recolección: ' + (url || 'sin dirección') + (String(d.token || '').trim() ? ' · token nuevo' : ''));
@@ -15533,6 +15559,9 @@ const Admin = (function(){
     $('#adPaqE', z).onclick = () => { $$('#modales .overlay').forEach(o => o.remove()); App.ir('08', { exportar:{ tipo:'paquete' } }); };
     $('#adPaqI', z).onclick = () => Respaldos.importarPaquete();
     $('#adCopia', z).onclick = () => Respaldos.guardarCopia();
+    // En las apps, la capa de la app agrega la copia interna del equipo
+    const app = window.arkenApp;
+    if (app && typeof app.panelRespaldos === 'function') app.panelRespaldos(z);
   }
 
   /* ── Demostración ── */
@@ -15938,6 +15967,7 @@ const InvestigadorConfigUI = (function(){
     const delMes = Datos.lista('investigaciones').filter(x => String(x.fecha || '').slice(0, 7) === hoyISO().slice(0, 7));
     const dis = admin ? '' : ' disabled';
     const memoria = !ClaveIA.cifradoDisponible();
+    const app = !!Boveda.escritorio();      // en la app de escritorio la cifra el sistema operativo
     const autorizado = !!guardado.autorizadoPor;
     const textoClave = est.donde === 'equipo' ? 'Guardada en este equipo, cifrada (termina en …' + est.final + ')' + (est.guardada ? ', desde el ' + fmtSello(est.guardada) : '') + (est.usuario ? ' por ' + est.usuario : '')
       : (est.donde === 'sesión' ? 'Solo en esta sesión (termina en …' + est.final + '): se olvida al salir' : 'No hay clave');
@@ -15957,15 +15987,18 @@ const InvestigadorConfigUI = (function(){
           'El programa lo compara con el texto de la página leída: si no está escrito allí, se descarta. Nada entra a la base sin pasar por esa verificación, y lo dudoso espera su revisión.</p></div></div>' +
       // Clave
       '<div class="card"><div class="card-head"><h3>Clave de API</h3></div><div class="card-body">' +
-        '<div class="alert warn" id="iaAvisoClave"><div class="ic">!</div><div class="bd"><b>Antes de escribir la clave</b>La clave permite gastar en su cuenta de Anthropic. ARKEN PRECIOS la usa desde este navegador para llamar directamente a la API de Claude: ' +
-          'cualquiera que entre al programa en este equipo puede lanzar búsquedas con ella. Si la guarda, queda cifrada en este equipo con una llave del navegador que no se puede exportar; ' +
-          'nunca viaja en respaldos, paquetes ni copias del programa, y no se vuelve a mostrar. Abierto como archivo, Chrome y Edge comparten lo que guarda con cualquier otro HTML que se abra desde el disco en este navegador: ' +
-          'abra allí solo archivos de confianza, o use la clave solo en esta sesión. Use una clave solo para este programa, con un límite de gasto en la consola de Claude, y bórrela aquí si el equipo cambia de manos.</div></div>' +
-        (admin ? '<label class="checkline" style="margin-top:12px"><input type="checkbox" id="iaAutorizo"' + (autorizado ? ' checked' : '') + '> Entiendo lo anterior y autorizo usar la clave de API en este navegador</label>' +
+        '<div class="alert warn" id="iaAvisoClave"><div class="ic">!</div><div class="bd"><b>Antes de escribir la clave</b>La clave permite gastar en su cuenta de Anthropic. ARKEN PRECIOS la usa desde ' + (app ? 'esta app' : 'este navegador') + ' para llamar directamente a la API de Claude: ' +
+          'cualquiera que entre al programa en este equipo puede lanzar búsquedas con ella. ' +
+          (app ? 'Si la guarda, queda cifrada por el sistema operativo de este equipo (el llavero de su usuario), en un archivo de la app fuera de la base; '
+            : 'Si la guarda, queda cifrada en este equipo con una llave del navegador que no se puede exportar; ') +
+          'nunca viaja en respaldos, paquetes ni copias del programa, y no se vuelve a mostrar. ' +
+          (app ? '' : 'Abierto como archivo, Chrome y Edge comparten lo que guarda con cualquier otro HTML que se abra desde el disco en este navegador: abra allí solo archivos de confianza, o use la clave solo en esta sesión. ') +
+          'Use una clave solo para este programa, con un límite de gasto en la consola de Claude, y bórrela aquí si el equipo cambia de manos.</div></div>' +
+        (admin ? '<label class="checkline" style="margin-top:12px"><input type="checkbox" id="iaAutorizo"' + (autorizado ? ' checked' : '') + '> Entiendo lo anterior y autorizo usar la clave de API en ' + (app ? 'esta app' : 'este navegador') + '</label>' +
           '<div class="field" style="margin-top:10px"><label for="iaClave">Clave de API</label><input id="iaClave" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"></div>' +
           '<label class="checkline" style="margin-top:8px"><input type="radio" name="iaDonde" value="equipo"' + (memoria ? ' disabled' : ' checked') + '> Guardarla cifrada en este equipo</label>' +
           '<label class="checkline" style="margin-top:4px"><input type="radio" name="iaDonde" value="sesion"' + (memoria ? ' checked' : '') + '> Usarla solo en esta sesión (se olvida al salir)</label>' +
-          (memoria ? '<p class="small muted">Este navegador no deja guardar la clave cifrada (la base está en memoria o no hay cifrado): solo se puede usar en esta sesión.</p>' : '') +
+          (memoria ? '<p class="small muted">' + esc(Boveda.sinCifrado()) + ': la clave solo se puede usar en esta sesión.</p>' : '') +
           '<div class="btn-row" style="margin-top:10px"><button class="btn primary" id="iaGuardarClave" type="button">Guardar la clave</button>' +
             (ClaveIA.hay() ? '<button class="btn danger" id="iaBorrarClave" type="button">Borrar la clave</button>' : '') + '</div>' : '') +
       '</div></div></div>' +
@@ -16061,7 +16094,7 @@ const InvestigadorConfigUI = (function(){
   }
   async function guardarClave(c, guardado){
     const k = $('#iaClave', c).value.trim();
-    if (!$('#iaAutorizo', c).checked){ UI.toast('Marque la autorización para usar la clave en este navegador', 'bad'); return; }
+    if (!$('#iaAutorizo', c).checked){ UI.toast('Marque la autorización para usar la clave en ' + (Boveda.escritorio() ? 'esta app' : 'este navegador'), 'bad'); return; }
     if (!ClaveIA.formatoValido(k)){ UI.toast('Eso no tiene la forma de una clave de API de Anthropic (empieza por «sk-ant-»)', 'bad'); return; }
     const donde = ($('input[name=iaDonde]:checked', c) || {}).value || 'sesion';
     await intentar('Guardar la clave de API', async () => {

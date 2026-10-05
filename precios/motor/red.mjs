@@ -16,8 +16,8 @@
 //   · Nada de evadir: un 401 o 403, un CAPTCHA o una página de inicio de sesión detienen
 //     la lectura y la fuente queda bloqueada hasta que una persona la revise.
 //
-// La función fetch se inyecta: en el escritorio es net.fetch de Electron (usa el proxy y
-// los certificados del sistema), en el servidor y en las pruebas el fetch de Node.
+// La función fetch se inyecta: en el escritorio usa la red de Chromium (electron/red.cjs, con el
+// proxy y los certificados del sistema), en el servidor y en las pruebas es el fetch de Node.
 
 import { ErrorMotor } from './errores.mjs';
 import { cacheEnMemoria } from './cache.mjs';

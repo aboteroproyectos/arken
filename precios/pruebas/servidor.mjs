@@ -293,7 +293,14 @@ try {
   abiertos.push(B3);
   ok(B3.estado().estado.programacion.activada !== activada, 'una programación nueva cuenta desde que se puso');
 
-  const Cs = await crearServidor({ token: TOKEN, datos: join(tmp, 'c'), fetch: net.fetch, nucleo: N, opcionesRed: OPCIONES_RED, maximoPaquetes: 3, registro: silencio, revisarCadaMs: 0 });
+  let podas = 0;
+  const cacheC = Object.assign(cacheEnMemoria(300), {
+    async podar() {
+      podas++;
+      return 0;
+    },
+  });
+  const Cs = await crearServidor({ token: TOKEN, datos: join(tmp, 'c'), fetch: net.fetch, nucleo: N, opcionesRed: OPCIONES_RED, cache: cacheC, maximoPaquetes: 3, registro: silencio, revisarCadaMs: 0 });
   abiertos.push(Cs);
   const ids = [];
   for (let i = 0; i < 5; i++) {
@@ -302,6 +309,7 @@ try {
   }
   const quedan = readdirSync(join(tmp, 'c', 'paquetes')).filter((a) => a.endsWith('.json')).sort();
   ok(MAXIMO_PAQUETES === 30 && quedan.join() === ids.slice(2).map((i) => i + '.json').join(), 'se guardan los últimos paquetes (30; aquí 3) y se borran los más viejos', { quedan, ids });
+  ok(podas === 5, 'después de cada lectura la caché se poda (lo más viejo sale si pasa del máximo)', podas);
 
   /* ═════════════════════════════  LÍNEA DE COMANDOS  ═════════════════════════════ */
   seccion('Arranque por línea de comandos');
