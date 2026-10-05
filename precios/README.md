@@ -133,7 +133,7 @@ Ninguna prueba lee sitios reales ni usa una clave real: los sitios se simulan co
 | `prueba:servidor` | El servidor de recolección de verdad en un puerto local: token, lecturas, programación, paquetes con su hash y el programa conectado a él. |
 | `prueba:ida-y-vuelta` | El Excel generado se importa en el `programa/ARKEN_CONTROL.html` real de este repositorio: todos los de la semilla salen «Ya existe» y al sobrescribir solo cambia el precio. |
 | `prueba:humo` | Recorre todos los módulos en Chromium: captura de precios por la interfaz, demostración, tablero, exportaciones, impresión, sin conexión, temas, densidades y 360 px. |
-| `prueba:app` | La capa de las apps en Chromium (`npm run preparar` antes): copia interna, bóveda, Android simulado y la política de seguridad de contenido. |
+| `prueba:app` | La capa de las apps en Chromium, sobre la carpeta `www/` que arma la misma prueba: copia interna, bóveda, Android simulado y la política de seguridad de contenido. |
 
 El SDK de Anthropic que va dentro del programa se rehace desde versiones fijas y se compara con el del programa:
 

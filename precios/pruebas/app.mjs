@@ -16,7 +16,7 @@
 //     nada del programa
 //
 // La app de escritorio empacada, con Electron de verdad, la prueba pruebas/escritorio.mjs.
-// Uso: npm run prueba:app   (www/ se prepara antes con npm run preparar)
+// Uso: npm run prueba:app   (la misma prueba arma www/ con herramientas/preparar-web.mjs)
 
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
