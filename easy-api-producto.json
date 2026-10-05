@@ -1,0 +1,34 @@
+[
+ {
+  "productId": "2190911",
+  "productName": "Cemento Tipo I gris x50 kg",
+  "brand": "ARGOS",
+  "link": "https://www.easy.com.co/cemento-argos-portland-tipo-i-x-50-kg/p",
+  "categories": "/Construcción/Materiales de Construcción/Cementos y Morteros/",
+  "items": [
+   {
+    "itemId": "2190911",
+    "name": "Cemento Tipo I gris x50 kg",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "7707269340023",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 29500,
+       "ListPrice": 29500,
+       "PriceWithoutDiscount": 29500,
+       "Tax": 0,
+       "AvailableQuantity": 99999,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-09-07T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ }
+]

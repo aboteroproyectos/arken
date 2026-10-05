@@ -1,0 +1,30 @@
+[
+ {
+  "orden_de_compra": "166237",
+  "fecha": "2026-06-26T00:00:00.000",
+  "entidad": "No definido",
+  "nit_entidad": "No definido",
+  "provedor": "No definido",
+  "nit_proveedor": "No definido",
+  "item": "mcf01 - Bloques de cemento No. 4. Bloques de cemento No. 4 - UNIDAD",
+  "price": "3098",
+  "qty": "20",
+  "unidad_de_medida": "Unidad",
+  "line_total": "61960",
+  "cdp": "CDP-328"
+ },
+ {
+  "orden_de_compra": "162747",
+  "fecha": "2026-03-27T00:00:00.000",
+  "entidad": "No definido",
+  "nit_entidad": "No definido",
+  "provedor": "No definido",
+  "nit_proveedor": "No definido",
+  "item": "mcf01 - BLOQUES DE CEMENTO. BLOQUES DE CEMENTO 10X20X40 - UN",
+  "price": "6463",
+  "qty": "5000",
+  "unidad_de_medida": "Unidad",
+  "line_total": "32315000",
+  "cdp": "8726"
+ }
+]

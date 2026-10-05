@@ -1,0 +1,152 @@
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+■ IDU · términos (PDF)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Warning: Cannot polyfill `DOMMatrix`, rendering may be broken: "Error: Cannot find module 'canvas'
+Require stack:
+- /home/runner/work/arken/arken/precios/node_modules/pdfjs-dist/legacy/build/pdf.js".
+Warning: Cannot polyfill `Path2D`, rendering may be broken: "Error: Cannot find module 'canvas'
+Require stack:
+- /home/runner/work/arken/arken/precios/node_modules/pdfjs-dist/legacy/build/pdf.js".
+Warning: fetchStandardFontData: failed to fetch file "LiberationSans-Regular.ttf" with "UnknownErrorException: The standard font "baseUrl" parameter must be specified, ensure that the "standardFontDataUrl" API parameter is provided.".
+Warning: fetchStandardFontData: failed to fetch file "LiberationSans-Bold.ttf" with "UnknownErrorException: The standard font "baseUrl" parameter must be specified, ensure that the "standardFontDataUrl" API parameter is provided.".
+Warning: TT: undefined function: 32
+Warning: fetchStandardFontData: failed to fetch file "LiberationSans-Italic.ttf" with "UnknownErrorException: The standard font "baseUrl" parameter must be specified, ensure that the "standardFontDataUrl" API parameter is provided.".
+✔ términos https://www.idu.gov.co/Archivos_Portal/Home/footer/DU-TI-03_CONDICIONES_DE_USO_Y_POLITICAS_DE_PRIVACIDAD_DE_LA_2.pdf → HTTP 200 · 36595 caracteres (guardado terminos-idu.txt)
+  frases relevantes (29):
+    » en virtud de c ualquier a lteración que se haya efectuado a los materiales o archivos de descarga
+    » La propiedad intelectual sobre los contenidos del Sitio Web son parte del patrimonio de EL
+    » perjuicio de lo anterior, los nombres comerciales, marcas o signos distintivos que aparecen o a los
+    » con finalidades comerciales o pr omocionales sa lvo autorización previa de EL INSTITUTO ;
+    » cualquier caso, se prohíbe el uso no autorizado de forma explícita de la información o del sitio
+    » incumplimientos de los derechos de propiedad intelectual sobre cualquiera de los contenidos del Sitio
+    » El Usuario se obliga a utilizar los Contenidos de forma diligente, correcta y licita.
+    » compromet e a no utilizar los Contenidos de forma ilícita y para fines contrarios a la Ley o el Orden
+    » (c) usar los contenidos con propósitos comerciales, incluyendo la promoción de
+    »  Reutilización de Datos para Valor Público:
+    » citación de la fuente, EL INSTITUTO promueve activamente la reutilización de
+    » Incluir una cláusula sobre el desarrollo de software institucional:
+    » la propiedad intelectual del código fuent e y la base de conocimiento tecnológica
+    » Adicionalmente, permite la opción de solicitar trámites en línea y
+    »  Derechos de Propiedad Intelectual
+    » El uso de datos debe ir explícitamente más allá del trámite para
+    » La recogida y tr atamiento automatizado de los Datos Personales tiene como finalidad el
+    » información técnica, operativa y comercial acerca de productos y servicios ofrecidos por los
+    » tratamiento automatizado de los Datos Personales incluye igualmente el envío de formularios
+    » y/o base de datos que podrán ser usados por EL INSTITUTO para efectos de surtir
+    » indebido de terceros a la base de datos y/o por alguna falla técnica en el funcionamiento y/o
+    » EL INSTITUTO no persigue ningún lucro, ganancia o interés comercial con los contenidos o
+    » EL INSTITUTO solicita al Usuario del Sitio Web, que lea detallada y juiciosamente estas
+    » mismo, podrán ser retirados los contenidos que violen derechos de propiedad intelectual, a
+    » Asimismo, queda absolutamente prohibido ingresar comentarios, mensajes, opiniones,
+    » Tampoco está permitido publicitar productos y/o servicios de cualquier tipo dentro de Los
+    » tales modificaciones y cada nuevo acceso del usuario a la página será una aceptación t ácita
+    » permita la descarga o instalación de cookies.
+    » De igual manera, los servidores de la página Web detectan de manera automática la
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+■ TVEC · búsqueda de texto completo ($q)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$q=cemento%20gris&$where=fecha%20%3E%3D%20'2025-10-01'&$order=fecha%20DESC&$limit=15 → HTTP 200 · 5677 bytes
+  «cemento gris» → 15 filas en 3140 ms
+    2026-08-11 · mcf01 - Bulto de cemento gris x 50 kg. Bulto de cemento gris x 50 kg - UND · 41000 / Unidad · orden 167832
+    2026-07-28 · mcf01 - Z4-CyF_CCE339. Cemento Gris 50Kl - (De Uso General Para Construccion) · 29289.919921875 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE1179. Teja De Cemento; Teja #6 Gris Perfil 7 - (Para Uso Domestico Y Comercial) · 35052.94140625 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE339. Cemento Gris 50Kl - (De Uso General Para Construccion) · 29289.919921875 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE339. Cemento Gris 50Kl - (De Uso General Para Construccion) · 29289.919921875 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE1179. Teja De Cemento; Teja #6 Gris Perfil 7 - (Para Uso Domestico Y Comercial) · 35052.94140625 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE1180. Teja De Cemento; Teja #8 Gris Perfil 7 - (Para Uso Domestico Y Comercial) · 42611.76171875 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE339. Cemento Gris 50Kl - (De Uso General Para Construccion) · 29289.919921875 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE1180. Teja De Cemento; Teja #8 Gris Perfil 7 - (Para Uso Domestico Y Comercial) · 42611.76171875 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE339. Cemento Gris 50Kl - (De Uso General Para Construccion) · 29289.919921875 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE339. Cemento Gris 50Kl - (De Uso General Para Construccion) · 29289.919921875 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE339. Cemento Gris 50Kl - (De Uso General Para Construccion) · 29289.919921875 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE339. Cemento Gris 50Kl - (De Uso General Para Construccion) · 29289.919921875 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE1178. Teja De Cemento; Teja #10 Gris Perfil 7 - (Para Uso Domestico Y Comercial) · 49887.390625 / Unidad · orden 167334
+    2026-07-28 · mcf01 - Z4-CyF_CCE339. Cemento Gris 50Kl - (De Uso General Para Construccion) · 29289.919921875 / Unidad · orden 167334
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$q=varilla%20corrugada&$where=fecha%20%3E%3D%20'2025-10-01'&$order=fecha%20DESC&$limit=15 → HTTP 200 · 5176 bytes
+  «varilla corrugada» → 15 filas en 2087 ms
+    2026-07-15 · gsf01-Varilla corrugada de 1/2 x 6m · 40834 / Unidad · orden 166868
+    2026-07-15 · gsf01-Varilla corrugada de 3/8 x 6m · 24833 / Unidad · orden 166868
+    2026-07-15 · gsf01-Varilla corrugada de 5/8 x 6m · 63749 / Unidad · orden 166868
+    2026-05-19 · GSF01 Varilla G-60 W 3/8-Pulg X 6 metros corrugada · 23900 / Unidad · orden 164738
+    2026-03-17 · mcf01 - VARILLA3/8. VARILLA CORRUGADA DE 3/8 X 6 ML - Unidad · 14099 / Unidad · orden 162253
+    2026-03-17 · mcf01 - VARILLA DE 1/2. VARILLA CORRUGADA DE 1/2 X 6ML. - Unidad · 24110.900390625 / Unidad · orden 162253
+    2026-03-17 · mcf01 - VARILLA 1/4. VARILLA CORRUGADA DE 1/4 X 6ML - Unidad · 6561.89990234375 / Unidad · orden 162253
+    2026-03-16 · VARILLA 5/8 CORRUGADA · 0 / Unidad · orden 162163
+    2026-03-03 · mcf01 - Varilla Corrugada G60 W #5 (5/8 Pulg) X 6M. Varilla Corrugada G60 W #5 (5/8 Pulg) X 6M - UND · 29264.709999999999 / Unidad · orden 161604
+    2025-12-17 · GSF01- VARILLA CORRUGADA G60 W #4 (1/2 PULG) X 6M X UND · 34247 / Unidad · orden 158208
+    2025-12-16 · mcf01 - VARILLA DE 5/8 X 6 MTS; CORRUGADA EN ACERO SOLDABLE W Y SISMO RESISTENTE 60.. VARILLA DE 5/8 X 6 MTS;  […] · 64753.19921875 / Unidad · orden 158012
+    2025-12-09 · GSF01- VARILLA CORRUGADA G60 W #3 (3/8 PULG) X 6M X UND · 22441 / Unidad · orden 157350
+    2025-12-09 · GSF01- VARILLA CORRUGADA 1 4 X 6 MTS · 12752 / Unidad · orden 157350
+    2025-11-27 · GSF01- VARILLA CORRUGADA G60 W #4 (1/2 PULG) X 6M X UND · 34247 / Unidad · orden 156423
+    2025-11-27 · GSF01- VARILLA CORRUGADA G60 W #2 (1/4 PULG) X 6M X UND · 10114 / Unidad · orden 156423
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$q=bloque%20cemento&$where=fecha%20%3E%3D%20'2025-10-01'&$order=fecha%20DESC&$limit=15 → HTTP 200 · 674 bytes
+  «bloque cemento» → 2 filas en 2477 ms
+    2026-06-26 · mcf01 - Bloques de cemento No. 4. Bloques de cemento No. 4 - UNIDAD · 3098 / Unidad · orden 166237
+    2026-03-27 · mcf01 - BLOQUES DE CEMENTO. BLOQUES DE CEMENTO 10X20X40 - UN · 6463 / Unidad · orden 162747
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$q=tubo%20pvc%20sanitario&$where=fecha%20%3E%3D%20'2025-10-01'&$order=fecha%20DESC&$limit=15 → HTTP 200 · 5372 bytes
+  «tubo pvc sanitario» → 15 filas en 2540 ms
+    2026-06-10 · mcf01 - Z2-CyF_CCE1547. Tubo Pvc Sanitario 4 · 90988.4921875 / Unidad · orden 165523
+    2026-04-10 · mcf01 - Z5-CyF_CCE1545. Tubo Pvc Sanitario 2'' · 210.36000061035156 / Unidad · orden 163211
+    2026-04-10 · mcf01 - TUBO SANITARIO PVC 1 1/2X6m . TUBO SANITARIO PVC 1 1/2X6m  - UNIDAD · 630.34002685546875 / Unidad · orden 163211
+    2026-04-07 · mcf01 - Z3-CyF_CCE1545. Tubo Pvc Sanitario 2'' · 7647.2900390625 / Unidad · orden 163083
+    2026-03-27 · mcf01 - Z3-CyF_CCE1545. Tubo Pvc Sanitario 2'' · 7647.2900390625 / Unidad · orden 162740
+    2026-01-22 · mcf01 - Z4-CyF_CCE1551. Tubo Sanitario En Pvc De 3â X 6 Metros · 131932.76999999999 / Unidad · orden 159616
+    2025-12-16 · mcf01 - Z5-CyF_CCE1545. Tubo Pvc Sanitario 2'' · 16173.83 / Unidad · orden 158022
+    2025-12-16 · mcf01 - Z5-CyF_CCE1551. Tubo Sanitario En Pvc De 3 X 6 Metros · 21985.740234375 / Unidad · orden 158012
+    2025-12-16 · mcf01 - Z5-CyF_CCE1547. Tubo Pvc Sanitario 4 · 36711.029999999999 / Unidad · orden 158022
+    2025-12-16 · mcf01 - Z5-CyF_CCE1545. Tubo Pvc Sanitario 2'' · 2425.39990234375 / Unidad · orden 158012
+    2025-12-16 · mcf01 - TUBO SANITARIO 1 1/2 X 6 MTS PVC TIPO PESADO.. TUBO SANITARIO 1 1/2 X 6 MTS PVC TIPO PESADO. Tubo sani […] · 4498.18017578125 / Unidad · orden 158012
+    2025-12-16 · mcf01 - Z5-CyF_CCE1547. Tubo Pvc Sanitario 4 · 5076.33984375 / Unidad · orden 158012
+    2025-11-28 · mcf01 - Z4-CyF_CCE1547. Tubo Pvc Sanitario 4 · 113098.32000000001 / Unidad · orden 156682
+    2025-11-14 · mcf01 - Z5-CyF_CCE1548. Tubo Pvc Sanitario 6 · 64525.48046875 / Unidad · orden 155391
+    2025-11-03 · mcf01 - Z5-CyF_CCE1547. Tubo Pvc Sanitario 4 · 19036.26953125 / Unidad · orden 154590
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+■ Easy · producto por su enlace (API pública)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+✔ https://www.easy.com.co/api/catalog_system/pub/products/search/cemento-argos-portland-tipo-i-x-50-kg/p → HTTP 200 · 29798 bytes
+[
+ {
+  "productId": "2190911",
+  "productName": "Cemento Tipo I gris x50 kg",
+  "brand": "ARGOS",
+  "link": "https://www.easy.com.co/cemento-argos-portland-tipo-i-x-50-kg/p",
+  "categories": "/Construcción/Materiales de Construcción/Cementos y Morteros/",
+  "items": [
+   {
+    "itemId": "2190911",
+    "name": "Cemento Tipo I gris x50 kg",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "7707269340023",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 29500,
+       "ListPrice": 29500,
+       "PriceWithoutDiscount": 29500,
+       "Tax": 0,
+       "AvailableQuantity": 99999,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-09-07T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ }
+]
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+■ Aldia · segunda página de la categoría
+════════════════════════════════════════════════════════════════════════════════════════════════════
+  ?page=2 → HTTP 200 · 215635 bytes
+  primera tarjeta: 
+  tarjetas en la página: 0
+
+Fin de la segunda ronda. Archivos en salida-ronda3
