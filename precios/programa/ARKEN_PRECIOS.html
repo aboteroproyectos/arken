@@ -2122,9 +2122,12 @@ const Observaciones = (function(){
       insumo, fuente, ciudad y presentación, se actualiza la vista en vez de
       crear otra fila. La misma URL el mismo día es un duplicado. Lo que trae
       el Investigador IA viene de muchos sitios con una sola fuente: ahí cada
-      página es su propia serie. */
+      página es su propia serie. Un conector del motor (Fase 3) puede traer
+      varios productos de la misma fuente para un insumo (dos marcas de
+      cemento, dos filas de una lista oficial): cada uno es su propia serie,
+      la que dice `serie` (la página del producto o la fila de la lista). */
   function comparar(nueva, existentes){
-    const pagina = o => o.metodo === 'ia' ? claveUrl(o.url) : '';
+    const pagina = o => o.metodo === 'ia' ? claveUrl(o.url) : (o.serie || '');
     const mismas = (existentes||[]).filter(e => e.insumoId === nueva.insumoId && e.fuenteId === nueva.fuenteId &&
       (e.ciudad||'') === (nueva.ciudad||'') && claveP(e.presentacion) === claveP(nueva.presentacion) && !e.corrigeA &&
       pagina(e) === pagina(nueva));
@@ -3527,21 +3530,26 @@ const Investigador = (function(){
   }
 
   /** Captura para el registro de observaciones (§6): la única puerta de entrada
-      a la base, que vuelve a exigir que el precio esté en el texto literal. */
+      a la base, que vuelve a exigir que el precio esté en el texto literal.
+      Sirve igual para la IA y para los conectores del motor (Fase 3): `o` dice
+      la fuente, el método, el tipo de precio que publica y la serie (la página
+      o la fila de la lista de donde sale, para el registro por cambios). */
   function captura(h, t, v, o){
     const op = o || {};
     const x = interpretar(h);
     const ciudad = op.ciudad !== undefined ? op.ciudad : ciudadDe(h, op.ciudades);
     const recuperada = v && v.pagina && v.pagina.recuperada;
     const ms = recuperada ? Date.parse(recuperada) : NaN;
+    // Una lista oficial, un contrato o una referencia no son promociones aunque el texto lo parezca
+    const tipoPrecio = op.tipoPrecio && op.tipoPrecio !== 'lista' ? op.tipoPrecio : (x.promocion ? 'promoción' : 'lista');
     return {
-      insumoId:op.insumoId || (t && t.insumoId), fuenteId:FUENTE, ciudad:ciudad || null, alcance:ciudad ? 'ciudad' : 'nacional',
+      insumoId:op.insumoId || (t && t.insumoId), fuenteId:op.fuenteId || FUENTE, ciudad:ciudad || null, alcance:ciudad ? 'ciudad' : 'nacional',
       fechaCaptura:isFinite(ms) ? hoyISO(ms) : (t && t.fecha) || hoyISO(), fechaPublicada:fechaISO(h.fechaVisible),
       precioPublicado:h.precio, textoLiteral:h.textoLiteral, unidadPublicada:x.unidad, presentacion:x.presentacion,
-      incluyeIva:x.incluyeIva === null ? undefined : x.incluyeIva, tipoPrecio:x.promocion ? 'promoción' : 'lista', esDesde:x.desde,
+      incluyeIva:x.incluyeIva === null ? undefined : x.incluyeIva, tipoPrecio, esDesde:x.desde,
       condiciones:h.condiciones, disponibilidad:x.disponibilidad, proveedor:h.proveedor || dominioDe(h.url), url:h.url,
-      metodo:'ia', exigirLiteral:true, evidencia:v && v.extracto ? v.extracto : '', verificacion:op.verificacion || 'página leída',
-      ejecucionId:op.ejecucionId || null, vinculoId:op.vinculoId || null
+      metodo:op.metodo || 'ia', exigirLiteral:true, evidencia:v && v.extracto ? v.extracto : '', verificacion:op.verificacion || 'página leída',
+      ejecucionId:op.ejecucionId || null, vinculoId:op.vinculoId || null, serie:op.serie || null
     };
   }
 
@@ -3566,7 +3574,9 @@ const Investigador = (function(){
     const op = o || {};
     const texto = [h.titulo, h.presentacion].filter(Boolean).join(' ') || h.textoLiteral;
     const s = Emparejamiento.similitud(texto, insumo, h.unidadPublicada);
-    const ventana = op.pagina && op.pagina.texto && op.inicio !== undefined ? op.pagina.texto.slice(Math.max(0, op.inicio - 1500), op.fin + 600) : '';
+    // En una lectura estructurada (una fila, un objeto JSON, la tarjeta de un producto) el nombre y
+    // el precio van juntos por construcción; en una página leída por la IA hay que comprobarlo
+    const ventana = !op.estructurado && op.pagina && op.pagina.texto && op.inicio !== undefined ? op.pagina.texto.slice(Math.max(0, op.inicio - 1500), op.fin + 600) : '';
     const cerca = ventana ? cobertura(h.titulo, ventana) : null;
     const x = interpretar(h);
     const base = { puntaje:s.puntaje, conflictos:s.conflictos, acuerdos:s.acuerdos, cerca };
@@ -3772,19 +3782,21 @@ const Investigador = (function(){
       · descartado: no verificable, otra moneda, sitio no permitido o página
         que una persona ya rechazó para este insumo.
       · ignorado: entrada inválida, repetido o pasado del máximo; no se guarda.
-      ctx: { insumo, catalogo, ciudades, vinculos: [{ claveUrl, estado }], tarea } */
+      ctx: { insumo, catalogo, ciudades, vinculos: [{ claveUrl | clave, estado }], tarea }, y para los
+      conectores del motor también { fuenteId, metodo, tipoPrecio, serie, claveVinculo, estructurado }:
+      una fila de una lista se reconoce por su clave («idu:322»), no por la dirección del archivo. */
   function clasificar(x, ctx){
     const c = ctx || {}, h = x.h, v = x.verificacion || {};
     if (['entrada inválida', 'repetido', 'límite'].indexOf(v.estado) >= 0) return { destino:'ignorado', motivo:v.motivo || v.estado };
     if (v.estado !== 'verificado' && v.estado !== 'pendiente') return { destino:'descartado', motivo:v.motivo || v.estado };
-    const k = claveUrl(h.url);
-    const vinc = (c.vinculos || []).filter(y => y.claveUrl === k);
+    const k = c.claveVinculo || claveUrl(h.url);
+    const vinc = (c.vinculos || []).filter(y => (y.clave || y.claveUrl) === k);
     if (vinc.some(y => y.estado === 'rechazado')) return { destino:'descartado', motivo:'Una persona indicó que esta página no corresponde a este insumo.' };
-    const emp = emparejar(h, c.insumo, c.catalogo, { pagina:v.pagina, inicio:v.inicio, fin:v.fin, ciudades:c.ciudades,
+    const emp = emparejar(h, c.insumo, c.catalogo, { pagina:v.pagina, inicio:v.inicio, fin:v.fin, ciudades:c.ciudades, estructurado:!!c.estructurado,
                                                      vinculoConfirmado:vinc.some(y => y.estado === 'confirmado') });
     if (v.estado === 'pendiente') return { destino:'pendiente', motivo:v.motivo, emparejamiento:emp };
     if (emp.estado === 'seguro') return { destino:'observación', motivo:emp.motivo, emparejamiento:emp,
-      captura:captura(h, c.tarea, v, { ciudades:c.ciudades, insumoId:c.insumo.id }) };
+      captura:captura(h, c.tarea, v, { ciudades:c.ciudades, insumoId:c.insumo.id, fuenteId:c.fuenteId, metodo:c.metodo, tipoPrecio:c.tipoPrecio, serie:c.serie }) };
     if (emp.estado === 'nuevo') return { destino:'nuevo insumo', motivo:emp.motivo, emparejamiento:emp };
     return { destino:'por revisar', motivo:emp.motivo, emparejamiento:emp };
   }
@@ -3850,6 +3862,303 @@ const Investigador = (function(){
            costo, sumarCostos, costoSupuesto, estimar, tareasQueCaben, semanaISO, claveCache, investigable, priorizar };
 })();
 
+/* ══════════════════════════════════════════════════════════════════════════
+   CONECTORES (§7.1 y §7.2)
+   Lo que comparten el programa, el motor y el servidor sobre las fuentes que
+   se leen de forma automática: la certificación de la ficha, la revisión de
+   la configuración de un conector genérico, el paso de un hallazgo crudo del
+   conector al formato interno, su verificación literal (el mismo control del
+   Investigador IA: ningún precio entra si no está escrito en lo que se leyó)
+   y el emparejamiento de las filas de una lista con el catálogo.
+   Aquí no hay red: la red está en el motor (motor/), que corre en el proceso
+   principal de la app de escritorio o en el servidor de recolección.
+   ══════════════════════════════════════════════════════════════════════════ */
+const Conectores = (function(){
+  const AUTOMATICOS = ['html','api-json','pdf','excel','socrata'];
+  const APROBADOS = ['aprobada','aprobada con restricciones'];
+  const CITA_DANE = 'Fuente: Departamento Administrativo Nacional de Estadística: www.dane.gov.co';
+
+  /** Conectores a la medida que trae el motor (motor/conectores/<id>.mjs). Los
+      demás son genéricos y se configuran en la ficha, sin programar. */
+  const CERTIFICADOS = {
+    easy:{ nombre:'Easy Colombia', metodo:'api-json', modo:'busqueda',
+           lee:'API pública del catálogo (VTEX): busca el insumo y lee precio, precio de lista y disponibilidad de cada producto.' },
+    casitaroja:{ nombre:'Ferretería La Casita Roja', metodo:'api-json', modo:'busqueda',
+           lee:'API pública de la tienda (WooCommerce Store API): busca el insumo y lee el precio tal como se publica.' },
+    aldia:{ nombre:'Ferretería Aldia', metodo:'html', modo:'lista',
+           lee:'Páginas de categorías de la tienda (su robots.txt no permite la búsqueda): nombre, precio y disponibilidad de cada producto.' },
+    idu:{ nombre:'IDU · base de precios de referencia', metodo:'excel', modo:'lista',
+           lee:'El Excel vigente de precios unitarios de referencia del portafolio del IDU, hoja de insumos.' },
+    tvec:{ nombre:'Tienda Virtual del Estado Colombiano', metodo:'socrata', modo:'busqueda',
+           lee:'Datos abiertos de Colombia Compra Eficiente: renglones de órdenes de compra (3hdv-smhz) unidos a sus órdenes (rgxm-mmea) para saber la ciudad.' },
+    icoced:{ nombre:'DANE · ICOCED', metodo:'excel', modo:'indices',
+           lee:'Anexos del boletín mensual del ICOCED: índice por dominio geográfico (Anexo 1) y por grupo de costos (Anexo 6.7).' }
+  };
+  const MODOS = ['busqueda','lista','indices'];
+
+  function automatica(f){ return !!f && AUTOMATICOS.indexOf(f.metodo) >= 0; }
+  function conectorDe(f){ const c = (f && f.configuracion) || {}; return c.conector && CERTIFICADOS[c.conector] ? c.conector : null; }
+  /** Cómo se lee la fuente: buscando cada insumo, leyendo una lista completa o leyendo índices. */
+  function modo(f){
+    const k = conectorDe(f);
+    if (k) return CERTIFICADOS[k].modo;
+    const c = (f && f.configuracion) || {};
+    if (MODOS.indexOf(c.modo) >= 0) return c.modo;
+    return c.busqueda && c.busqueda.plantilla ? 'busqueda' : 'lista';
+  }
+
+  /* ─────────────────────────  CONFIGURACIÓN  ───────────────────────── */
+  const esTexto = x => typeof x === 'string' && x.trim() !== '';
+  function plantillaValida(p, errores, nombre){
+    if (!esTexto(p)) return;
+    const prueba = String(p).replace(/\{[a-zA-Z0-9]+\}/g, 'x');
+    if (!urlSegura(prueba)) errores.push(nombre + ' debe ser una dirección http(s) («' + String(p).slice(0, 80) + '»).');
+  }
+  function listaUrls(l, errores, nombre){
+    const a = Array.isArray(l) ? l : [];
+    a.forEach(u => { if (!urlSegura(u)) errores.push(nombre + ': «' + String(u).slice(0, 80) + '» no es una dirección http(s).'); });
+    return a.length;
+  }
+  function selectorValido(s, errores, nombre){
+    if (s === undefined || s === null || s === '') return;
+    if (typeof s !== 'string' || s.length > 300 || /[<>{}]/.test(s)) errores.push('El selector «' + nombre + '» no es válido.');
+  }
+  function rutaValida(r, errores, nombre){
+    if (r === undefined || r === null || r === '') return;
+    if (typeof r !== 'string' || !/^[\w$.[\]*-]+$/.test(r)) errores.push('La ruta JSON «' + nombre + '» no es válida (use por ejemplo items[0].precio).');
+  }
+  function regexValida(r, errores, nombre){
+    if (r === undefined || r === null || r === '') return;
+    try { new RegExp(r); } catch(e){ errores.push('La expresión «' + nombre + '» no es válida.'); }
+  }
+
+  /** Revisa la configuración de la ficha: la del conector a la medida o la del genérico de su método. */
+  function validarConfiguracion(f){
+    const errores = [];
+    if (!f || !automatica(f)) return { ok:false, errores:['La fuente no se lee de forma automática.'] };
+    const c = f.configuracion || {};
+    if (c.conector){
+      if (!CERTIFICADOS[c.conector]) errores.push('El conector «' + c.conector + '» no existe en esta versión del motor.');
+      else if (CERTIFICADOS[c.conector].metodo !== f.metodo) errores.push('El conector «' + c.conector + '» lee ' + CERTIFICADOS[c.conector].metodo + ', no ' + f.metodo + '.');
+      if (c.lista && c.lista.urls) listaUrls(c.lista.urls, errores, 'Páginas de la lista');
+      return { ok:!errores.length, errores };
+    }
+    const m = modo(f);
+    if (f.metodo === 'html'){
+      if (m === 'busqueda'){ if (!esTexto(c.busqueda && c.busqueda.plantilla)) errores.push('Falta la plantilla de búsqueda.'); plantillaValida(c.busqueda && c.busqueda.plantilla, errores, 'La plantilla de búsqueda'); }
+      else if (!listaUrls(c.lista && c.lista.urls, errores, 'Páginas de la lista')) errores.push('Falta al menos una página de la lista.');
+      if (!esTexto(c.tarjeta)) errores.push('Falta el selector de cada producto (tarjeta).');
+      const campos = c.campos || {};
+      if (!esTexto(campos.titulo)) errores.push('Falta el selector del nombre del producto.');
+      if (!esTexto(campos.precio)) errores.push('Falta el selector del precio.');
+      ['tarjeta'].forEach(k => selectorValido(c[k], errores, k));
+      Object.keys(campos).forEach(k => selectorValido(campos[k], errores, k));
+      Object.keys(c.producto || {}).forEach(k => { if (k !== 'jsonLd') selectorValido(c.producto[k], errores, 'producto.' + k); });
+    } else if (f.metodo === 'api-json'){
+      if (m === 'busqueda'){ if (!esTexto(c.busqueda && c.busqueda.plantilla)) errores.push('Falta la plantilla de búsqueda.'); plantillaValida(c.busqueda && c.busqueda.plantilla, errores, 'La plantilla de búsqueda'); }
+      else if (!listaUrls(c.lista && c.lista.urls, errores, 'Direcciones de la lista')) errores.push('Falta al menos una dirección de la lista.');
+      rutaValida(c.elementos, errores, 'elementos');
+      const campos = c.campos || {};
+      if (!esTexto(campos.titulo)) errores.push('Falta la ruta del nombre del producto.');
+      if (!esTexto(campos.precio) && !esTexto(campos.precioTexto)) errores.push('Falta la ruta del precio.');
+      Object.keys(campos).forEach(k => {
+        if (k !== 'divisor') return rutaValida(campos[k], errores, k);
+        if (!(Number(campos[k]) > 0)) errores.push('«divisor» debe ser un número positivo (100 si el precio viene en centavos).');
+      });
+      if (c.producto){ plantillaValida(c.producto.plantilla, errores, 'La plantilla del producto'); regexValida(c.producto.desdeUrl, errores, 'producto.desdeUrl'); }
+    } else if (f.metodo === 'socrata'){
+      if (!esTexto(c.dominio) || !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(c.dominio)) errores.push('Falta el dominio del portal Socrata (por ejemplo www.datos.gov.co).');
+      if (!/^[a-z0-9]{4}-[a-z0-9]{4}$/.test(String(c.conjunto || ''))) errores.push('Falta el identificador del conjunto de datos (por ejemplo 3hdv-smhz).');
+      const campos = c.campos || {};
+      if (!esTexto(campos.titulo)) errores.push('Falta la columna del nombre del producto.');
+      if (!esTexto(campos.precio)) errores.push('Falta la columna del precio.');
+      Object.keys(campos).forEach(k => { if (campos[k] && !/^[a-z0-9_]+$/.test(campos[k])) errores.push('La columna «' + k + '» solo puede tener letras minúsculas, números y _.'); });
+      regexValida(c.limpiarTitulo, errores, 'limpiarTitulo');
+    } else if (f.metodo === 'excel' || f.metodo === 'pdf'){
+      const a = c.archivo || {};
+      if (!urlSegura(a.url) && !urlSegura(a.pagina)) errores.push('Falta la dirección del archivo o de la página que lo enlaza.');
+      if (a.pagina && !esTexto(a.texto) && !esTexto(a.patron)) errores.push('Diga cómo reconocer el enlace al archivo (su texto o un patrón).');
+      regexValida(a.patron, errores, 'archivo.patron');
+      const col = c.columnas || {};
+      if (!esTexto(col.titulo)) errores.push('Falta la columna del nombre.');
+      if (!esTexto(col.precio)) errores.push('Falta la columna del precio.');
+    }
+    if (c.incluyeIva !== undefined && c.incluyeIva !== null && typeof c.incluyeIva !== 'boolean') errores.push('«incluyeIva» debe ser verdadero, falso o vacío.');
+    if (c.tipoPrecio && Observaciones.TIPOS_PRECIO.indexOf(c.tipoPrecio) < 0) errores.push('Tipo de precio desconocido: ' + c.tipoPrecio + '.');
+    return { ok:!errores.length, errores };
+  }
+
+  /** Huella de la configuración: si cambia, la prueba técnica hay que repetirla. */
+  function huella(f){ return Cripto.sha256Hex(Cripto.jsonCanonico({ metodo:(f && f.metodo) || '', configuracion:(f && f.configuracion) || {} })).slice(0, 16); }
+
+  /* ─────────────────────────  CERTIFICACIÓN (§7.1)  ───────────────────────── */
+  /** Qué le falta a una fuente para leerse de forma automática. Una fuente se
+      certifica con su revisión legal aprobada (robots.txt, términos, fecha y
+      responsable), una configuración válida y una prueba técnica aprobada con
+      esa misma configuración. Después lee mientras su salud lo permita. */
+  function certificacion(f){
+    if (!f) return { estado:'no existe', falta:[], puedeLeer:false };
+    if (!automatica(f)) return { estado:f.metodo === 'ia' ? 'no aplica' : 'manual', falta:[], puedeLeer:false };
+    const rl = f.revisionLegal || {};
+    if (rl.resultado === 'rechazada') return { estado:'solo a mano', falta:['La revisión legal no permite leerla de forma automática' + (rl.terminos ? ': ' + String(rl.terminos).slice(0, 200) : '.')], puedeLeer:false };
+    const falta = [];
+    if (APROBADOS.indexOf(rl.resultado) < 0) falta.push('revisión legal aprobada');
+    if (!esTexto(rl.robotsTxt)) falta.push('lo que dice su robots.txt');
+    if (!esTexto(rl.terminos)) falta.push('lo que dicen sus términos de uso');
+    if (!rl.fecha) falta.push('fecha de la revisión legal');
+    if (!esTexto(rl.responsable)) falta.push('responsable de la revisión legal');
+    const v = validarConfiguracion(f);
+    if (!v.ok) falta.push('configuración válida del conector (' + v.errores.join(' ') + ')');
+    const p = f.ultimaPrueba;
+    if (!p || p.resultado !== 'aprobada') falta.push('prueba técnica aprobada');
+    else if (p.huella && p.huella !== huella(f)) falta.push('prueba técnica con la configuración actual (cambió después de probarla)');
+    const certificada = !falta.length;
+    return { estado:certificada ? 'certificada' : 'por certificar', falta,
+             puedeLeer:certificada && ['activa','degradada','caída'].indexOf(f.salud) >= 0 };
+  }
+
+  /** ¿Se puede hacer la prueba técnica? Antes de leer un sitio, aunque sea de
+      prueba, su revisión legal tiene que estar aprobada y la configuración
+      del conector tiene que ser válida. La salud no importa: probar es como se
+      revisa una fuente bloqueada antes de reactivarla. */
+  function puedeProbar(f){
+    if (!f || !automatica(f)) return { ok:false, falta:['La fuente no se lee de forma automática.'] };
+    const rl = f.revisionLegal || {};
+    const falta = [];
+    if (rl.resultado === 'rechazada') falta.push('La revisión legal no permite leerla de forma automática.');
+    else if (APROBADOS.indexOf(rl.resultado) < 0) falta.push('revisión legal aprobada');
+    if (!esTexto(rl.robotsTxt)) falta.push('lo que dice su robots.txt');
+    if (!esTexto(rl.terminos)) falta.push('lo que dicen sus términos de uso');
+    if (!rl.fecha) falta.push('fecha de la revisión legal');
+    if (!esTexto(rl.responsable)) falta.push('responsable de la revisión legal');
+    const v = validarConfiguracion(f);
+    if (!v.ok) falta.push('configuración válida del conector (' + v.errores.join(' ') + ')');
+    return { ok:!falta.length, falta };
+  }
+
+  /* ─────────────────────────  BÚSQUEDA  ───────────────────────── */
+  const PALABRAS_FUERA = new Set(['de','del','la','el','los','las','y','o','en','con','para','por','a','x','un','una','sin','al','tipo','incluye','incl','segun','según',
+    'suministro','instalacion','instalación','und','un.','unidad','mts','ml','m2','m3']);
+  /** Texto de búsqueda de un insumo en una tienda: la descripción sin lo que va
+      entre paréntesis ni palabras de relleno, con sus medidas («1/2"», «50 kg»).
+      La ficha del insumo puede fijar otro (consultaBusqueda). */
+  function consulta(ins){
+    if (!ins) return '';
+    if (esTexto(ins.consultaBusqueda)) return String(ins.consultaBusqueda).trim().slice(0, 80);
+    const t = String(ins.descripcion || '').replace(/\([^)]*\)/g, ' ').replace(/[;:,]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const palabras = t.split(' ').filter(w => w && !PALABRAS_FUERA.has(normaliza(w)));
+    return palabras.slice(0, 6).join(' ').slice(0, 80);
+  }
+  /** Completa una plantilla de dirección: {clave} va codificado; {clave|crudo} va tal cual. */
+  function plantilla(texto, valores){
+    return String(texto || '').replace(/\{([a-zA-Z0-9]+)(\|crudo)?\}/g, (m, k, crudo) => {
+      const v = valores && valores[k] !== undefined && valores[k] !== null ? String(valores[k]) : '';
+      return crudo ? v : encodeURIComponent(v);
+    });
+  }
+
+  /* ─────────────────────────  HALLAZGOS  ───────────────────────── */
+  /** Hallazgo crudo del conector (§7.2) → hallazgo interno, el mismo que usa
+      el Investigador IA. El precio sale del número que publica la fuente o,
+      si solo hay texto, del lector de precios; y tiene que estar escrito en el
+      texto literal. */
+  function aHallazgo(c, f){
+    const fuente = f || {}, cfg = fuente.configuracion || {};
+    if (!c || typeof c !== 'object') return { ok:false, motivo:'Hallazgo vacío.' };
+    const url = urlSegura(c.url);
+    if (!url) return { ok:false, motivo:'El hallazgo no trae una dirección http(s).' };
+    const literal = String(c.textoLiteral || c.precioTexto || '').replace(/\s+/g, ' ').trim().slice(0, 1000);
+    if (literal.length < 2) return { ok:false, motivo:'El hallazgo no trae el texto del precio.' };
+    let precio = Number(c.precio);
+    if (!(precio > 0)){ const l = LectorPrecios.leer(c.precioTexto || literal); precio = l.ok ? l.valor : NaN; }
+    if (!(precio > 0)) return { ok:false, motivo:'No hay un precio legible en «' + literal.slice(0, 80) + '».' };
+    const iva = [c.incluyeIva, cfg.incluyeIva].find(x => x === true || x === false);
+    const condiciones = [c.condiciones, c.disponibilidad ? 'Disponibilidad: ' + c.disponibilidad : ''].filter(esTexto).join(' · ');
+    return { ok:true, h:{
+      url, titulo:String(c.titulo || '').replace(/\s+/g, ' ').trim().slice(0, 300), textoLiteral:literal, precio:redondear3(precio), moneda:'COP',
+      unidadPublicada:String(c.unidadTexto || '').trim().slice(0, 60), presentacion:String(c.presentacion || '').trim().slice(0, 120),
+      incluyeIva:iva === undefined ? null : iva, ciudad:String(c.ciudad || cfg.ciudad || '').trim().slice(0, 80),
+      fechaVisible:String(c.fechaVisible || '').trim().slice(0, 40), proveedor:String(c.proveedor || fuente.nombre || '').trim().slice(0, 200),
+      condiciones:condiciones.slice(0, 500)
+    } };
+  }
+  /** Verificación literal: el precio en el texto literal y el texto literal en lo leído. */
+  function verificar(h, pagina){
+    if (!pagina) return { estado:'pendiente', motivo:'El conector no entregó el texto leído.' };
+    return Investigador.verificar(h, [Object.assign({}, pagina, { url:h.url })]);
+  }
+
+  /* ─────────────────────────  EMPAREJAR LISTAS  ───────────────────────── */
+  /** Índice del catálogo por palabra: así una lista de miles de filas solo se
+      compara con los insumos que comparten alguna palabra. */
+  function indiceCatalogo(catalogo){
+    const porToken = new Map();
+    (catalogo || []).forEach(ins => {
+      const ts = new Set(Emparejamiento.tokens([ins.descripcion].concat(ins.sinonimos || []).join(' ')));
+      ts.forEach(t => { if (!porToken.has(t)) porToken.set(t, []); porToken.get(t).push(ins); });
+    });
+    return { catalogo:catalogo || [], porToken };
+  }
+  /** Insumo del catálogo para una fila de una lista: el vínculo que confirmó
+      una persona o el más parecido (desde `umbral`), sin los rechazados. */
+  function elegirInsumo(h, indice, o){
+    const op = o || {};
+    const vinc = (op.vinculos || []).filter(v => v.clave ? v.clave === op.clave : v.claveUrl === claveUrl(h.url));
+    const confirmado = vinc.find(v => v.estado === 'confirmado');
+    const catalogo = indice.catalogo;
+    if (confirmado){
+      const ins = catalogo.find(i => i.id === confirmado.insumoId);
+      if (ins) return { insumo:ins, puntaje:1, motivo:'Vínculo confirmado por una persona.' };
+    }
+    const rechazados = new Set(vinc.filter(v => v.estado === 'rechazado').map(v => v.insumoId));
+    const texto = [h.titulo, h.presentacion].filter(Boolean).join(' ');
+    const cand = new Map();
+    Emparejamiento.tokens(texto).forEach(t => (indice.porToken.get(t) || []).forEach(ins => { if (!rechazados.has(ins.id)) cand.set(ins.id, ins); }));
+    let mejor = null, segundo = null;
+    cand.forEach(ins => {
+      const s = Emparejamiento.similitud(texto, ins, h.unidadPublicada);
+      if (!mejor || s.puntaje > mejor.puntaje){ segundo = mejor; mejor = { insumo:ins, puntaje:s.puntaje }; }
+      else if (!segundo || s.puntaje > segundo.puntaje) segundo = { insumo:ins, puntaje:s.puntaje };
+    });
+    const umbral = op.umbral === undefined ? 0.5 : op.umbral;
+    if (!mejor || mejor.puntaje < umbral) return null;
+    return { insumo:mejor.insumo, puntaje:mejor.puntaje, segundo:segundo ? { insumoId:segundo.insumo.id, puntaje:segundo.puntaje } : null };
+  }
+
+  /** A dónde va un hallazgo del motor: el mismo criterio del Investigador IA
+      (§7.2), con la fuente, su método y su tipo de precio. Lo que no se parece
+      ni al insumo buscado ni a otro del catálogo se descarta: una tienda
+      devuelve muchos productos por búsqueda y no son insumos que falten. */
+  function clasificar(x, ctx){
+    const c = ctx || {};
+    const cl = Investigador.clasificar(x, Object.assign({}, c, {
+      fuenteId:x.fuenteId, metodo:x.metodo, tipoPrecio:x.tipoPrecio || 'lista', serie:x.clave || null,
+      claveVinculo:x.clave || claveUrl(x.h && x.h.url), estructurado:true
+    }));
+    if (cl.destino === 'nuevo insumo') return Object.assign({}, cl, { destino:'descartado', motivo:'No se parece al insumo buscado ni a otro del catálogo.' });
+    return cl;
+  }
+
+  /* ─────────────────────────  ÍNDICES (ICOCED)  ───────────────────────── */
+  /** Nombre canónico de un dominio del ICOCED tal como viene en los anexos
+      («Valle del Aburra*», «Bogotá_Cundinamarca AR*», «Centro Occidente AM»). */
+  function dominioCanonico(nombre, dominios){
+    const lista = dominios || [];
+    const limpio = t => normaliza(t).replace(/[*_-]+/g, ' ').replace(/\b(am|au|ar)\b/g, ' ').replace(/\bdel\b/g, 'de').replace(/\s+/g, ' ').trim();
+    const n = limpio(nombre);
+    if (!n) return null;
+    if (/^total/.test(n) || /nacional/.test(n)) return 'Total nacional';
+    const exacto = lista.find(d => limpio(d) === n);
+    if (exacto) return exacto;
+    const parcial = lista.find(d => n.indexOf(limpio(d)) === 0 || limpio(d).indexOf(n) === 0);
+    return parcial || null;
+  }
+  function idIndice(x){ return [x.serie, x.dominio, x.grupo, x.mes].join('|'); }
+
+  return { AUTOMATICOS, APROBADOS, CERTIFICADOS, CITA_DANE, MODOS, automatica, conectorDe, modo, validarConfiguracion, huella, certificacion, puedeProbar,
+           consulta, plantilla, aHallazgo, verificar, indiceCatalogo, elegirInsumo, clasificar, dominioCanonico, idIndice };
+})();
+
 return {
   // constantes
   CATEGORIAS_ARKEN, PREFIJO_ARKEN, COLOR_CATEGORIA, PALETA, UNIDADES, NOMBRE_UNIDAD, ENCABEZADO_ARKEN, ENCABEZADO_LISTA_ARKEN,
@@ -3860,7 +4169,7 @@ return {
   hoyISO, ahoraISO, utcDe, diasEntre, sumaDias, sumaMeses, mesDe, fmtFecha, fmtFechaLarga, fmtSello, fmtMes, leerFecha, uid, azar,
   // módulos
   LectorPrecios, Unidades, Impuestos, Estadistica, Observaciones, Consolidacion, Cortes, Emparejamiento, Laboral,
-  ContratoArken, Agregados, Cripto, Formatos, Demo, Investigador
+  ContratoArken, Agregados, Cripto, Formatos, Demo, Investigador, Conectores
 };
 })();
 
@@ -5187,7 +5496,7 @@ const { CATEGORIAS_ARKEN, PREFIJO_ARKEN, COLOR_CATEGORIA, PALETA, UNIDADES, NOMB
         normaliza, esc, urlSegura, dominioDe, claveUrl, nombreArchivoSeguro, limpiarClaves, contieneClave, RE_VALOR_CLAVE,
         hoyISO, ahoraISO, utcDe, diasEntre, sumaDias, sumaMeses, mesDe, fmtFecha, fmtFechaLarga, fmtSello, fmtMes, leerFecha, uid,
         LectorPrecios, Unidades, Impuestos, Estadistica, Observaciones, Consolidacion, Cortes, Emparejamiento, Laboral,
-        ContratoArken, Agregados, Cripto, Formatos, Demo, Investigador } = Nucleo;
+        ContratoArken, Agregados, Cripto, Formatos, Demo, Investigador, Conectores } = Nucleo;
 
 const $ = (sel, raiz) => (raiz || document).querySelector(sel);
 const $$ = (sel, raiz) => Array.from((raiz || document).querySelectorAll(sel));
@@ -7210,6 +7519,7 @@ const Registro = (function(){
       tarifaIva:n.tarifaIva, precioSinIva:n.precioSinIva, precioConIva:n.precioConIva, aiu:d.aiu || null,
       tipoPrecio:d.tipoPrecio || 'lista', condiciones:String(d.condiciones || ''), disponibilidad:String(d.disponibilidad || ''), proveedor:String(d.proveedor || ''),
       url:urlSegura(d.url), hashEvidencia:String(d.hashEvidencia || ''), evidencia:d.evidencia || '', verificacion:d.verificacion || null, metodo:d.metodo || 'manual', ejecucionId:d.ejecucionId || null,
+      serie:d.serie ? String(d.serie).slice(0, 300) : null,
       confianza:Number(d.confianza) > 0 ? Number(d.confianza) : ((Datos.fuente(d.fuenteId || 'manual') || {}).confiabilidad || 0.6), estado:'válida', motivoEstado:'', historialEstado:[],
       vistaPorPrimeraVez:ahora, vistaPorUltimaVez:ahora, vecesVista:1, esDemo:!!d.esDemo, esDesde:!!d.esDesde, corrigeA:d.corrigeA || null,
       cotizacionId:d.cotizacionId || null, advertencias:n.advertencias, registradoPor:Sesion.usuario ? Sesion.usuario.usuario : 'sistema', creado:ahora

@@ -1,0 +1,14 @@
+[
+  {
+    "id": 70001,
+    "name": "CEMENTO GRIS USO GENERAL 50KG PRUEBA",
+    "slug": "cemento-gris-uso-general-50kg-prueba",
+    "permalink": "https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-50kg-prueba/",
+    "sku": "PRB102",
+    "type": "simple",
+    "prices": { "price": "3777700", "regular_price": "3777700", "sale_price": "3777700", "price_range": null, "currency_code": "COP", "currency_minor_unit": 2 },
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><bdi><span class=\"woocommerce-Price-currencySymbol\">&#36;</span>&nbsp;37.777,00</bdi></span>",
+    "is_in_stock": true,
+    "categories": [{ "id": 1, "name": "CEMENTO" }]
+  }
+]

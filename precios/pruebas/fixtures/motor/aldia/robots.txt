@@ -1,0 +1,18 @@
+# robots.txt con la forma del que genera PrestaShop (prueba)
+User-agent: *
+# Allow Directives
+Allow: */modules/*.css
+Allow: */modules/*.js
+# Private pages
+Disallow: /*?order=
+Disallow: /*?tag=
+Disallow: /*?search_query=
+Disallow: /*?n=
+Disallow: /*&order=
+Disallow: /*&search_query=
+Disallow: /*&n=
+Disallow: /*controller=authentication
+Disallow: /*controller=cart
+Disallow: /*controller=search
+Disallow: /busqueda
+Disallow: /mi-cuenta

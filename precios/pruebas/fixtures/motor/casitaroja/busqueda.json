@@ -1,0 +1,49 @@
+[
+  {
+    "id": 70001,
+    "name": "CEMENTO GRIS USO GENERAL 50KG PRUEBA",
+    "slug": "cemento-gris-uso-general-50kg-prueba",
+    "permalink": "https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-50kg-prueba/",
+    "sku": "PRB102",
+    "type": "simple",
+    "prices": {
+      "price": "3444400",
+      "regular_price": "3777700",
+      "sale_price": "3444400",
+      "price_range": null,
+      "currency_code": "COP",
+      "currency_symbol": "$",
+      "currency_minor_unit": 2,
+      "currency_decimal_separator": ",",
+      "currency_thousand_separator": ".",
+      "currency_prefix": "$ ",
+      "currency_suffix": ""
+    },
+    "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;37.777,00</span></del> <span class=\"screen-reader-text\">El precio original era: &#036;&nbsp;37.777,00.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;34.444,00</span></ins><span class=\"screen-reader-text\">El precio actual es: &#036;&nbsp;34.444,00.</span>",
+    "is_in_stock": true,
+    "categories": [{ "id": 1, "name": "CEMENTO" }, { "id": 2, "name": "Materiales de construcción" }]
+  },
+  {
+    "id": 70002,
+    "name": "TUBO PVC SANITARIO 4 PULGADAS X 6 M PRUEBA",
+    "slug": "tubo-pvc-sanitario-4-pulgadas-prueba",
+    "permalink": "https://ferreterialacasitaroja.com/product/tubo-pvc-sanitario-4-pulgadas-prueba/",
+    "sku": "PRB205",
+    "type": "simple",
+    "prices": { "price": "8888800", "regular_price": "8888800", "sale_price": "8888800", "price_range": null, "currency_code": "COP", "currency_minor_unit": 2 },
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><bdi><span class=\"woocommerce-Price-currencySymbol\">&#36;</span>&nbsp;88.888,00</bdi></span>",
+    "is_in_stock": true,
+    "categories": [{ "id": 3, "name": "TUBERÍA" }]
+  },
+  {
+    "id": 70003,
+    "name": "PINTURA VARIOS COLORES PRUEBA",
+    "slug": "pintura-varios-colores-prueba",
+    "permalink": "https://ferreterialacasitaroja.com/product/pintura-varios-colores-prueba/",
+    "type": "variable",
+    "prices": { "price": "1000000", "regular_price": "1000000", "price_range": { "min_amount": "1000000", "max_amount": "2000000" }, "currency_minor_unit": 2 },
+    "price_html": "<span>&#36;&nbsp;10.000,00 – &#36;&nbsp;20.000,00</span>",
+    "is_in_stock": true,
+    "categories": []
+  }
+]

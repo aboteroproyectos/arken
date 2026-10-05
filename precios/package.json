@@ -13,16 +13,23 @@
     "sdk:comprobar": "node herramientas/armar-sdk.mjs --comprobar",
     "prueba:unitarias": "node pruebas/unitarias.mjs",
     "prueba:investigador": "node pruebas/investigador.mjs && node pruebas/investigador-navegador.mjs",
+    "prueba:motor": "node pruebas/motor.mjs",
     "prueba:ida-y-vuelta": "node pruebas/ida-y-vuelta.mjs",
     "prueba:humo": "node pruebas/humo.mjs",
-    "prueba": "npm run verificar-sin-datos && npm run prueba:unitarias && npm run prueba:investigador && npm run prueba:ida-y-vuelta && npm run prueba:humo"
+    "prueba": "npm run verificar-sin-datos && npm run prueba:unitarias && npm run prueba:investigador && npm run prueba:motor && npm run prueba:ida-y-vuelta && npm run prueba:humo"
+  },
+  "dependencies": {
+    "css-select": "7.0.0",
+    "domhandler": "6.0.1",
+    "domutils": "4.0.2",
+    "htmlparser2": "12.0.0",
+    "pdfjs-dist": "3.11.174",
+    "xlsx": "0.18.5"
   },
   "devDependencies": {
     "html2canvas": "1.4.1",
     "jspdf": "2.5.1",
     "jspdf-autotable": "3.8.2",
-    "pdfjs-dist": "3.11.174",
-    "playwright-core": "^1.63.0",
-    "xlsx": "0.18.5"
+    "playwright-core": "^1.63.0"
   }
 }

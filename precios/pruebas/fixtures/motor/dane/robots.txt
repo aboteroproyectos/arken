@@ -1,0 +1,12 @@
+User-agent: *
+Disallow: /administrator/
+Disallow: /cache/
+Disallow: /components/
+Disallow: /includes/
+Disallow: /tmp/
+Disallow: /index.php?option=com_users
+Disallow: /index.php/calendario/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /index.php/calendario/

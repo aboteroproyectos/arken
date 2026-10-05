@@ -1,0 +1,26 @@
+[
+  {
+    "productId": "9000001",
+    "productName": "Cemento gris uso general UG 50 kg Prueba",
+    "brand": "PRUEBA",
+    "linkText": "cemento-gris-uso-general-ug-50-kg-prueba",
+    "link": "https://www.easy.com.co/cemento-gris-uso-general-ug-50-kg-prueba/p",
+    "categories": ["/Construcción/Materiales de Construcción/Cementos y Morteros/"],
+    "items": [
+      {
+        "itemId": "9000001",
+        "name": "Cemento gris uso general UG 50 kg Prueba",
+        "measurementUnit": "un",
+        "unitMultiplier": 1,
+        "sellers": [
+          {
+            "sellerId": "1",
+            "sellerName": "TIENDA DE PRUEBA S.A.S.",
+            "sellerDefault": true,
+            "commertialOffer": { "Price": 32222, "ListPrice": 33333, "PriceWithoutDiscount": 33333, "Tax": 0, "AvailableQuantity": 80, "IsAvailable": true }
+          }
+        ]
+      }
+    ]
+  }
+]
