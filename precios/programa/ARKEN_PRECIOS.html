@@ -8177,7 +8177,10 @@ const Motor = (function(){
   async function guardarLectura(r, conf, ej, log){
     try {
       const res = await Recolector.procesar(r, { ejecucionId:ej.id, donde:conf.donde });
-      if (conf.paquete) res.paquete = conf.paquete;
+      // Un paquete importado, o el de una lectura que hizo el servidor a pedido de este programa
+      const paquete = conf.paquete || (r && typeof r.paqueteServidor === 'string' ? r.paqueteServidor : '');
+      if (paquete) res.paquete = paquete;
+      if (paquete && !conf.paquete) await Recolector.marcarPaquete(paquete);
       ej.conectores = res;
       ej.solicitudes += res.solicitudes;
       ej.observacionesNuevas += res.observaciones;
@@ -9788,7 +9791,8 @@ const Recolector = (function(){
       const paq = await ServidorRecoleccion.paquete(e.paqueteId);
       const res = paq.contenido && paq.contenido.resultado;
       if (!res) throw new Error('El paquete del servidor no trae el resultado del motor.');
-      return res;
+      // El paquete de esta lectura entra ahora: «Descargar paquetes» no lo vuelve a importar
+      return Object.assign({}, res, { paqueteServidor:String(paq.id || e.paqueteId) });
     }
   }
   function cancelar(){ if (actual){ actual.cancelado = true; if (actual.cancelar) actual.cancelar(); } }
@@ -9962,11 +9966,16 @@ const Recolector = (function(){
     const desc = 'Paquete de precios del servidor ' + id + (obj.generado ? ' (leído el ' + fmtSello(obj.generado) + ')' : '');
     const ej = await Motor.ejecutar({ tipo:'paquete', descripcion:desc, insumoIds:ids, ciudades:Informes.ciudadesPorDefecto(),
       conectores:{ resultado:c.resultado, donde:'paquete', paquete:id }, ia:null }, op.ganchos || {});
-    await Datos.fijarConfig('paquetesImportados', hechos.filter(x => x !== id).concat([id]).slice(-200));
+    await marcarPaquete(id);
     const res = ej.conectores || { observaciones:0, bandeja:0, descartados:0, indices:0, fuentes:[], errores:[], salud:[] };
     await Auditoria.registrar('importar paquete del servidor', id + ' · ' + res.observaciones + ' precio(s) nuevo(s) · ' + res.bandeja + ' para revisar · ' + ej.cambiosDePrecio + ' precio(s) cambiaron');
     if (typeof Tablero !== 'undefined' && Tablero.invalidar) Tablero.invalidar();
     return { id, ejecucion:ej, resumen:res };
+  }
+  /** Anota un paquete como importado (se guardan los últimos 200): no se vuelve a importar. */
+  async function marcarPaquete(id){
+    const t = txt(id, 80);
+    if (t) await Datos.fijarConfig('paquetesImportados', Datos.config('paquetesImportados', []).filter(x => x !== t).concat([t]).slice(-200));
   }
   /** Descarga e importa los paquetes que el servidor tenga después del último importado. */
   async function descargarPaquetes(){
@@ -9985,7 +9994,7 @@ const Recolector = (function(){
   }
 
   return { donde, nombreDonde, motivoNoDisponible, disponible, enCurso, contacto, cfgMotor, fuentesQueLeen, plan, correr, cancelar, probar, procesar,
-           importarPaquete, descargarPaquetes, limpiarPrueba };
+           importarPaquete, marcarPaquete, descargarPaquetes, limpiarPrueba };
 })();
 
 /* ─────────────────────────  ACTUALIZACIONES PROGRAMADAS (§17.3)  ─────────────────────────
