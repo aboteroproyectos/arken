@@ -1,0 +1,57 @@
+User-agent: *
+Disallow: /administrator/
+Disallow: /bin/
+Disallow: /cache/
+Disallow: /cli/
+Disallow: /components/
+Disallow: /includes/
+Disallow: /installation/
+Disallow: /language/
+Disallow: /layouts/
+Disallow: /libraries/
+Disallow: /logs/
+Disallow: /modules/
+Disallow: /plugins/
+Disallow: /tmp/
+Disallow: /index.php?option=com_users
+# Nuevo 21-09-2026: calendario
+Disallow: /index.php/calendario/
+Disallow: /index.php/component/jevents/
+Disallow: /index.php/en/calendario
+
+# ----------------------------------------------------------------------
+# Reglas Especificas
+# ----------------------------------------------------------------------
+
+# Googlebot (Permitir rastreo completo de contenido publico, excepto calendario)
+User-agent: Googlebot
+Allow: /
+Disallow: /index.php/calendario/
+Disallow: /index.php/component/jevents/
+Disallow: /index.php/en/calendario
+
+# Bingbot (Permitir, excepto calendario)
+User-agent: Bingbot
+Allow: /
+Disallow: /index.php/calendario/
+Disallow: /index.php/component/jevents/
+Disallow: /index.php/en/calendario
+
+# Yandex (Bloqueado)
+User-agent: Yandex
+Disallow: /
+
+# Herramientas de Google permitidas
+User-agent: AdsBot-Google
+Disallow:
+
+User-agent: Googlebot-Image
+Disallow:
+User-agent: Googlebot
+Allow: /
+User-agent: Google-InspectionTool
+Allow: /
+User-agent: AdsBot-Google
+Allow: /
+User-agent: *
+Allow: /
