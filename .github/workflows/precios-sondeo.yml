@@ -2,13 +2,14 @@ name: Sondeo de fuentes (desechable)
 
 # Rama de trabajo temporal: lee robots.txt, términos y una muestra de datos de las fuentes
 # candidatas de ARKEN PRECIOS desde un equipo con salida a internet. No va a main.
+# Los resultados se publican en ramas precios-sondeo-r2-<grupo>, que también se borran.
 
 on:
   push:
     branches: [precios-sondeo]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   sondeo:
@@ -17,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        grupo: [dane, socrata, entidades, tiendas]
+        grupo: [tvec, idu, icoced, tiendas]
     defaults:
       run:
         working-directory: precios
@@ -30,10 +31,18 @@ jobs:
       - name: Sondeo
         env:
           SONDEO: ${{ matrix.grupo }}
-        run: node herramientas/sondeo-fuentes.mjs salida-${{ matrix.grupo }}
-      - uses: actions/upload-artifact@v7
+        run: node --max-http-header-size=131072 herramientas/sondeo-ronda2.mjs salida-${{ matrix.grupo }} 2>&1 | tee salida-${{ matrix.grupo }}.log
+      - name: Publicar resultados en una rama desechable
         if: always()
-        with:
-          name: sondeo-${{ matrix.grupo }}
-          path: precios/salida-${{ matrix.grupo }}
-          if-no-files-found: ignore
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p salida-${{ matrix.grupo }}
+          cp salida-${{ matrix.grupo }}.log salida-${{ matrix.grupo }}/registro.log || true
+          cd salida-${{ matrix.grupo }}
+          git init -q -b resultados
+          git config user.name "sondeo"
+          git config user.email "sondeo@users.noreply.github.com"
+          git add -A
+          git commit -qm "Resultados del sondeo ${{ matrix.grupo }}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.git" resultados:refs/heads/precios-sondeo-r2-${{ matrix.grupo }}
