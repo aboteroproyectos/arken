@@ -14,7 +14,8 @@ function escribir(nombre, datos) {
 }
 
 async function textoDePdf(bytes) {
-  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.js');
+  const modulo = await import('pdfjs-dist/legacy/build/pdf.js');
+  const pdfjs = modulo.getDocument ? modulo : modulo.default;
   const doc = await pdfjs.getDocument({ data: new Uint8Array(bytes), isEvalSupported: false, useSystemFonts: false }).promise;
   const paginas = [];
   for (let i = 1; i <= doc.numPages; i++) {
@@ -353,7 +354,37 @@ async function sondearTiendas() {
   }
 }
 
-const tareas = { tvec: sondearTvec, idu: sondearIdu, icoced: sondearIcoced, tiendas: sondearTiendas };
+/* ─────────────── Tercera ronda: términos del IDU y búsqueda de texto en la TVEC ─────────────── */
+async function sondearRonda3() {
+  titulo('IDU · términos (PDF)');
+  await terminosCompletos('https://www.idu.gov.co/Archivos_Portal/Home/footer/DU-TI-03_CONDICIONES_DE_USO_Y_POLITICAS_DE_PRIVACIDAD_DE_LA_2.pdf', 'idu');
+  titulo('TVEC · búsqueda de texto completo ($q)');
+  const base = 'https://www.datos.gov.co/resource/3hdv-smhz.json';
+  for (const q of ['cemento gris', 'varilla corrugada', 'bloque cemento', 'tubo pvc sanitario']) {
+    const t0 = Date.now();
+    const r = await json(base + '?$q=' + encodeURIComponent(q) + '&$where=' + encodeURIComponent("fecha >= '2025-10-01'") + '&$order=' + encodeURIComponent('fecha DESC') + '&$limit=15');
+    console.log('  «' + q + '» → ' + (r ? r.length : '✖') + ' filas en ' + (Date.now() - t0) + ' ms');
+    if (r) r.slice(0, 15).forEach((f) => console.log('    ' + f.fecha.slice(0, 10) + ' · ' + recorte(f.item, 110) + ' · ' + f.price + ' / ' + f.unidad_de_medida + ' · orden ' + f.orden_de_compra));
+    if (r) escribir('tvec-q-' + q.replace(/\s+/g, '-') + '.json', r);
+  }
+  titulo('Easy · producto por su enlace (API pública)');
+  const e = await json('https://www.easy.com.co/api/catalog_system/pub/products/search/cemento-argos-portland-tipo-i-x-50-kg/p');
+  if (e) { console.log(recorte(JSON.stringify(resumenVtex(e), null, 1), 2000)); escribir('easy-api-producto.json', resumenVtex(e)); }
+  titulo('Aldia · segunda página de la categoría');
+  const a = await traerRespetando('https://aldiaferreteria.com/cementos-concretos-y-morteros/cementos?page=2', { accept: 'text/html' });
+  console.log('  ?page=2 → ' + (a.ok ? 'HTTP ' + a.status + ' · ' + a.bytes.length + ' bytes' : a.error || a.status));
+  if (a.ok) {
+    const html = a.bytes.toString('utf8');
+    const i = html.indexOf('product-miniature');
+    console.log('  primera tarjeta: ' + recorte(html.slice(i, i + 2500).replace(/\s+/g, ' '), 2500));
+    const n = (html.match(/class="product-miniature/g) || []).length;
+    console.log('  tarjetas en la página: ' + n);
+    const pag = /<nav class="pagination"[\s\S]*?<\/nav>/.exec(html);
+    if (pag) console.log('  paginación: ' + recorte(pag[0].replace(/\s+/g, ' '), 1500));
+  }
+}
+
+const tareas = { tvec: sondearTvec, idu: sondearIdu, icoced: sondearIcoced, tiendas: sondearTiendas, ronda3: sondearRonda3 };
 if (process.env.SONDEO) {
   for (const k of process.env.SONDEO.split(',')) {
     try { await tareas[k](); } catch (e) { console.log('✖ error en ' + k + ': ' + (e && e.stack || e)); }
