@@ -17,10 +17,9 @@
 // Uso: npm run prueba:motor
 
 import http from 'node:http';
-import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { fileURLToPath } from 'node:url';
 
 import { leerRobots, permitido, segunRespuesta, tokenDe } from '../motor/robots.mjs';
 import { crearRed, contactoValido, textoAgente, esperaRetryAfter } from '../motor/red.mjs';
@@ -35,12 +34,8 @@ import { ventana, aplanar, textoDeHtml, fechaDeTexto } from '../motor/conectores
 import { limpiarNombre, consultaSoql } from '../motor/conectores/generico-socrata.mjs';
 import { enlaceDe } from '../motor/conectores/easy.mjs';
 import { mesDeTexto } from '../motor/conectores/icoced.mjs';
-import { excelIdu, excelIcoced, pdfPrecios, FILAS_IDU, DOMINIOS_ANEXO1 } from './fixtures/motor/fabricar.mjs';
-
-const AQUI = dirname(fileURLToPath(import.meta.url));
-const FIX = join(AQUI, 'fixtures', 'motor');
-const leer = (r) => readFileSync(join(FIX, r), 'utf8');
-const CONTACTO = 'pruebas@arken.example';
+import { excelIdu, pdfPrecios, FILAS_IDU, DOMINIOS_ANEXO1 } from './fixtures/motor/fabricar.mjs';
+import { leer, CONTACTO, LEGAL, OPCIONES_RED, texto, json, XLSX_TIPO, crearInternet, internetNormal, fichaDePrueba, fuentesDePrueba } from './fixtures/motor/internet.mjs';
 
 let fallas = 0;
 let pruebas = 0;
@@ -330,15 +325,7 @@ seccion('Lectores: HTML, Excel y PDF');
 
 /* ═════════════════════════════  NÚCLEO DE CONECTORES  ═════════════════════════════ */
 seccion('Certificación y conectores (núcleo del programa)');
-const LEGAL = { robotsTxt: 'Permite lo que se lee.', terminos: 'No prohíben el acceso automatizado.', fecha: '2026-10-05', responsable: 'Persona de prueba', resultado: 'aprobada' };
-function ficha(id, metodo, configuracion, extra = {}) {
-  const f = Object.assign(
-    { id, nombre: id, tipo: 'tienda', urlBase: '', metodo, configuracion, revisionLegal: Object.assign({}, LEGAL), limitePorMinuto: 60000, salud: 'activa', confiabilidad: 0.6 },
-    extra,
-  );
-  f.ultimaPrueba = { resultado: 'aprobada', fecha: '2026-10-05', huella: C.huella(f) };
-  return f;
-}
+const ficha = (id, metodo, configuracion, extra) => fichaDePrueba(C, id, metodo, configuracion, extra);
 {
   for (const [id, x] of Object.entries(CERTIFICADOS)) {
     const k = C.CERTIFICADOS[id];
@@ -372,81 +359,7 @@ function ficha(id, metodo, configuracion, extra = {}) {
 }
 
 /* ═════════════════════════════  INTERNET SIMULADO  ═════════════════════════════ */
-const texto = (cuerpo, tipo = 'text/html; charset=utf-8', status = 200, headers = {}) => ({ status, body: cuerpo, headers: Object.assign({ 'content-type': tipo }, headers) });
-const json = (cuerpo) => texto(cuerpo, 'application/json; charset=utf-8');
-const XLSX_TIPO = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-function crearInternet() {
-  const pedidas = [];
-  const sitios = new Map();
-  async function fetchFalso(url, init = {}) {
-    const u = new URL(url);
-    const h = init.headers || {};
-    pedidas.push({ url: u.href, host: u.host, ruta: u.pathname + u.search, ua: h['User-Agent'], from: h.From });
-    if (init.signal && init.signal.aborted) throw Object.assign(new Error('aborted'), { name: 'AbortError' });
-    const sitio = sitios.get(u.host);
-    const r = (sitio && (await sitio(u, init))) || { status: 404, body: 'No encontrado', headers: { 'content-type': 'text/plain' } };
-    const status = r.status || 200;
-    return new Response(status === 304 || status === 204 ? null : r.body, { status, headers: r.headers || {} });
-  }
-  return { fetch: fetchFalso, pedidas, sitios };
-}
-const RUTA_ICOCED = '/index.php/estadisticas-por-tema/precios-y-costos/indice-de-costos-de-la-construccion-de-edificaciones-icoced';
-function internetNormal() {
-  const net = crearInternet();
-  const estado = { easyCaptcha: false, aldiaSinTarjetas: false };
-  net.estado = estado;
-  net.sitios.set('www.easy.com.co', (u) => {
-    if (u.pathname === '/robots.txt') return texto(leer('easy/robots.txt'), 'text/plain');
-    if (estado.easyCaptcha) return texto('<html><div class="g-recaptcha"></div></html>', 'text/html', 403);
-    if (u.pathname === '/api/catalog_system/pub/products/search') return json(leer('easy/busqueda.json'));
-    if (/^\/api\/catalog_system\/pub\/products\/search\/[^/]+\/p$/.test(u.pathname)) return json(leer('easy/producto.json'));
-    return null;
-  });
-  net.sitios.set('ferreterialacasitaroja.com', (u) => {
-    if (u.pathname === '/robots.txt') return texto(leer('casitaroja/robots.txt'), 'text/plain');
-    if (u.pathname === '/wp-json/wc/store/v1/products' && u.searchParams.get('slug')) return json(leer('casitaroja/producto.json'));
-    if (u.pathname === '/wp-json/wc/store/v1/products') return json(leer('casitaroja/busqueda.json'));
-    return null;
-  });
-  net.sitios.set('aldiaferreteria.com', (u) => {
-    if (u.pathname === '/robots.txt') return texto(leer('aldia/robots.txt'), 'text/plain');
-    if (u.pathname === '/cementos-concretos-y-morteros') {
-      if (estado.aldiaSinTarjetas) return texto('<html><body><div class="lista-nueva"><div class="item">Cemento $33.333</div></div></body></html>');
-      return texto(leer(u.searchParams.get('page') === '2' ? 'aldia/cementos-p2.html' : 'aldia/cementos.html'));
-    }
-    if (u.pathname === '/cementos/5101-cemento-gris-uso-general-50-kg-prueba') return texto(leer('aldia/producto.html'));
-    return null;
-  });
-  net.sitios.set('www.idu.gov.co', (u) => {
-    if (u.pathname === '/robots.txt') return texto(leer('idu/robots.txt'), 'text/plain');
-    if (u.pathname === '/page/siipviales/economico/portafolio') return texto(leer('idu/portafolio.html'));
-    if (/1A_Visor_BPR_2026-I_Fase_II_PRUEBA_28-09-2026\.xlsx$/.test(u.pathname)) return { status: 200, body: excelIdu(), headers: { 'content-type': XLSX_TIPO } };
-    return null;
-  });
-  net.sitios.set('www.dane.gov.co', (u) => {
-    if (u.pathname === '/robots.txt') return texto(leer('dane/robots.txt'), 'text/plain');
-    if (u.pathname === RUTA_ICOCED) return texto(leer('dane/icoced.html'));
-    if (u.pathname === '/files/operaciones/ICOCED/anex-ICOCED-ago2026.xlsx') return { status: 200, body: excelIcoced(), headers: { 'content-type': XLSX_TIPO } };
-    return null;
-  });
-  net.sitios.set('www.datos.gov.co', (u) => {
-    if (u.pathname === '/robots.txt') return texto(leer('tvec/robots.txt'), 'text/plain');
-    if (u.pathname === '/resource/3hdv-smhz.json') return json(leer('tvec/items.json'));
-    if (u.pathname === '/resource/rgxm-mmea.json') return json(leer('tvec/ordenes.json'));
-    return null;
-  });
-  return net;
-}
-
-const FUENTES = () => [
-  ficha('easy', 'api-json', { conector: 'easy' }, { urlBase: 'https://www.easy.com.co', nombre: 'Easy Colombia' }),
-  ficha('casitaroja', 'api-json', { conector: 'casitaroja' }, { urlBase: 'https://ferreterialacasitaroja.com', nombre: 'Ferretería La Casita Roja' }),
-  ficha('aldia', 'html', { conector: 'aldia', lista: { urls: ['https://aldiaferreteria.com/cementos-concretos-y-morteros', 'https://aldiaferreteria.com/categoria-que-ya-no-existe'] } }, { urlBase: 'https://aldiaferreteria.com', nombre: 'Ferretería Aldia' }),
-  ficha('idu', 'excel', { conector: 'idu' }, { urlBase: 'https://www.idu.gov.co', tipo: 'entidad pública', nombre: 'IDU' }),
-  ficha('tvec', 'socrata', { conector: 'tvec' }, { urlBase: 'https://www.datos.gov.co', tipo: 'datos abiertos', nombre: 'TVEC' }),
-  ficha('dane', 'excel', { conector: 'icoced' }, { urlBase: 'https://www.dane.gov.co', tipo: 'entidad pública', nombre: 'DANE' }),
-];
-const OPCIONES_RED = { pausaMinimaMs: 2, esperaBaseMs: 2, tiempoMaximoMs: 5000 };
+const FUENTES = () => fuentesDePrueba(C);
 const CEMENTO = CATALOGO.find((i) => i.id === 'G02-0001');
 const TUBO = CATALOGO.find((i) => i.id === 'G13-0003');
 // robots.txt distingue mayúsculas (RFC 9309, §2.2.2): «/*?*map*» cierra «ft=mapei» pero no «ft=Mapei»

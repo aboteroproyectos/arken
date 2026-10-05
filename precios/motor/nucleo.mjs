@@ -38,7 +38,7 @@ export function cargarNucleo(ruta = PROGRAMA, o = {}) {
   if (o.semilla) codigo += '\n' + bloque(html, 'arken-precios-semilla') + '\nthis.Semilla = Semilla;';
   vm.runInContext(codigo, ctx, { filename: 'ARKEN_PRECIOS.html#nucleo' });
   const N = ctx.Nucleo;
-  if (!N || !N.Conectores || !N.Investigador) throw new Error('El programa no trae el núcleo de la Fase 3 (Conectores).');
+  if (!N || !N.Conectores || !N.Investigador || !N.Recoleccion) throw new Error('El programa no trae el núcleo de la Fase 3 (Conectores y Recolección).');
   if (o.semilla) N.Semilla = ctx.Semilla;
   cargados.set(clave, N);
   return N;

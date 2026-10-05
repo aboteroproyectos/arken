@@ -14,9 +14,11 @@
     "prueba:unitarias": "node pruebas/unitarias.mjs",
     "prueba:investigador": "node pruebas/investigador.mjs && node pruebas/investigador-navegador.mjs",
     "prueba:motor": "node pruebas/motor.mjs",
+    "prueba:recoleccion": "node pruebas/recoleccion.mjs",
+    "prueba:motor-navegador": "node pruebas/motor-navegador.mjs",
     "prueba:ida-y-vuelta": "node pruebas/ida-y-vuelta.mjs",
     "prueba:humo": "node pruebas/humo.mjs",
-    "prueba": "npm run verificar-sin-datos && npm run prueba:unitarias && npm run prueba:investigador && npm run prueba:motor && npm run prueba:ida-y-vuelta && npm run prueba:humo"
+    "prueba": "npm run verificar-sin-datos && npm run prueba:unitarias && npm run prueba:investigador && npm run prueba:motor && npm run prueba:recoleccion && npm run prueba:motor-navegador && npm run prueba:ida-y-vuelta && npm run prueba:humo"
   },
   "dependencies": {
     "css-select": "7.0.0",

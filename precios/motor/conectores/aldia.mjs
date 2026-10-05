@@ -7,7 +7,7 @@
 // incluidos» en la tienda; Ley 1480 de 2011, art. 26). La ficha puede cambiar la lista de
 // categorías en configuracion.lista.urls.
 
-import { leerListaHtml, leerProductoHtml, buscarHtml } from './generico-html.mjs';
+import { leerListaHtml, leerProductoHtml } from './generico-html.mjs';
 
 const BASE = 'https://aldiaferreteria.com';
 export const CATEGORIAS = [
