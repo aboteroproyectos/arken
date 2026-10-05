@@ -1,0 +1,62 @@
+{
+ "productos": [
+  {
+   "@context": "https://schema.org/",
+   "@type": "Product",
+   "name": "Euco Concrelisto X 48 kg",
+   "description": "EUCO CONCRELISTO es un concreto semifluido, sin retracción de dos componentes, utilizado para reparación y reforzamiento de elementos de concreto encamisado o convencional.",
+   "category": "Cementos",
+   "image": "https://media.aldiaferreteria.com/1589-home_default/euco-concrelisto-x-48-kg.webp",
+   "sku": "14857",
+   "mpn": "14857",
+   "brand": {
+    "@type": "brand",
+    "name": "Toxement"
+   },
+   "weight": {
+    "@context": "https://schema.org",
+    "@type": "QuantitativeValue",
+    "value": "48.000000",
+    "unitCode": "kg"
+   },
+   "offers": {
+    "@type": "Offer",
+    "priceCurrency": "COP",
+    "name": "Euco Concrelisto X 48 kg",
+    "price": "120086",
+    "url": "https://aldiaferreteria.com/cementos/397-euco-concrelisto-x-48-kg",
+    "priceValidUntil": "2026-10-19",
+    "image": [
+     "https://media.aldiaferreteria.com/1589-large_default/euco-concrelisto-x-48-kg.webp"
+    ],
+    "sku": "14857",
+    "mpn": "14857",
+    "availability": "https://schema.org/InStock",
+    "seller": {
+     "@type": "Organization",
+     "name": "Ferretería Aldia"
+    }
+   }
+  }
+ ],
+ "metas": [
+  "<meta property=\"product:price:amount\" content=\"120086\">",
+  "<meta property=\"product:price:currency\" content=\"COP\">",
+  "<meta itemprop=\"price\" content=\"120086.47\">",
+  "<meta itemprop=\"priceCurrency\" content=\"COP\">"
+ ],
+ "itemprops": [
+  "<meta itemprop=\"price\" content=\"120086.47\">",
+  "<meta itemprop=\"priceCurrency\" content=\"COP\">"
+ ],
+ "precios": [
+  "div class=\"col-md-6\" id=\"fix_product_style\"><h1 class=\"h1 namne_details\" >Euco Concrelisto X 48 kg</h1><div class=\"product-prices js-product-prices\"><div class=\"product-price h5 \"><div class=\"current-price\"> <span class='current-price-value' content=\"120086\"> $120.086 </span></div></div><div class=\"tax-shipping-delivery-label\"> Impuestos incluidos<div> <app-simulator store=\"661",
+  "quot;:&quot;64&quot;,&quot;on_sale&quot;:&quot;0&quot;,&quot;online_only&quot;:&quot;0&quot;,&quot;ecotax&quot;:0,&quot;minimal_quantity&quot;:&quot;1&quot;,&quot;low_stock_threshold&quot;:null,&quot;low_stock_alert&quot;:&quot;0&quot;,&quot;price&quot;:&quot;$120.086&quot;,&quot;unity&quot;:&quot;&quot;,&quot;unit_price&quot;:&quot;&quot;,&quot;unit_price_ratio&quot;:0,&quot;a",
+  " class=\"comments_note\" itemprop=\"aggregateRating\" itemscope itemtype=\"\"><div class=\"star_content clearfix\"> <span class=\"rating_star\" style=\"width: 0%;\"></span></div></div></div><div class=\"product-price-and-shipping\"><span class=\"price \" aria-label=\"Precio\"> $1.050 </span></div><div class=\"availability\"><div class=\"availability-list in-stock\">Disponibilidad: <span>28 Disponibl",
+  " class=\"comments_note\" itemprop=\"aggregateRating\" itemscope itemtype=\"\"><div class=\"star_content clearfix\"> <span class=\"rating_star\" style=\"width: 0%;\"></span></div></div></div><div class=\"product-price-and-shipping\"><span class=\"price \" aria-label=\"Precio\"> $32.500 </span></div><div class=\"availability\"><div class=\"availability-list in-stock\">Disponibilidad: <span>3191 Dispon",
+  " class=\"comments_note\" itemprop=\"aggregateRating\" itemscope itemtype=\"\"><div class=\"star_content clearfix\"> <span class=\"rating_star\" style=\"width: 0%;\"></span></div></div></div><div class=\"product-price-and-shipping\"><span class=\"price \" aria-label=\"Precio\"> $33.000 </span></div><div class=\"availability\"><div class=\"availability-list in-stock\">Disponibilidad: <span>25 Disponib",
+  " class=\"comments_note\" itemprop=\"aggregateRating\" itemscope itemtype=\"\"><div class=\"star_content clearfix\"> <span class=\"rating_star\" style=\"width: 0%;\"></span></div></div></div><div class=\"product-price-and-shipping\"><span class=\"price \" aria-label=\"Precio\"> $2.700 </span></div><div class=\"availability\"><div class=\"availability-list in-stock\">Disponibilidad: <span>71 Disponibl",
+  " class=\"comments_note\" itemprop=\"aggregateRating\" itemscope itemtype=\"\"><div class=\"star_content clearfix\"> <span class=\"rating_star\" style=\"width: 0%;\"></span></div></div></div><div class=\"product-price-and-shipping\"><span class=\"price \" aria-label=\"Precio\"> $17.756 </span></div><div class=\"availability\"><div class=\"availability-list in-stock\">Disponibilidad: <span>1 Disponibl"
+ ],
+ "nextPrecios": []
+}

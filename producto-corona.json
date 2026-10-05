@@ -1,0 +1,151 @@
+{
+ "productos": [
+  {
+   "@context": "https://schema.org",
+   "@type": "Product",
+   "name": "Cemento ALIÓN Gris de Uso General 50 kg",
+   "image": [
+    "https://legacy.corona.co/medias/CEMCUGB50-Cemento-ALION-UG-50-kg-1.jpg?context=bWFzdGVyfGltYWdlc3w5MTgxNnxpbWFnZS9qcGVnfGFEUTFMMmc1WXk4NU56TTNNemswTnpFMk56QXlMME5GVFVOVlIwSTFNQzFEWlcxbGJuUnZMVUZNU1U5T0xWVkhMVFV3TFd0bkxURXVhbkJufDY3ZmFmYzFhMjU0YTIwNDRjOGMyNWY3ZjBiZTcyOTAwNDdjMjM4NjQzMGVmMzg3MmE1YzZkMGQ2ZWUyY2Y5MmU",
+    "https://legacy.corona.co/medias/CEMCUGB50-Cemento-ALION-UG-50-kg-2.jpg?context=bWFzdGVyfGltYWdlc3w5MTIzNXxpbWFnZS9qcGVnfGFEZzFMMmc1T0M4NU56TTNNemswT0RRM056YzBMME5GVFVOVlIwSTFNQzFEWlcxbGJuUnZMVUZNU1U5T0xWVkhMVFV3TFd0bkxUSXVhbkJufDQ1MTU2OWEwOTMxNTYxZTBiZTQwYmVjODJhMTE5MGFkYWNjMTI2OTAzYzhiMzRlODllNWI2NWEzNGUxZmMzZDY",
+    "https://legacy.corona.co/medias/CEMCUGB50-Cemento-ALION-UG-50-kg-3.jpg?context=bWFzdGVyfGltYWdlc3w5NTkyNHxpbWFnZS9qcGVnfGFHTTJMMmc1TkM4NU56TTNNemswT1RjNE9EUTJMME5GVFVOVlIwSTFNQzFEWlcxbGJuUnZMVUZNU1U5T0xWVkhMVFV3TFd0bkxUTXVhbkJufDIzMjM5NGFjYmYxYzM5ZGFmZTgxYTA2NWZjY2I4Mzg4ZjZmMWY0YzFkNjYxYWI0ZWRhMTg2YmVjNGU2ODUzMjU"
+   ],
+   "description": "Cemento ALIÓN Gris de Uso General - UG  de 50 kg es ideal para elaborar concretos de resistencia normal, fabricar morteros para nivelación horizontal y/o vertical, elaborar prefabricados de pequeño y mediano formato, realizar estabilización de suelos y acabados basados en cemento hidráulico. Tu Cemento ALIÓN cuenta con sello de calidad del ICONTEC y, para tu seguridad, cumple con los requisitos de la Norma Técnica Colombiana - NTC 121 para cemento de tipo uso general y lo establecido en la Norma Sismo Resistente Colombiana - NSR.",
+   "sku": "CEMCUGB50",
+   "gtin": "7709116855155",
+   "depth": "",
+   "height": "",
+   "width": "",
+   "weight": "",
+   "brand": {
+    "@type": "Brand",
+    "name": "ALIÓN"
+   },
+   "shippingDetails": {
+    "@type": "OfferShippingDetails",
+    "shippingDestination": [
+     {
+      "@type": "DefinedRegion",
+      "addressCountry": "CO"
+     }
+    ]
+   },
+   "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.3",
+    "reviewCount": "5",
+    "bestRating": "5",
+    "worstRating": "1"
+   },
+   "review": [
+    {
+     "@type": "Review",
+     "id": "8821194260529",
+     "headline": "Excelente producto",
+     "reviewBody": "Cemento de muy buena calidad con relación a su costo. Secado con color beige para los que no gustamos del color gris.",
+     "author": {
+      "@type": "Person",
+      "id": "",
+      "name": "Juan"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "4",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-09-23"
+    },
+    {
+     "@type": "Review",
+     "id": "8813100924977",
+     "headline": "BUENO ",
+     "reviewBody": "Un buen Cemento.",
+     "author": {
+      "@type": "Person",
+      "id": "",
+      "name": "Myriam Rendón Montoya "
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "3.5",
+      "bestRating": "5"
+     },
+     "datePublished": "2025-07-18"
+    },
+    {
+     "@type": "Review",
+     "id": "8813099712561",
+     "headline": "Acabados ",
+     "reviewBody": "No me dejó claro, qué tipo de cemento es: Puzolanico o siderúrgico?",
+     "author": {
+      "@type": "Person",
+      "id": "",
+      "name": "pedro pinilla "
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "4",
+      "bestRating": "5"
+     },
+     "datePublished": "2025-07-12"
+    },
+    {
+     "@type": "Review",
+     "id": "8810742186033",
+     "headline": "Producto excelente",
+     "reviewBody": "El cemento Alion es exelente, lo uso con regularidad y el color final me gusta mucho",
+     "author": {
+      "@type": "Person",
+      "id": "",
+      "name": "Luis Hernan Merlo"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2025-02-18"
+    },
+    {
+     "@type": "Review",
+     "id": "8810248831025",
+     "headline": "Multi tarea ",
+     "reviewBody": "Es un muy buen producto, tanto para pega de bloque, mezclable con arena de río para un buen sobresuelo, excelente para mezclar con arena de peña y se crea una buena adherencia a la hora de hacer pañete o revoque, las mezclas no se caen del palustre ",
+     "author": {
+      "@type": "Person",
+      "id": "",
+      "name": "José Luis avila García "
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2024-11-27"
+    }
+   ],
+   "offers": [
+    {
+     "@type": "Offer",
+     "url": "https://corona.co/productos/cementos/cemento-alion-gris-de-uso-general-50-kg/p/CEMCUGB50",
+     "availability": "https://schema.org/OutOfStock",
+     "priceCurrency": "COP",
+     "price": "33000",
+     "priceValidUntil": "2026-11-04"
+    }
+   ]
+  }
+ ],
+ "metas": [],
+ "itemprops": [],
+ "precios": [
+  "de Addi donde encontrarás información detallada sobre sus términos y condiciones\\\",\\\"termsConditionsLink\\\":\\\"https://co.addi.com/tyc-links-addi\\\",\\\"minimumAmountWarning\\\":\\\"¡Verifica el valor de tu compra! Para realizar tu pago con Addi, el monto mínimo es de $50.000.\\\",\\\"errors\\\":{\\\"generic\\\":\\\"No pudimos procesar tu pago con ADDI. Intenta nuevamente.\\\"}}}},\\\"orderDetails\\\":{\\",
+  "\\\"BannerCarousel\\\",\\\"options\\\":{\\\"banners\\\":[{\\\"responsiveMedia\\\":{\\\"mobile\\\":{\\\"url\\\":\\\"/paginas-contenido/landing-pages/home/banners/0-interes/Banner-home-mobile-0-interes.jpg\\\",\\\"altText\\\":\\\"0 % interés pagando a 2, 3, 6 o 12 cuotas en compras superiores a $500.000\\\",\\\"format\\\":\\\"image\\\",\\\"width\\\":640,\\\"height\\\":865},\\\"tablet\\\":{\\\"url\\\":\\\"/paginas-contenido/landing-pages/hom",
+  "es a $500.000\\\",\\\"format\\\":\\\"image\\\",\\\"width\\\":640,\\\"height\\\":865},\\\"tablet\\\":{\\\"url\\\":\\\"/paginas-contenido/landing-pages/home/banners/0-interes/Banner-home-tablet-0-interes.jpg\\\",\\\"altText\\\":\\\"0 % interés pagando a 2, 3, 6 o 12 cuotas en compras superiores a $500.000\\\",\\\"format\\\":\\\"image\\\",\\\"width\\\":1024,\\\"height\\\":532},\\\"desktop\\\":{\\\"url\\\":\\\"/paginas-contenido/landing-pages/h",
+  "a $500.000\\\",\\\"format\\\":\\\"image\\\",\\\"width\\\":1024,\\\"height\\\":532},\\\"desktop\\\":{\\\"url\\\":\\\"/paginas-contenido/landing-pages/home/banners/0-interes/Banner-home-desktop-0-interes.jpg\\\",\\\"altText\\\":\\\"0 % interés pagando a 2, 3, 6 o 12 cuotas en compras superiores a $500.000\\\",\\\"format\\\":\\\"image\\\",\\\"width\\\":1440,\\\"height\\\":532}},\\\"tag\\\":\\\"h1\\\",\\\"title\\\":{\\\"textColor\\\":\\\"var(--color-ne",
+  "\\\":\\\"image\\\",\\\"width\\\":1440,\\\"height\\\":532}},\\\"tag\\\":\\\"h1\\\",\\\"title\\\":{\\\"textColor\\\":\\\"var(--color-neutral-25, #ffffff)\\\",\\\"text\\\":{\\\"@type\\\":\\\"@builder.io/core:LocalizedValue\\\",\\\"Default\\\":\\\"0% de interés pagando a 2, 3, 6 o 12 cuotas en compras superiores a $500.000.\\\"}},\\\"alignContent\\\":\\\"center\\\",\\\"description\\\":{\\\"textColor\\\":\\\"var(--color-neutral-25, #ffffff)\\\",\\\"text\\\":{",
+  "otalStockPickupDelivery\\\":0,\\\"totalStockService\\\":\\\"$undefined\\\"},\\\"showCalculator\\\":false,\\\"areaCovered\\\":\\\"$undefined\\\",\\\"areaUnit\\\":\\\"M2\\\",\\\"wastePercentage\\\":10,\\\"price\\\":{\\\"currencyIso\\\":\\\"COP\\\",\\\"value\\\":33000,\\\"priceType\\\":\\\"BUY\\\",\\\"formattedValue\\\":\\\"$$ 33.000\\\",\\\"minQuantity\\\":\\\"$undefined\\\",\\\"maxQuantity\\\":\\\"$undefined\\\"},\\\"discountedPrice\\\":\\\"$undefined\\\",\\\"pricePerU",
+  "e-4 text-primary\\\",\\\"children\\\":[\\\"$\\\",\\\"path\\\",null,{\\\"d\\\":\\\"$b2\\\"}]}]}],\\\"$Lb3\\\"]}],\\\"$Lb4\\\",\\\"$Lb5\\\"],false]}]\\n9a:[\\\"$undefined\\\",[\\\"$\\\",\\\"span\\\",null,{\\\"className\\\":\\\"text-paragraph-xl-bold text-primary\\\",\\\"data-testid\\\":\\\"lbl-pdp-price\\\",\\\"children\\\":\\\"$$ 33.000\\\"}],false,[\\\"$\\\",\\\"span\\\",null,{\\\"className\\\":\\\"text-paragraph-xl-bold text-primary\\\",\\\"data-testid\\\":\\\"lbl-pdp",
+  "div hidden id=\"S:4\"><div class=\"flex flex-col gap-2 lg:gap-4\"><div class=\"flex flex-wrap gap-1\"></div><div class=\"flex flex-col gap-1\"><div class=\"flex flex-wrap items-center gap-2\"><span class=\"text-paragraph-xl-bold text-primary\" data-testid=\"lbl-pdp-price\">$ 33.000</span><span class=\"text-paragraph-xl-bold text-primary\" data-testid=\"lbl-pdp-price\">Unidad</span><span class=\"t"
+ ],
+ "nextPrecios": []
+}

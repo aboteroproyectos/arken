@@ -1,0 +1,265 @@
+{
+ "productos": [
+  {
+   "@context": "http://schema.org",
+   "@type": "product",
+   "name": "Cemento Argos Gris 50kg",
+   "url": "https://www.homecenter.com.co/homecenter-co/product/13846/cemento-argos-gris-50kg/13846/",
+   "image": "https://media.falabella.com/sodimacCO/13846/public",
+   "description": "Hoja de Seguridad  #content-in-page,.desc-col,.desc-row,.desc-row>p,.fotos-en-fila,.full-banner{width:100%}#content-in-page,.desc-row,.fotos-en-fila,.fotos-en-fila img{box-sizing:border-box}.content-descriptor-text,.content-descriptor-title,.manuales{font-family:Lato,sans-serif;color:#333}.desc-row{height:auto;clear:both;display:flex;align-items:stretch;justify-content:center;flex-wrap:wrap}.desc-row>p{margin-left:0!important}.desc-row.direction-col{flex-direction:column}.desc-col-left,.desc-col-right{padding:0 10px;flex:1}.content-descriptor-title{font-weight:600!important;font-size:24px!important;line-height:24px!important;text-align:left;margin-bottom:5px!important;margin-top:0!important}.content-descriptor-text{font-weight:400;font-size:14px;line-height:120%px;margin-bottom:10px!important;margin-top:0!important;text-align:justify!important}.desc-col-right,.desc-row{padding:0 10px;margin-top:16px}#desc-module-3 .desc-col-right,#desc-module-4 .desc-col-left,#desc-module-8 .desc-col-right{display:flex;flex-direction:column;justify-content:center}#desc-module-6 .content-descriptor-title,#desc-module-7 .content-descriptor-title{margin-top:15px!important}#desc-module-8{flex-flow:column nowrap}#desc-module-8 iframe{width:100%;aspect-ratio:16/9}@media only screen and (max-width:450px){.desc-row{flex-direction:column}.desc-row>p{width:93%}#desc-module-4{flex-direction:column-reverse}#desc-module-6 p{text-align:left;max-width:100%}#desc-module-8{flex-flow:column nowrap}}.desc-row{flex:1;margin-bottom:0;justify-content:left!important}#desc-module-6 p{text-align:justify!important;max-width:100%!important}#desc-module-6 img{padding-bottom:0!important}.desc-col-right{flex:1;margin-bottom:16px}.desc-col-right img{max-width:none!important;padding-bottom:6px!important}.full-banner{height:auto}.fotos-en-fila{display:flex;gap:10px;margin-bottom:10px;height:auto;padding-right:10px}.fotos-en-fila img{width:50%;height:auto;max-width:calc(50% - 5px);object-fit:contain}.desc-module-8{margin-top:10px}.video-responsive{position:relative;width:100%;height:0;padding-bottom:56.25%}.video-responsive iframe{position:absolute;top:0;left:0;width:100%;height:100%}.manuales{width:auto;max-width:100%;height:auto;display:block;margin:20px auto;padding:15px 15px 20px;background-color:#0072ce;border-radius:10px;overflow:hidden}.manuales .texto{color:#fff;font-size:17px;line-height:22.1px;text-align:left;margin:0}.manuales ul{color:#0072ce;font-size:15px;line-height:18.2px;text-align:center;margin:10px 0 0;padding:0;list-style:none}.manuales ul .item{height:30px;line-height:30px;border-bottom:1px solid #0072ce;margin:0;padding:0;list-style-position:inside;text-align:left}.manuales ul .item a{width:100%;height:100%;display:inline;text-decoration:none;color:#fff}.manuales ul .item a:hover{color:#bfbfbf;text-decoration:underline}.manuales ul .item a span{margin:0;padding:0;position:relative;display:inline-block;line-height:20px}.manuales ul .item::before{display:none}.manuales .links-m{display:flex;position:relative;width:100%}.manuales .links-m ul{width:50%}@media only screen and (max-width:450px){.video-responsive iframe{height:100%!important}}                                                                                                  Cemento Argos Gris 50kg                          El Cemento Argos Gris de 50 kg es el aliado perfecto para tus proyectos de construcción y reparación. Con su presentación en saco y color gris, este cemento es ideal para la elaboración de morteros, reparaciones y la producción de elementos prefabricados. ¡Dale vida a tus ideas con este producto versátil y de alta calidad!                                                                                                                                                                                  Características              Este cemento de uso general, fabricado en Colombia, es un material esencial para la construcción. Cumple con la Norma Técnica Colombiana NTC 121 (Tipo UG) y ofrece un rendimiento que se adapta a tus necesidades. Sus dimensiones son de 62.5 cm de alto, 12 cm de largo y 52 cm de ancho. Además, su contenido es de 50 kg.                                                                                                              Complementa tu Cemento Argos Gris 50kg                           Para complementar tu compra, te recomendamos explorar las categorías de varillas de hierro y acero, arena y gravilla por sacos, y mallas electrosoldadas. Las varillas de hierro y acero son fundamentales para el refuerzo estructural, mientras que la arena y gravilla son esenciales para la preparación de mezclas. Las mallas electrosoldadas facilitan la construcción de estructuras de hormigón.                               ",
+   "productID": "13846",
+   "sku": "13846",
+   "gtin13": "null",
+   "depth": "null",
+   "height": "null",
+   "width": "52 cm",
+   "color": "",
+   "weight": "null",
+   "brand": {
+    "@type": "brand",
+    "name": "Argos"
+   },
+   "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "reviewCount": "114",
+    "bestRating": "5",
+    "worstRating": "1"
+   },
+   "reviews": [
+    {
+     "@type": "Review",
+     "id": "399271906",
+     "headline": "Excelente",
+     "reviewBody": "El producto se encuentra a buen precio",
+     "author": {
+      "@type": "Person",
+      "id": "q6pjvvl0f9wmzt02mc1uorjji",
+      "name": "Alber 132853"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-07-30T18:46:21.000+00:00",
+     "image": "null"
+    },
+    {
+     "@type": "Review",
+     "id": "399267966",
+     "headline": "Excelente",
+     "reviewBody": "Está mucho más económico, que en otras ferreterías ,",
+     "author": {
+      "@type": "Person",
+      "id": "a0m7mq6zmr7cdtf2z5yibrr5f",
+      "name": "Daniel  124449"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-07-30T18:01:11.000+00:00",
+     "image": "null"
+    },
+    {
+     "@type": "Review",
+     "id": "398088971",
+     "headline": "Excelente",
+     "reviewBody": "La calidad y la.firmesa que da el material es excelente",
+     "author": {
+      "@type": "Person",
+      "id": "5vmngkrzf0dwdoiit7vvooc6i",
+      "name": "Jhon 140606"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-07-17T21:01:20.000+00:00",
+     "image": "null"
+    },
+    {
+     "@type": "Review",
+     "id": "397036904",
+     "headline": null,
+     "reviewBody": "Sin duda el mejor cemento",
+     "author": {
+      "@type": "Person",
+      "id": "zf0je505c118mxcp1u3xxqqu9i",
+      "name": "Jossiemar"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-07-05T22:31:24.000+00:00",
+     "image": "null"
+    },
+    {
+     "@type": "Review",
+     "id": "393095770",
+     "headline": "Excelente",
+     "reviewBody": "Calidad presio mut buen  producto",
+     "author": {
+      "@type": "Person",
+      "id": "kv69tys0sewg9xmq43gbgu5qm",
+      "name": "Eliza 103117"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-06-10T20:16:05.000+00:00",
+     "image": "null"
+    },
+    {
+     "@type": "Review",
+     "id": "386641728",
+     "headline": "Excelente",
+     "reviewBody": "Está costo pero es muy bueno Pero por precio es mejor alion",
+     "author": {
+      "@type": "Person",
+      "id": "3530wxtkei7lrgxzpgi1zx1uk",
+      "name": "Los Mira 161524"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-05-07T21:46:23.000+00:00",
+     "image": "null"
+    },
+    {
+     "@type": "Review",
+     "id": "386631463",
+     "headline": "Excelente",
+     "reviewBody": "Me parece un producto de buena calidad",
+     "author": {
+      "@type": "Person",
+      "id": "1xym5rjodvd0l78sw6kkp6mb4",
+      "name": "Yura 150232"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-05-07T20:31:26.000+00:00",
+     "image": "null"
+    },
+    {
+     "@type": "Review",
+     "id": "386628991",
+     "headline": "Aceptable",
+     "reviewBody": "Varios de los bultos de cemento se encontraban en grumos",
+     "author": {
+      "@type": "Person",
+      "id": "txy6wjs4ilp1d0di2q2da5nao",
+      "name": "Angi 144334"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "3",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-05-08T22:31:22.000+00:00",
+     "image": "null"
+    },
+    {
+     "@type": "Review",
+     "id": "384741859",
+     "headline": "Excelente",
+     "reviewBody": "De muy buena Calidad",
+     "author": {
+      "@type": "Person",
+      "id": "a2tf3clr5oms3euus8lfxta2b",
+      "name": "Alex 154449"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-04-17T15:17:30.000+00:00",
+     "image": "null"
+    },
+    {
+     "@type": "Review",
+     "id": "384738786",
+     "headline": null,
+     "reviewBody": null,
+     "author": {
+      "@type": "Person",
+      "id": "6g4emqwfg9ioq5ejpvsvyo6vw",
+      "name": "Evangelista 150507"
+     },
+     "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+     },
+     "datePublished": "2026-04-16T20:16:17.000+00:00",
+     "image": "null"
+    }
+   ],
+   "offers": [
+    {
+     "@type": "Offer",
+     "url": "https://www.homecenter.com.co/homecenter-co/product/13846/cemento-argos-gris-50kg/13846/",
+     "price": "32500",
+     "priceCurrency": "COP",
+     "priceValidUntil": "null",
+     "availability": "http://schema.org/InStock",
+     "sku": "13846"
+    }
+   ]
+  }
+ ],
+ "metas": [],
+ "itemprops": [],
+ "precios": [
+  "nd-logo homecenter-co jsx-2512830624\"><div class=\"jsx-2596285994\"><div class=\"jsx-2596285994 main normal sticky level-0 und jsx-2512830624 \"><div class=\"jsx-4190455556 price homecenter-co jsx-1217501568\"><span class=\"jsx-4190455556 price-value\">$32.500</span><span class=\"jsx-4190455556 price-unit jsx-1217501568\">und</span></div></div></div><div class=\"jsx-2596285",
+  "faultGroupName\":\"Todos\",\"isPersonalized\":true,\"noCache\":false,\"minPods\":3,\"type\":\"pillsButton\",\"title\":\"PDP Pills Button Carousel\"}],\"areOldCalculatorsEnabledInBeta\":false,\"isInterlinkingEnabled\":true,\"cmrProperties\":{\"discountTextWithoutOU\":\"Obtén un bono de $45.000 para tu primera compra\",\"discountTextWithOU\":\"Pídela ahora y obtén $45.000 de bono extra\",\"ouPriceLimit\":45000},",
+  "type\":\"pillsButton\",\"title\":\"PDP Pills Button Carousel\"}],\"areOldCalculatorsEnabledInBeta\":false,\"isInterlinkingEnabled\":true,\"cmrProperties\":{\"discountTextWithoutOU\":\"Obtén un bono de $45.000 para tu primera compra\",\"discountTextWithOU\":\"Pídela ahora y obtén $45.000 de bono extra\",\"ouPriceLimit\":45000},\"isSponsoredProductsDisplayEnabled\":false,\"isWishListOnboardingEnabled\":tru",
+  "p__moreStores\":\"más tiendas\",\"header__emailPlaceholderText\":\"Ingresa tu correo electrónico\",\"pdp__extendedWarrantyBadge\":\"Garantía extendida\",\"header__businessAccess\":\"Acceso empresas\",\"addToCart__addToCartBoomText2\":\"Despacho gratis para compras superiores a $ 29.990\",\"pdp__availabilityFetchError\":\"No pudimos actualizar las opciones de entrega\",\"pdp__productGuaranteeDesc\":\".\",",
+  "leta tu colección\",\"nsr__leaveCommentText\":\"Dejar un comentario\",\"pdp__selectYourSize\":\"Otras Opciones\",\"nsr__useGeneralTermText\":\"Utiliza terminos generales\",\"footer__subscribeEmail\":\"Ej. correo@mail.com\",\"pdp__generalDiscountTextWithoutOU\":\"Obtén un bono de $45.000 para tu primera compra\",\"footer__findUs\":\"Descarga la APP Homecenter:\",\"mediaComp__calculationGuideText\":\"Guía p",
+  "a pagar con cualquier medio de pago\",\"pdp__showMoreWarrantyModalText1\":\"Cobertura del producto prolongando la garantía hasta por 3 años.\",\"pdp__noWarrantySelected\":\"Tu producto no cuenta con\",\"pdp__takeAdvantageOfDiscount\":\"En tu primera compra te regalaremos $15.000\",\"footer__copyRightText\":\"Todos los derechos Reservados\",\"pdp__noWarranty\":\"Sin Garantía\",\"header__boomHeaderToo",
+  "roducto no cuenta con\",\"pdp__takeAdvantageOfDiscount\":\"En tu primera compra te regalaremos $15.000\",\"footer__copyRightText\":\"Todos los derechos Reservados\",\"pdp__noWarranty\":\"Sin Garantía\",\"header__boomHeaderToolTipText\":\"Disfruta de envíos sin costo por sólo $19.990 anual\",\"nsr__yourSearchText2\":\"no arrojó resultados\",\"generic__cesTooltipText\":\"El descuento se aplicará en el c",
+  "c__homeDeliveryAvailable\":\"Despacho a domicilio\",\"header__mustEnterEmailText\":\"Debes ingresar un correo\",\"header__changeLocationText\":\"Cambiar\",\"pdp__youAreViewingThisProduct\":\"Estás viendo este producto\",\"pdp__generalDiscountTextWithOU\":\"Pídela ahora y obtén $45.000 de bono extra\",\"pdp__seeMoreAccessories\":\"Ver más complementos\",\"header__emailOrPasswordErrorText\":\"Tus datos so"
+ ],
+ "nextPrecios": [
+  ".props.pageProps.productProps.result.variants.0.price = [{\"label\":\"\",\"price\":\"32.500\",\"symbol\":\"$\",\"type\":\"NORMAL\",\"unit\":\"und\",\"priceWithoutFormatting\":32500},{\"label\":\"\",\"boxCoverage\":\"50.000\",\"price\":\"650,00\",\"sym […]",
+  ".props.features.isCatalystZoneEnabled = true",
+  ".props.features.DEFAULT_PRICE_GROUP = 19",
+  ".props.features.isPriceRangeEnabled = true",
+  ".props.features.isStockInStoreEnabled = true",
+  ".props.features.storeInfoPath = \"/sodimac-browse-store-info-prod/SOCO.json\"",
+  ".props.features.cmrProperties.ouPriceLimit = 45000",
+  ".props.features.textDictionary.zoneInfo__modalLabelText = \"Esta ubicación nos ayudará a brindarte una mejor experiencia de compra. Si no es la ubicación donde te encuentras, aquí puedes cambiarla.\"",
+  ".props.features.textDictionary.pdp__moreStores = \"más tiendas\"",
+  ".props.features.textDictionary.zoneInfo__dropdownEmptyValue = \"Selecciona una opción\"",
+  ".props.features.textDictionary.zoneInfo__divgeoFieldOption4Text = \"Selecciona tu comuna*\"",
+  ".props.features.textDictionary.pdp__otherComuna = \"otras ciudades\"",
+  ".props.features.textDictionary.pdp__productOnlyAvailableInStore = \"Producto solo disponible en tienda.\"",
+  ".props.features.textDictionary.zoneInfo__regionText = \"Región\"",
+  ".props.features.textDictionary.pdp__seeStores = \"ver tiendas\"",
+  ".props.features.textDictionary.pdp__seeStoresWithStock = \"Ver tiendas con stock\"",
+  ".props.features.textDictionary.zoneInfo__storeToolTipText = \"Puedes elegir una tienda en la que compras regularmente o la más cercana.\"",
+  ".props.features.textDictionary.zoneInfo__divgeoFieldOption3Text = \"Selecciona una ciudad*\"",
+  ".props.features.textDictionary.generic__eventPriceMessage = \"Precio evento a pagar con cualquier medio de pago\"",
+  ".props.features.textDictionary.pdp__buyAtStore = \"Stock en tienda\"",
+  ".props.features.textDictionary.zoneInfo__comunaText = \"Comuna\"",
+  ".props.features.textDictionary.pdp__noStoreAvailable = \"No hay disponibilidad en tu comuna\"",
+  ".props.features.textDictionary.zoneInfo__zoneModalLinkTitle = \"El retiro y despacho varían según la ciudad.\"",
+  ".props.features.textDictionary.zoneInfo__divgeoFieldOption2Text = \"Selecciona un departmento*\"",
+  ".props.features.storeInfoPathBeta = \"/sodimac-browse-store-info/SOCO.json\"",
+  ".props.features.isPickupInStoreEnabled = true",
+  ".props.features.DEFAULT_ZONE_ID = 1"
+ ]
+}

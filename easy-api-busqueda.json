@@ -1,0 +1,162 @@
+[
+ {
+  "productId": "1035302",
+  "productName": "Cemento gris Tp1Cemex Superresistente50K",
+  "brand": "CEMEX",
+  "link": "https://www.easy.com.co/cemento-gris-tp1cemex-superresistente50k/p",
+  "categories": "/Construcción/Materiales de Construcción/Cementos y Morteros/",
+  "items": [
+   {
+    "itemId": "1035302",
+    "name": "Cemento gris Tp1Cemex Superresistente50K",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "2888800077211",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 32500,
+       "ListPrice": 32500,
+       "PriceWithoutDiscount": 32500,
+       "Tax": 0,
+       "AvailableQuantity": 99999,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-09-16T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "2190911",
+  "productName": "Cemento Tipo I gris x50 kg",
+  "brand": "ARGOS",
+  "link": "https://www.easy.com.co/cemento-argos-portland-tipo-i-x-50-kg/p",
+  "categories": "/Construcción/Materiales de Construcción/Cementos y Morteros/",
+  "items": [
+   {
+    "itemId": "2190911",
+    "name": "Cemento Tipo I gris x50 kg",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "7707269340023",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 29500,
+       "ListPrice": 29500,
+       "PriceWithoutDiscount": 29500,
+       "Tax": 0,
+       "AvailableQuantity": 99999,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-09-07T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "1281359",
+  "productName": "Vinilo T1 Fino 1gl gris Cemento",
+  "brand": "TITO PABON",
+  "link": "https://www.easy.com.co/vinilo-t1-fino-1gl-gris-cemento/p",
+  "categories": "/Pinturas/Pinturas para Interior/Pinturas Vinílicas/",
+  "items": [
+   {
+    "itemId": "1281359",
+    "name": "Vinilo T1 Fino 1gl gris Cemento",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "2082004235075",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 64990,
+       "ListPrice": 64990,
+       "PriceWithoutDiscount": 64990,
+       "Tax": 0,
+       "AvailableQuantity": 10,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-10-02T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "1494018",
+  "productName": "Papel tapiz pared Cemento gris 53x1000 cm AS Creations",
+  "brand": "AS CREATIONS",
+  "link": "https://www.easy.com.co/papel-tapiz-pared-cemento-gris-53x1000-cm-as-creations-1494018/p",
+  "categories": "/Pinturas/Papel Mural/Papel de Colgadura/",
+  "items": [
+   {
+    "itemId": "1494018",
+    "name": "Papel tapiz pared Cemento gris 53x1000 cm AS Creations",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "4051315364796",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 126320,
+       "ListPrice": 157900,
+       "PriceWithoutDiscount": 157900,
+       "Tax": 0,
+       "AvailableQuantity": 10,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-01-25T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "1426368",
+  "productName": "Adhesivo sellador Concolor junta estrecha gris cemento x2kg Corona",
+  "brand": "CORONA",
+  "link": "https://www.easy.com.co/concolor-junta-estrecha-gris-cementox2kg/p",
+  "categories": "/Pisos y Paredes/Pegantes para Pisos/Boquillas/",
+  "items": [
+   {
+    "itemId": "1426368",
+    "name": "Adhesivo sellador Concolor junta estrecha gris cemento x2kg Corona",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "7707181799411",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 18900,
+       "ListPrice": 18900,
+       "PriceWithoutDiscount": 18900,
+       "Tax": 0,
+       "AvailableQuantity": 100,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-04-28T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ }
+]

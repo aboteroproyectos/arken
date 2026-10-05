@@ -1,0 +1,23 @@
+User-Agent: *
+Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /my-account
+Disallow: /search
+Disallow: /gracias-formulario-casa-corona
+Disallow: /*?q=
+Disallow: /*?sort
+
+User-Agent: CazoodleBot
+Disallow: /
+
+User-Agent: MJ12bot
+Disallow: /
+
+User-Agent: dotbot/1.0
+Disallow: /
+
+User-Agent: Gigabot
+Disallow: /
+
+Sitemap: https://corona.co/sitemap.xml

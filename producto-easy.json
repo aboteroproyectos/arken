@@ -1,0 +1,48 @@
+{
+ "productos": [
+  {
+   "@context": "https://schema.org/",
+   "@type": "Product",
+   "@id": "https://www.easy.com.co/cemento-argos-portland-tipo-i-x-50-kg/p",
+   "name": "Cemento Tipo I gris x50 kg",
+   "brand": {
+    "@type": "Brand",
+    "name": "ARGOS"
+   },
+   "image": "https://easycolombia.vtexassets.com/arquivos/ids/178160/cemento-tipo-i-gris-x50-kg-2.jpg?v=638066277713130000",
+   "description": "Compra Cemento Tipo I gris x50 kg y renueva tu hogar. En easy.com.co encontrarás todo en Cementos y Morteros para renovar el amor por tu hogar",
+   "mpn": "2190911",
+   "sku": "02190911",
+   "offers": {
+    "@type": "AggregateOffer",
+    "lowPrice": 29500,
+    "highPrice": 29500,
+    "priceCurrency": "COP",
+    "offers": [
+     {
+      "@type": "Offer",
+      "price": 29500,
+      "priceCurrency": "COP",
+      "availability": "http://schema.org/InStock",
+      "sku": "02190911",
+      "itemCondition": "http://schema.org/NewCondition",
+      "priceValidUntil": "2027-09-07T00:00:00Z",
+      "seller": {
+       "@type": "Organization",
+       "name": "CENCOSUD COLOMBIA S.A."
+      }
+     }
+    ],
+    "offerCount": 1
+   },
+   "gtin": "02190911"
+  }
+ ],
+ "metas": [],
+ "itemprops": [],
+ "precios": [
+  "ndasjumboqaio-easy-minicart-1-x-pricePdpContainer\"><div class=\"tiendasjumboqaio-easy-minicart-1-x-pp_container\"><div class=\"flex c-emphasis tiendasjumboqaio-easy-minicart-1-x-cencoPrice\"><div class=\"b ml2\"><div class=\"tiendasjumboqaio-easy-minicart-1-x-price\">$ 29.500</div></div></div></div></div></div><div class=\"pr0 items-stretch flex\" style=\"width:auto\"></div></div></div>",
+  "ers\"},\"Product:cemento-argos-portland-tipo-i-x-50-kg.productClusters.9\":{\"id\":\"676\",\"name\":\"Tarjetazo easy\",\"__typename\":\"ProductClusters\"},\"Product:cemento-argos-portland-tipo-i-x-50-kg.productClusters.10\":{\"id\":\"738\",\"name\":\"Encuentra Productos por menos de $50.000\",\"__typename\":\"ProductClusters\"},\"Product:cemento-argos-portland-tipo-i-x-50-kg.productClusters.11\":{\"id\":\"774\","
+ ],
+ "nextPrecios": []
+}

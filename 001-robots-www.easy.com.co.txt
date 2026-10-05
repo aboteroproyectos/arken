@@ -1,0 +1,28 @@
+# Disallow all crawlers access to certain pages. 
+ User-agent: * 
+
+Disallow: /Account*
+Disallow: /account*
+Disallow: /Busca/
+Disallow: /CallCenter/
+Disallow: /CEM/
+Disallow: /checkout/
+Disallow: /img/
+Disallow: /Site/TagDetalhe.aspx 
+Disallow: /busca/ 
+Disallow: /quick-view/
+Disallow: /no-usar*
+Disallow: /busca*
+Disallow: /cencosud
+Disallow: /sistema
+Disallow: /carrefour
+Disallow: /login*
+
+Sitemap: https://www.easy.com.co/sitemap.xml
+
+# Disallow URL Parameters
+
+Disallow: /*?*specificationFilter*
+Disallow: /*?*map*
+Disallow: /*?*fq*
+Disallow: /*?*@slash@*

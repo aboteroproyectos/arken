@@ -1,0 +1,898 @@
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+■ TIENDA Easy (VTEX)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+robots.txt de https://www.easy.com.co → HTTP 200
+# Disallow all crawlers access to certain pages. 
+ User-agent: * 
+
+Disallow: /Account*
+Disallow: /account*
+Disallow: /Busca/
+Disallow: /CallCenter/
+Disallow: /CEM/
+Disallow: /checkout/
+Disallow: /img/
+Disallow: /Site/TagDetalhe.aspx 
+Disallow: /busca/ 
+Disallow: /quick-view/
+Disallow: /no-usar*
+Disallow: /busca*
+Disallow: /cencosud
+Disallow: /sistema
+Disallow: /carrefour
+Disallow: /login*
+
+Sitemap: https://www.easy.com.co/sitemap.xml
+
+# Disallow URL Parameters
+
+Disallow: /*?*specificationFilter*
+Disallow: /*?*map*
+Disallow: /*?*fq*
+Disallow: /*?*@slash@*
+✔ términos https://www.easy.com.co/terminos-y-condiciones → HTTP 200 · 44594 caracteres (guardado terminos-easy.txt)
+  frases relevantes (26):
+    » Los productos publicados en nuestra página www.easy.com.co corresponden a una selección de referencias y pueden no coincidir con el portafolio y precio de las demás tiendas.
+    » Nuestros precios son de referencia y estos pueden varias sin previo aviso, de acuerdo a las condiciones del mercado.
+    » Los precios y promociones vigentes en nuestra página web pueden ser exclusivos para compras por este canal y no siempre coincidirán con los vigentes en las tiendas Easy.
+    » Todos los precios mostrados en nuestra página web incluyen IVA, así como todos los impuestos y gravámenes aplicables.
+    » Si ocurre un error tipográfico en algún precio publicado y un cliente hubiera realizado la compra de dicho producto, Cencosud Colombia comunicará al cliente sobre este error.
+    » En el evento en que su transacción sea completada y el producto se encuentre agotado, automáticamente se realizará la devolución total del valor de la compra.
+    » El carrito de compras es orientativo y no representa una cotización ni compromiso de mantenimiento de precios en nuestras tiendas ni en la página web.
+    » Es necesario que el cliente diligencie todos los datos solicitados en el momento de la compra con información veraz y actual.
+    » Mercado Pago y Payulatam son las entidades encargadas de realizar la validación de los pagos, por ende, al realizar un pedido el cliente autoriza que, para efectos de control e información comercial, se realicen llamadas de verificación a los números suministrados en el registro, así como los presentes en bases de datos de Cencosud Colombia o en centrales de información financiera.
+    » Una vez recibida su orden de compra, Cencosud Colombia – Easy le enviará a su correo la confirmación de dicha compra, en donde encontrará la relación de los productos adquiridos, descripción, precio individual, precio total y gastos de envío, al igual que la información de facturación y de entrega.
+    » En el caso que el cliente haya adquirido productos a través de venta telefónica por una suma inferior a 5 UVT y requiera factura electrónica, deberá solicitar su envío al correo electrónico registrado;
+    » La dirección de entrega no podrá ser alterada una vez hecha la compra, por motivos de seguridad, solo si el titular de la compra lo solicita mediante un correo o vía telefónica.
+    » Recuerda que, para hacer el retiro de tu compra, te solicitaremos confirmar tu identidad, por lo cual deberás presentar tu Cédula Original e indicar número de pedido.
+    » § Si quieres que un tercero recoja tu producto y no lo mencionaste durante la compra, esta persona debe acercarse a la tienda con un poder autenticado donde lo autorices a retirar tu pedido, con la fotocopia de tu cédula de ciudadanía, su documento de identidad y número de orden de despacho.
+    » Los productos no pueden ser utilizados ni una sola vez antes de solicitar un cambio.
+    » Cuando el cliente sea objeto de fraude, o la compra corresponda a una operación no solicitada, o el producto adquirido no sea recibido, o el producto entregado no corresponda a lo solicitado o sea defectuoso podrá solicitar la reversión de dinero del bien adquirido en EASY a través de la página web www.easy.com.co llamando en Bogotá a la línea de servicio al cliente al (601)7460340 o a nivel nacional al 01 8000 180340, a más tardar dentro los cinco (5) días hábiles siguientes a la fecha en que el Cliente tuvo noticia de la operación fraudulenta o no solicitada o que debió haber recibido el producto o lo recibió defectuoso o sin que correspondiera a lo solicitado, para este fin aplicarán los  […]
+    » En caso de que el cliente haya realizado el pago a través del medio “pago en tienda” en la línea de cajas de cualquiera de nuestras tiendas Easy a nivel nacional y desee solicitar la reversión de su compra, deberá comunicarse en Bogotá a la línea de servicio al cliente al (601)7460340 o a nivel nacional al 01 8000 180340
+    » La devolución del dinero por parte de EASY al cliente se llevará a cabo en los plazos estipulados por la ley (hasta 15 días calendario), por medio de reversión al mismo medio de pago con el que se hizo la compra, siempre y cuando la reversión se haga por el valor total de la transacción, y se cumplan las condiciones del derecho de retracto en caso de aplicar, cuando que este se haya solicitado.
+    » Si el cliente ejerce el derecho de retracto o solicita la reversión de su dinero por las causales legales, EASY puede realizar la devolución del dinero a través del medio de pago utilizado en la compra o a través de transferencia bancaria a un producto bancario diferente;
+    » evento en el cual, el cliente deberá realizar la solicitud de retracto adjuntando el certificado bancario del producto al cual desea que se le realice la devolución y copia de su documento de identificación.
+    » En caso de ser un pago por Consignación Bancaria , se solicitará la siguiente documentación para efectuar el pago:
+    » Al momento de realizar el pago el cliente puede tener un cupo de crédito aprobado con anterioridad o solicitar un cupo al momento de pagar, el cual será otorgado de conformidad con las políticas de crédito de Addi.
+    » Para el trámite de tu garantía debes presentar la tirilla de compra impresa que enviamos a tu correo electrónico o fotocopia de la cédula de ciudadanía del comprador.
+    » Esta reparación es gratuita, y en caso de que la falla se repita, tendrás la opción de solicitar el cambio del bien, efectuar una nueva reparación o solicitar la devolución del dinero.
+    » Por fluctuaciones del voltaje generadas por descargas eléctricas o rayos, vandalismo, robo o similares.
+    » El titular podrá, en cualquier momento, solicitar la modificación de los Canales Autorizados a través del correo electrónico servicio.al.cliente@cencosud.com.co .
+✔ producto https://www.easy.com.co/cemento-argos-portland-tipo-i-x-50-kg/p → HTTP 200 · 2204860 bytes · final https://www.easy.com.co/cemento-argos-portland-tipo-i-x-50-kg/p
+  ld+json de producto (1):
+    {"name":"Cemento Tipo I gris x50 kg","sku":"02190911","gtin":"02190911","brand":{"@type":"Brand","name":"ARGOS"},"offers":{"@type":"AggregateOffer","lowPrice":29500,"highPrice":29500,"priceCurrency":"COP","offers":[{"@type":"Offer","price":29500,"priceCurrency":"COP","availability":"http://schema.org/InStock","sku":"02190911","itemCondition":"http://schema.org/NewCondition","priceValidUntil":"2027-09-07T00:00:00Z","seller":{"@type":"Organization","name":"CENCOSUD COLOMBIA S.A."}}],"offerCount":1}}
+  precios visibles en el HTML (2):
+    … ndasjumboqaio-easy-minicart-1-x-pricePdpContainer"><div class="tiendasjumboqaio-easy-minicart-1-x-pp_container"><div class="flex c-emphasis tiendasjumboqaio-easy-minicart-1-x-cencoPrice"><div class="b ml2"><div class="tiendasjumboqaio-easy-minicart-1-x-price">$ 29.500</div></div></div></div></div></div><div class="pr0 items-stretch flex" style="width:auto"></div></div></div>
+    … ers"},"Product:cemento-argos-portland-tipo-i-x-50-kg.productClusters.9":{"id":"676","name":"Tarjetazo easy","__typename":"ProductClusters"},"Product:cemento-argos-portland-tipo-i-x-50-kg.productClusters.10":{"id":"738","name":"Encuentra Productos por menos de $50.000","__typename":"ProductClusters"},"Product:cemento-argos-portland-tipo-i-x-50-kg.productClusters.11":{"id":"774",
+  enlaces legales en la página:
+    · Aplican Términos y Condiciones. → https://www.easy.com.co/terminos-y-condiciones
+✔ https://www.easy.com.co/api/catalog_system/pub/products/search?ft=cemento%20gris%2050&_from=0&_to=4 → HTTP 206 · 149328 bytes
+[
+ {
+  "productId": "1035302",
+  "productName": "Cemento gris Tp1Cemex Superresistente50K",
+  "brand": "CEMEX",
+  "link": "https://www.easy.com.co/cemento-gris-tp1cemex-superresistente50k/p",
+  "categories": "/Construcción/Materiales de Construcción/Cementos y Morteros/",
+  "items": [
+   {
+    "itemId": "1035302",
+    "name": "Cemento gris Tp1Cemex Superresistente50K",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "2888800077211",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 32500,
+       "ListPrice": 32500,
+       "PriceWithoutDiscount": 32500,
+       "Tax": 0,
+       "AvailableQuantity": 99999,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-09-16T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "2190911",
+  "productName": "Cemento Tipo I gris x50 kg",
+  "brand": "ARGOS",
+  "link": "https://www.easy.com.co/cemento-argos-portland-tipo-i-x-50-kg/p",
+  "categories": "/Construcción/Materiales de Construcción/Cementos y Morteros/",
+  "items": [
+   {
+    "itemId": "2190911",
+    "name": "Cemento Tipo I gris x50 kg",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "7707269340023",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 29500,
+       "ListPrice": 29500,
+       "PriceWithoutDiscount": 29500,
+       "Tax": 0,
+       "AvailableQuantity": 99999,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-09-07T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "1281359",
+  "productName": "Vinilo T1 Fino 1gl gris Cemento",
+  "brand": "TITO PABON",
+  "link": "https://www.easy.com.co/vinilo-t1-fino-1gl-gris-cemento/p",
+  "categories": "/Pinturas/Pinturas para Interior/Pinturas Vinílicas/",
+  "items": [
+   {
+    "itemId": "1281359",
+    "name": "Vinilo T1 Fino 1gl gris Cemento",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "2082004235075",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 64990,
+       "ListPrice": 64990,
+       "PriceWithoutDiscount": 64990,
+       "Tax": 0,
+       "AvailableQuantity": 10,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-10-02T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "1494018",
+  "productName": "Papel tapiz pared Cemento gris 53x1000 cm AS Creations",
+  "brand": "AS CREATIONS",
+  "link": "https://www.easy.com.co/papel-tapiz-pared-cemento-gris-53x1000-cm-as-creations-1494018/p",
+  "categories": "/Pinturas/Papel Mural/Papel de Colgadura/",
+  "items": [
+   {
+    "itemId": "1494018",
+    "name": "Papel tapiz pared Cemento gris 53x1000 cm AS Creations",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "4051315364796",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 126320,
+       "ListPrice": 157900,
+       "PriceWithoutDiscount": 157900,
+       "Tax": 0,
+       "AvailableQuantity": 10,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-01-25T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "1426368",
+  "productName": "Adhesivo sellador Concolor junta estrecha gris cemento x2kg Corona",
+  "brand": "CORONA",
+  "link": "https://www.easy.com.co/concolor-junta-estrecha-gris-cementox2kg/p",
+  "categories": "/Pisos y Paredes/Pegantes para Pisos/Boquillas/",
+  "items": [
+   {
+    "itemId": "1426368",
+    "name": "Adhesivo sellador Concolor junta estrecha gris cemento x2kg Corona",
+    "measurementUnit": "un",
+    "unitMultiplier": 1,
+    "ean": "7707181799411",
+    "sellers": [
+     {
+      "sellerId": "1",
+      "sellerName": "CENCOSUD COLOMBIA S.A.",
+      "sellerDefault": true,
+      "oferta": {
+       "Price": 18900,
+       "ListPrice": 18900,
+       "PriceWithoutDiscount": 18900,
+       "Tax": 0,
+       "AvailableQuantity": 100,
+       "IsAvailable": true,
+       "PriceValidUntil": "2027-04-28T00:00:00Z"
+      }
+     }
+    ]
+   }
+  ]
+ }
+]
+✔ https://www.easy.com.co/api/catalog_system/pub/products/search?ft=cemento%20gris%2050&_from=0&_to=0&sc=1 → HTTP 206 · 29404 bytes
+  sc=1 → [["Cemento gris Tp1Cemex Superresistente50K",[[32500]]]]
+✔ https://www.easy.com.co/api/catalog_system/pub/products/search?ft=cemento%20gris%2050&_from=0&_to=0&sc=2 → HTTP 200 · 2 bytes
+  sc=2 → []
+✖ https://www.easy.com.co/api/catalog_system/pub/products/search?ft=cemento%20gris%2050&_from=0&_to=0&sc=3 → HTTP 400 · "sc is inactive"
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+■ TIENDA Ferretería La Casita Roja (WooCommerce)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+robots.txt de https://ferreterialacasitaroja.com → HTTP 200
+User-agent: *
+Disallow: /wp-content/uploads/wc-logs/
+Disallow: /wp-content/uploads/woocommerce_transient_files/
+Disallow: /wp-content/uploads/woocommerce_uploads/
+Disallow: /*?add-to-cart=
+Disallow: /*?*add-to-cart=
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+
+# START YOAST BLOCK
+# ---------------------------
+User-agent: *
+Disallow:
+
+Sitemap: https://ferreterialacasitaroja.com/sitemap_index.xml
+# ---------------------------
+# END YOAST BLOCK
+✔ términos https://ferreterialacasitaroja.com/terminos-y-condiciones/ → HTTP 200 · 15685 caracteres (guardado terminos-casitaroja.txt)
+  frases relevantes (14):
+    » 42.000,00 El precio original era:
+    » 38.000,00 El precio actual es:
+    » 35.000,00 El precio original era:
+    » 33.250,00 El precio actual es:
+    » 32.000,00 El precio original era:
+    » 28.800,00 El precio actual es:
+    » las condiciones de entrega se concilian directamente con el asesor comercial a través de WhatsApp.
+    » Los mejores precios  de Cartagena.
+    » 42.000,00 El precio original era:
+    » 38.000,00 El precio actual es:
+    » 35.000,00 El precio original era:
+    » 33.250,00 El precio actual es:
+    » 32.000,00 El precio original era:
+    » 28.800,00 El precio actual es:
+✔ https://ferreterialacasitaroja.com → HTTP 200 · text/html; charset=UTF-8 · 545165 bytes · final https://ferreterialacasitaroja.com/
+  título: Inicio | Ferretería La Casita Roja
+  plataforma: wordpress/woocommerce, ld+json
+  enlaces legales en la portada:
+    · Nosotros → https://ferreterialacasitaroja.com/nosotros/
+    · Contacto → https://ferreterialacasitaroja.com/contacto/
+✔ producto https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-argos-50kg/ → HTTP 200 · 431832 bytes · final https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-argos-50kg/
+  ld+json de producto (1):
+    {"name":"CEMENTO GRIS USO GENERAL ARGOS 50KG","sku":"FCR102","offers":[{"@type":"Offer","priceSpecification":[{"@type":"UnitPriceSpecification","price":"38000.00","priceCurrency":"COP","validThrough":"2027-12-31"},{"@type":"UnitPriceSpecification","price":"42000.00","priceCurrency":"COP","validThrough":"2027-12-31","priceType":"https://schema.org/ListPrice"}],"priceValidUntil":"2027-12-31","availability":"https://schema.org/InStock","url":"https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-argos-50kg/","seller":{"@type":"Organization","name":"Ferretería La Casita Roja","url":"https://ferreterialacasitaroja.com"},"price":"38000.00","priceCurrency":"COP"}]}
+  precios visibles en el HTML (2):
+    … ng>.<br />Si el destino se encuentra fuera de estas zonas, se debe coordinar previamente el envío y calcular el costo correspondiente según el lugar de entrega.</p><h4><strong>Pedidos con Envío Gratis</strong></h4><p>Los pedidos iguales o superiores a <strong>$2.000.000 COP</strong> tienen <strong>envío gratuito</strong>, siempre que el destino esté dentro del perímetro urbano 
+    … na o en el casco urbano de Turbaco.<br />Esto aplica para materiales de construcción, artículos de ferretería y demás productos ofrecidos por nuestra empresa.<strong>Pedidos Inferiores al Valor Mínimo</strong></p><p>Los pedidos con un valor inferior a <strong>$2.000.000 COP</strong> tendrán un <strong>costo de flete adicional</strong>, el cual se calculará de acuerdo con los si
+✔ https://ferreterialacasitaroja.com/wp-json/wc/store/v1/products?search=cemento&per_page=5 → HTTP 200 · 26128 bytes
+[
+ {
+  "id": 17950,
+  "name": "CEMENTO PAÍS X 50 KG USO GENERAL",
+  "permalink": "https://ferreterialacasitaroja.com/product/cemento-pais-x-50-kg-uso-general/",
+  "sku": "",
+  "type": "simple",
+  "prices": {
+   "price": "3500000",
+   "regular_price": "3900000",
+   "sale_price": "3500000",
+   "price_range": null,
+   "currency_code": "COP",
+   "currency_symbol": "$",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "$ ",
+   "currency_suffix": ""
+  },
+  "is_in_stock": true,
+  "stock": {
+   "text": "",
+   "class": "in-stock"
+  },
+  "categories": [
+   "CEMENTO",
+   "Materiales de construcción"
+  ],
+  "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;39.000,00</span></del> <span class=\"screen-reader-text\">El precio original era: &#036;&nbsp;39.000,00.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;35.000,00</span></i […]"
+ },
+ {
+  "id": 3464,
+  "name": "CEMENTO BLANCO X 40 KG  ARGOS",
+  "permalink": "https://ferreterialacasitaroja.com/product/cemento-blanco-x-40-kg-argos/",
+  "sku": "FCR104",
+  "type": "simple",
+  "prices": {
+   "price": "9200000",
+   "regular_price": "9200000",
+   "sale_price": "9200000",
+   "price_range": null,
+   "currency_code": "COP",
+   "currency_symbol": "$",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "$ ",
+   "currency_suffix": ""
+  },
+  "is_in_stock": true,
+  "stock": {
+   "text": "",
+   "class": "in-stock"
+  },
+  "categories": [
+   "CEMENTO",
+   "Materiales de construcción"
+  ],
+  "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;92.000,00</span>"
+ },
+ {
+  "id": 3463,
+  "name": "CEMENTO GRIS X 42.5 KG ESTRUCTURAL",
+  "permalink": "https://ferreterialacasitaroja.com/product/cemento-gris-x-42-5-kg-estructural/",
+  "sku": "FCR103",
+  "type": "simple",
+  "prices": {
+   "price": "3325000",
+   "regular_price": "3500000",
+   "sale_price": "3325000",
+   "price_range": null,
+   "currency_code": "COP",
+   "currency_symbol": "$",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "$ ",
+   "currency_suffix": ""
+  },
+  "is_in_stock": true,
+  "stock": {
+   "text": "",
+   "class": "in-stock"
+  },
+  "categories": [
+   "CEMENTO",
+   "Materiales de construcción"
+  ],
+  "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;35.000,00</span></del> <span class=\"screen-reader-text\">El precio original era: &#036;&nbsp;35.000,00.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;33.250,00</span></i […]"
+ },
+ {
+  "id": 3462,
+  "name": "CEMENTO GRIS USO GENERAL ARGOS 50KG",
+  "permalink": "https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-argos-50kg/",
+  "sku": "FCR102",
+  "type": "simple",
+  "prices": {
+   "price": "3800000",
+   "regular_price": "4200000",
+   "sale_price": "3800000",
+   "price_range": null,
+   "currency_code": "COP",
+   "currency_symbol": "$",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "$ ",
+   "currency_suffix": ""
+  },
+  "is_in_stock": true,
+  "stock": {
+   "text": "",
+   "class": "in-stock"
+  },
+  "categories": [
+   "CEMENTO",
+   "Materiales de construcción"
+  ],
+  "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;42.000,00</span></del> <span class=\"screen-reader-text\">El precio original era: &#036;&nbsp;42.000,00.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;38.000,00</span></i […]"
+ }
+]
+✔ https://ferreterialacasitaroja.com/wp-json/wc/store/v1/products?slug=cemento-gris-uso-general-argos-50kg → HTTP 200 · 6971 bytes
+[
+ {
+  "id": 3462,
+  "name": "CEMENTO GRIS USO GENERAL ARGOS 50KG",
+  "permalink": "https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-argos-50kg/",
+  "sku": "FCR102",
+  "type": "simple",
+  "prices": {
+   "price": "3800000",
+   "regular_price": "4200000",
+   "sale_price": "3800000",
+   "price_range": null,
+   "currency_code": "COP",
+   "currency_symbol": "$",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "$ ",
+   "currency_suffix": ""
+  },
+  "is_in_stock": true,
+  "stock": {
+   "text": "",
+   "class": "in-stock"
+  },
+  "categories": [
+   "CEMENTO",
+   "Materiales de construcción"
+  ],
+  "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;42.000,00</span></del> <span class=\"screen-reader-text\">El precio original era: &#036;&nbsp;42.000,00.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;38.000,00</span></i […]"
+ }
+]
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+■ TIENDA Homecenter
+════════════════════════════════════════════════════════════════════════════════════════════════════
+robots.txt de https://www.homecenter.com.co → HTTP 200
+
+# robots.txt mod 12/04/2024
+
+user-agent: *
+
+# Directories
+
+Disallow: /cgi-bin/
+
+Disallow: /static/script/
+
+Disallow: /static/styles/
+
+Disallow: /static/files_descarga/
+
+Disallow: /homecenter-co/CMR/
+
+Disallow: /homecenter-co/cart/
+
+Disallow: /homecenter-co/browse/
+
+Disallow: /homecenter-co/myaccount/
+
+Disallow: /homecenter-co/search/
+
+
+# Paths (no clean URLs)
+
+Disallow: */homecenter-co/search?
+
+Disallow: /*N-*
+
+Disallow: /*Ver-todos*/
+
+Disallow: /*staticContent
+
+Disallow: /*.aspx$
+
+Disallow: */search?
+
+Disallow: */noSearchResult
+
+Disallow: */no-search-result?
+
+Disallow: */*?queryId=*
+
+Disallow: */*?bvstate=*
+
+Allow: /*f.product.brandName=*
+
+Allow: /*f.product.attribute.Tipo=*
+
+Allow: /*f.product.attribute.Capacidad=*
+
+Allow: /*f.product.attribute.Material=*
+
+Allow: /*f.product.attribute.Color=*
+
+Allow: /*f.product.attribute.Forma=*
+
+Allow: /*f.product.attribute.Voltaje=*
+
+Allow: /*brand/*
+
+
+
+# Sitemaps
+
+Sitemap General: https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-sitemap-index.xml 
+
+Sitemap faceta color: 
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-category-color-sitemap.xml
+
+Sitemap faceta capacidad:
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-category-capacidad-sitemap.xml
+
+Sitemap faceta material:
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-category-material-sitemap.xml
+
+Sitemap faceta forma: https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-category-forma-sitemap.xml
+
+Sitemap Voltaje: 
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-category-voltaje-sitemap.xml
+
+Sitemap faceta tipo:
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-category-tipo-sitemap.xml
+
+Sitemap Page Brand: 
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-page-brand-sitemap.xml
+
+Sitemap faceta marca:
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-category-brand-sitemap.xml
+
+Sitemap productos:
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-product-sitemap1.xml
+
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-product-sitemap2.xml
+
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-product-sitemap3.xml
+
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-product-sitemap4.xml 
+
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-product-sitemap5.xml
+
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-product-sitemap6.xml
+
+Sitemap category:
+https://www.homecenter.com.co/sodimac-catalyst-bu-prod-browse-sitemaps/soco-browse-category-sitemap.xml
+
+✔ términos https://www.homecenter.com.co/homecenter-co/content/terminos-y-condiciones/ → HTTP 200 · 36243 caracteres (guardado terminos-homecenter.txt)
+  frases relevantes (39):
+    » • El porcentaje o valor del descuento podrá variar según el precio ordinario de cada producto participante.
+    » • El ahorro se verá reflejado automáticamente en el carrito de compra.
+    » El valor final del descuento puede variar según el precio vigente de la referencia seleccionada.
+    » es decir, pueden de manera autónoma y libre solicitar que se reverse la compra volviendo las cosas a su estado inicial;
+    » El derecho de retracto no aplicará para productos sobre pedido o aquellos que fueron elaborados, fabricados, armados, cortados o preparados conforme a las especificaciones del usuario o que son claramente personalizados, productos que, por su naturaleza, no puedan ser devueltos o puedan deteriorarse o caducar con rapidez, y productos perecederos y de uso personal.
+    » Derechos de Propiedad intelectual e industrial
+    » La información, documentos (imágenes, vídeos, herramientas, gráficos y demás), marcas, nombres, logos y demás material que se encuentra en esta página web, está protegido conforme a lo establecido en la legislación Colombiana e internacional sobre derechos de autor, propiedad intelectual e industrial;
+    » De tal suerte que, el uso no autorizado que infrinja las leyes Colombianas, a través de su venta, distribución, copia, modificación o adaptación o cualquier otra conducta prohibida, será sancionado de acuerdo a lo establecido por las normas aplicables.
+    » Así las cosas, no podrán entenderse por el hecho de la publicación de los contenidos que se encuentran en www.homecenter.com.co, que se concede algún tipo de licencia de uso de marca, derechos de autor o propiedad intelectual a quien visita, consulta o realiza compras a través de éste sitio web.
+    » El Decreto 587 de 2016 expedido por el Ministerio de Comercio de Industria y Turismo, promulgó la presente disposición con el objetivo reglamentar las condiciones y el procedimiento para la reversión de los pagos solicitada por los consumidores, cuando la adquisición de los bienes o servicios se hubiere realizado a través de mecanismos de comercio electrónico tales como internet, PSE, call center y/o cualquier otro mecanismo de televenta o tienda virtual, y para tal efectos, se hubiere utilizado tarjetas de crédito, débito o cualquier otro instrumento de pago electrónico.
+    » ¿Cuáles son las causas para solicitar una reversión de pago?
+    » Cuando corresponda a una operación no solicitada.
+    » Cuando el producto entregado no corresponda a lo solicitado, no cumpla con las características inherentes o las atribuidas por la información que se suministre sobre él.
+    » Cuando la adquisición corresponda a varios productos, el consumidor podrá solicitar la reversión parcial del pago de aquellos respecto de los cuales se presente alguno de los eventos mencionados en el artículo anterior.
+    » El consumidor deberá expresar de manera clara cuál es el valor por el cual se solicita la reversión, el cual deberá corresponder al valor del producto o productos respecto de los cuales se presenta la causal.
+    » dentro de los 5 días hábiles siguientes a la fecha en que tuviste conocimiento de la operación fraudulenta o no solicitada, o en que debiste haber recibido el producto o lo recibiste defectuoso o sin que correspondiera a lo solicitado.
+    » Valor por el que solicita la reversión.
+    » Las productos y precios incluidos en esta página están dirigidos al público en general como personas indeterminadas y por consiguiente será necesaria siempre una confirmación y aceptación de nuestra parte de su orden de compra y del pago realizado, momento en el cual se expedirá la correspondiente factura y se entenderá perfeccionado el contrato de venta entre el usuario y SODIMAC COLOMBIA S.A ?Almacenes Homecenter-.
+    » Debe presentar la tirilla de pago (factura) de compra, en caso de no contar con ella, puede solicitar la constancia y/o certificado de compra.
+    » El plazo máximo para solicitar el cambio de productos será de 30 días calendario a partir de la fecha de compra, excepto para materiales de obra sobrante que cuentan con 90 días.
+    » Si el producto no admite reparación, se procederá a la devolución del precio pagado.
+    » En caso de repetirse la falla a elección del consumidor, se procederá a una nueva reparación, la devolución del precio pagado o al cambio del producto por otro de la misma especie, similares características o especificaciones técnicas.
+    » Políticas de precios bajos
+    » Informamos a los usuarios de la página web, que los Almacenes Homecenter cuentan una Política de Precios bajos, que a continuación se explicará;
+    » Así mismo, el precio de los productos a través de ésta página web no podrá tenerse como un referente o cotización para efectos de la aplicación de esta política.
+    » En los Almacenes Homecenter y el Constructor tenemos una política de precios bajos en la que invitamos a nuestros clientes a traer un aviso o cotización de la competencia y si precio del producto que pretenden comprar es más bajo que el nuestro, Homecenter lo iguala y además otorga un diez por ciento (10%) de descuento adicional por avisarnos.
+    » La cotización debe provenir de un comercializador con puntos de venta abiertos y/o directos al público y no de fabricantes, ni de venta por catálogos, por internet, ventas telefónicas, avisos clasificados o cualquier otro sistema de venta por comunicación a distancia.
+    » La cotización de la competencia debe contener la vigencia de los precios y/o ser de la misma semana calendario.
+    » La cotización debe ser relativa al precio normal, no aplica para descuentos o rebajas puntuales y en todos los casos debe incluir el valor del IVA.
+    » Se aceptarán las publicaciones en medio escrito de circulación masiva (catálogos, aviso de prensa, volantes) como cotizaciones válidas, siempre y cuando estén vigentes en el mismo periodo;
+    » Solo aplica para precios inferiores, no aplica para precios iguales a la competencia.
+    » Esos controles incluyen políticas de confidencialidad y respaldo periódico de bases de datos.
+    » La información publicada en nuestra página web no podrá ser objeto de comercialización, distribución, copia o modificación.
+    » Buscando la seguridad en las transacciones, queda expresamente prohibido a los usuarios el compartir con terceros su contraseña o el password;
+    » Los datos referidos en estos términos y condiciones tendrán como finalidad validar las órdenes de compra, mejorar la labor de información y comercialización de los productos y servicios prestados por las empresas.
+    » El registro de cada usuario se verificará completando y suscribiendo el formulario que se encuentra en el sitio y su posterior envío, el cual se realiza automáticamente pulsando "click" en el elemento respectivo.
+    » El usuario es totalmente responsable por el mantenimiento de la confidencialidad de su clave secreta registrada en este sitio web, por medio de la cual podrá efectuar compras, solicitar servicios y obtener información.
+    » Dicha clave es de uso personal y su entrega a terceros no involucra responsabilidad de Sodimac Colombia S.A., ni de las empresas relacionadas en caso de indebida utilización.
+    » Descarga la APP Homecenter
+✔ producto https://www.homecenter.com.co/homecenter-co/product/13846/cemento-argos-gris-50kg/13846/ → HTTP 200 · 871944 bytes · final https://www.homecenter.com.co/homecenter-co/product/13846/cemento-argos-gris-50kg/13846/
+  ld+json de producto (1):
+    {"name":"Cemento Argos Gris 50kg","sku":"13846","gtin":"null","brand":{"@type":"brand","name":"Argos"},"offers":[{"@type":"Offer","url":"https://www.homecenter.com.co/homecenter-co/product/13846/cemento-argos-gris-50kg/13846/","price":"32500","priceCurrency":"COP","priceValidUntil":"null","availability":"http://schema.org/InStock","sku":"13846"}]}
+  precios visibles en el HTML (8):
+    … nd-logo homecenter-co jsx-2512830624"><div class="jsx-2596285994"><div class="jsx-2596285994 main normal sticky level-0 und jsx-2512830624 "><div class="jsx-4190455556 price homecenter-co jsx-1217501568"><span class="jsx-4190455556 price-value">$32.500</span><span class="jsx-4190455556 price-unit jsx-1217501568">und</span></div></div></div><div class="jsx-2596285
+    … faultGroupName":"Todos","isPersonalized":true,"noCache":false,"minPods":3,"type":"pillsButton","title":"PDP Pills Button Carousel"}],"areOldCalculatorsEnabledInBeta":false,"isInterlinkingEnabled":true,"cmrProperties":{"discountTextWithoutOU":"Obtén un bono de $45.000 para tu primera compra","discountTextWithOU":"Pídela ahora y obtén $45.000 de bono extra","ouPriceLimit":45000},
+    … type":"pillsButton","title":"PDP Pills Button Carousel"}],"areOldCalculatorsEnabledInBeta":false,"isInterlinkingEnabled":true,"cmrProperties":{"discountTextWithoutOU":"Obtén un bono de $45.000 para tu primera compra","discountTextWithOU":"Pídela ahora y obtén $45.000 de bono extra","ouPriceLimit":45000},"isSponsoredProductsDisplayEnabled":false,"isWishListOnboardingEnabled":tru
+    … p__moreStores":"más tiendas","header__emailPlaceholderText":"Ingresa tu correo electrónico","pdp__extendedWarrantyBadge":"Garantía extendida","header__businessAccess":"Acceso empresas","addToCart__addToCartBoomText2":"Despacho gratis para compras superiores a $ 29.990","pdp__availabilityFetchError":"No pudimos actualizar las opciones de entrega","pdp__productGuaranteeDesc":".",
+    … leta tu colección","nsr__leaveCommentText":"Dejar un comentario","pdp__selectYourSize":"Otras Opciones","nsr__useGeneralTermText":"Utiliza terminos generales","footer__subscribeEmail":"Ej. correo@mail.com","pdp__generalDiscountTextWithoutOU":"Obtén un bono de $45.000 para tu primera compra","footer__findUs":"Descarga la APP Homecenter:","mediaComp__calculationGuideText":"Guía p
+    … a pagar con cualquier medio de pago","pdp__showMoreWarrantyModalText1":"Cobertura del producto prolongando la garantía hasta por 3 años.","pdp__noWarrantySelected":"Tu producto no cuenta con","pdp__takeAdvantageOfDiscount":"En tu primera compra te regalaremos $15.000","footer__copyRightText":"Todos los derechos Reservados","pdp__noWarranty":"Sin Garantía","header__boomHeaderToo
+    … roducto no cuenta con","pdp__takeAdvantageOfDiscount":"En tu primera compra te regalaremos $15.000","footer__copyRightText":"Todos los derechos Reservados","pdp__noWarranty":"Sin Garantía","header__boomHeaderToolTipText":"Disfruta de envíos sin costo por sólo $19.990 anual","nsr__yourSearchText2":"no arrojó resultados","generic__cesTooltipText":"El descuento se aplicará en el c
+    … c__homeDeliveryAvailable":"Despacho a domicilio","header__mustEnterEmailText":"Debes ingresar un correo","header__changeLocationText":"Cambiar","pdp__youAreViewingThisProduct":"Estás viendo este producto","pdp__generalDiscountTextWithOU":"Pídela ahora y obtén $45.000 de bono extra","pdp__seeMoreAccessories":"Ver más complementos","header__emailOrPasswordErrorText":"Tus datos so
+  __NEXT_DATA__ con precio o ubicación:
+    .props.pageProps.productProps.result.variants.0.price = [{"label":"","price":"32.500","symbol":"$","type":"NORMAL","unit":"und","priceWithoutFormatting":32500},{"label":"","boxCoverage":"50.000","price":"650,00","sym […]
+    .props.features.isCatalystZoneEnabled = true
+    .props.features.DEFAULT_PRICE_GROUP = 19
+    .props.features.isPriceRangeEnabled = true
+    .props.features.isStockInStoreEnabled = true
+    .props.features.storeInfoPath = "/sodimac-browse-store-info-prod/SOCO.json"
+    .props.features.cmrProperties.ouPriceLimit = 45000
+    .props.features.textDictionary.zoneInfo__modalLabelText = "Esta ubicación nos ayudará a brindarte una mejor experiencia de compra. Si no es la ubicación donde te encuentras, aquí puedes cambiarla."
+    .props.features.textDictionary.pdp__moreStores = "más tiendas"
+    .props.features.textDictionary.zoneInfo__dropdownEmptyValue = "Selecciona una opción"
+    .props.features.textDictionary.zoneInfo__divgeoFieldOption4Text = "Selecciona tu comuna*"
+    .props.features.textDictionary.pdp__otherComuna = "otras ciudades"
+    .props.features.textDictionary.pdp__productOnlyAvailableInStore = "Producto solo disponible en tienda."
+    .props.features.textDictionary.zoneInfo__regionText = "Región"
+    .props.features.textDictionary.pdp__seeStores = "ver tiendas"
+    .props.features.textDictionary.pdp__seeStoresWithStock = "Ver tiendas con stock"
+    .props.features.textDictionary.zoneInfo__storeToolTipText = "Puedes elegir una tienda en la que compras regularmente o la más cercana."
+    .props.features.textDictionary.zoneInfo__divgeoFieldOption3Text = "Selecciona una ciudad*"
+    .props.features.textDictionary.generic__eventPriceMessage = "Precio evento a pagar con cualquier medio de pago"
+    .props.features.textDictionary.pdp__buyAtStore = "Stock en tienda"
+    .props.features.textDictionary.zoneInfo__comunaText = "Comuna"
+    .props.features.textDictionary.pdp__noStoreAvailable = "No hay disponibilidad en tu comuna"
+    .props.features.textDictionary.zoneInfo__zoneModalLinkTitle = "El retiro y despacho varían según la ciudad."
+    .props.features.textDictionary.zoneInfo__divgeoFieldOption2Text = "Selecciona un departmento*"
+    .props.features.storeInfoPathBeta = "/sodimac-browse-store-info/SOCO.json"
+    .props.features.isPickupInStoreEnabled = true
+    .props.features.DEFAULT_ZONE_ID = 1
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+■ TIENDA Corona
+════════════════════════════════════════════════════════════════════════════════════════════════════
+robots.txt de https://corona.co → HTTP 200
+User-Agent: *
+Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /my-account
+Disallow: /search
+Disallow: /gracias-formulario-casa-corona
+Disallow: /*?q=
+Disallow: /*?sort
+
+User-Agent: CazoodleBot
+Disallow: /
+
+User-Agent: MJ12bot
+Disallow: /
+
+User-Agent: dotbot/1.0
+Disallow: /
+
+User-Agent: Gigabot
+Disallow: /
+
+Sitemap: https://corona.co/sitemap.xml
+
+✔ https://corona.co → HTTP 200 · text/html; charset=utf-8 · 721894 bytes · final https://corona.co/
+  título: Corona | Materiales para la Remodelación de tu hogar
+  plataforma: sap-commerce
+  enlaces de términos:
+    · Aplican T&C. → https://corona.co/terminos-condiciones-promociones
+    · Términos y condiciones → https://corona.co/terminos-condiciones
+  enlaces legales:
+    · Aplican T&C. → https://corona.co/terminos-condiciones-promociones
+    · Términos y condiciones → https://corona.co/terminos-condiciones
+✔ términos https://corona.co/terminos-condiciones-promociones → HTTP 200 · 6014 caracteres (guardado terminos-corona-terminos-condiciones-promocion.txt)
+  frases relevantes (2):
+    » Del 15 de julio al 31 de octubre, disfruta de precios especiales en referencias seleccionadas
+    » Solicita tu certificado de garantía suplementaria
+✔ términos https://corona.co/terminos-condiciones → HTTP 200 · 66263 caracteres (guardado terminos-corona-terminos-condiciones.txt)
+  frases relevantes (62):
+    » Derechos de propiedad intelectual
+    » Usos autorizados y prohibidos de la plataforma
+    » Productos publicados, disponibilidad y precios
+    » Derechos y propiedad intelectual
+    » Este Sitio y todo su contenido, incluyendo sin limitarse a toda la información, datos, software, fotografías, gráficos, videos, tipografías, música, sonidos y cualquier otro material (conjuntamente el "Contenido"), está protegido por la legislación aplicable en materia de derecho de autor, marcas comerciales, patentes, diseños u otros derechos de propiedad intelectual existentes.
+    » Está prohibida su reproducción total o parcial, su traducción, inclusión, transmisión, almacenamiento o acceso a través de medios analógicos, digitales o de cualquier otro sistema o tecnología creada o por crearse, la copia, modificación, eliminación del Contenido, la transferencia, venta, arrendamiento o alquiler, o la creación de trabajos derivados o en modo alguno la explotación comercial del Contenido, en forma total o parcial, sin autorización previa y escrita de ALMACENES.
+    » No obstante, es posible descargar material para uso personal y no comercial, siempre y cuando se haga expresa mención de la propiedad del Contenido en la misma página.
+    » Por lo tanto, al enviar información, sea solicitada o no, a través del Sitio, el Usuario autoriza a ALMACENES en forma permanente, de manera irrevocable e ilimitada a la reproducción, adaptación, compilación, almacenamiento y/o distribución de los contenidos por él suministrados a través del Sitio, sin perjuicio de que ALMACENES reconozca al Usuario su autoría sobre los contenidos suministrados.
+    » Debido a que la información sobre productos, precios y demás condiciones de compra se encuentran dirigidas a personas indeterminadas, el perfeccionamiento de cada operación de compra realizada a través del Sitio deberá contar con una confirmación y aceptación por parte de ALMACENES de cada orden de compra que hagan los Usuarios, así como de la confirmación del pago correspondiente.
+    » En todo caso, debido a que es imposible garantizar y controlar la presencia de virus que puedan producir alteraciones en el sistema informático (software y hardware) del Usuario o en los documentos electrónicos y ficheros almacenados en el sistema informático del Usuario, ALMACENES no se hará responsable por los mismos ni por los daños y perjuicios que estos puedan causar.
+    » Usos autorizados y prohibidos de la plataforma
+    » El Usuario no podrá distribuir, modificar, copiar, transmitir, mostrar, utilizar, reproducir, publicar, otorgar licencias, crear obras derivadas, ceder, transferir, vender o utilizar de cualquier otra forma el Contenido o el software del Sitio sin la autorización previa, expresa y por escrito de ALMACENES.
+    » Está prohibidas las actividades que impliquen el uso indebido del Sitio, tales como falsear la identidad de un Usuario, utilizar agentes de compra y llevar a cabo actividades fraudulentas.
+    » Está prohibido utilizar el Sitio para transmitir cualquier tipo de virus, troyano, huevo de pascua, bomba de tiempo, spyware o cualquier otro código informático, archivo o programa que pueda dañar o controlar el funcionamiento o el uso de cualquier hardware, software o equipo.
+    » Está prohibido restringir o impedir que cualquier persona utilice el Sitio, así como perturbar e interferir en su funcionamiento, las redes o los servidores utilizados para que el Sitio esté disponible y violar cualquier requisito, procedimiento, política o reglamentación de tales redes.
+    » Queda prohibida toda modificación, adaptación, traducción, ingeniería inversa, descompilación o desmontaje del Sitio o cualquiera de sus partes.
+    » Para realizar una compra a través del Sitio es indispensable que el Usuario cree una cuenta, para lo cual es necesario que suministre los datos personales requeridos, y que diligencie la información solicitada al momento de confirmar la orden de compra respectiva.
+    » ‣ Abstenerse de enviar correo electrónico no deseado (SPAM) a otros Usuarios de esta página, así como también le está prohibido transmitir virus o cualquier código de naturaleza destructiva.
+    » Productos publicados, disponibilidad y precios
+    » Los productos publicados y sus precios en el Sitio pueden no coincidir con la oferta o precios que ofrece ALMACENES en sus puntos de venta físicos a nivel nacional.
+    » Es posible que algunos de los productos, así como los precios publicados en el Sitio sean exclusivos de este canal de comercialización y solo podrán ser adquiridos a través del Sitio.
+    » Por lo anterior, los precios, productos y promociones ofrecidos en este Sitio no aplican para otros canales de venta de ALMACENES o de la marca CORONA en el país.
+    » Los precios en corona.co pueden variar según la zona o ciudad en la que realices la compra.
+    » ALMACENES actualizará en el Sitio los productos ofrecidos, sus precios y demás Contenido cada vez que lo considere, razón por la cual las variables mencionadas podrán cambiar sin necesidad de que medie previo aviso y sin que esto implique responsabilidad alguna frente al Usuario.
+    » Los Usuarios declaran bajo la gravedad del juramento que sus ingresos provienen de actividades lícitas, que no se encuentra con registro negativo en listados de prevención de lavado de activos o financiación del terrorismo nacionales o internacionales, ni dentro de una de las dos categorías de lavado de activos (conversión o movimiento) y, en consecuencia, se obligan a responder frente a ALMACENES y terceros por todos los perjuicios que se llegaren a causar como consecuencia de la falsedad de esta afirmación.
+    » Los Usuarios se comprometen a cumplir con los requisitos y obligaciones que dentro de la normatividad legal vigente les apliquen, y en especial en lo relativo a la prevención del riesgo de lavado de activos y financiación del terrorismo, dentro de los que se encuentran, entre otras, el entregar información veraz y verificable y el actualizar su información institucional, comercial y financiera por lo menos una vez al año, o cada vez que así lo solicite ALMACENES suministrando la totalidad de los soportes documentales requeridos.
+    » En estos casos, un asesor comercial se pondrá en contacto con el usuario para validar la información de la compra, confirmar la disponibilidad de los productos, resolver inquietudes y brindar acompañamiento durante todo el proceso.
+    » Para reclamar el pedido, el usuario o la persona previamente autorizada deberá presentarse en la ventanilla de “Entregas” del punto de venta y solicitar el alistamiento.
+    » Asimismo, solicitamos su autorización para tomar un registro fotográfico del documento como soporte de la entrega.
+    » Para usuarios ubicados en las ciudades y zonas urbanas de Bogotá, Cali, Medellín, Bucaramanga, Barranquilla y Pereira, este valor se calculará de manera automática dependiendo el punto de destino y las características de los productos a ser adquiridos.
+    » Si no se logra un acuerdo, el usuario podrá solicitar la devolución del dinero.
+    » Si el cambio de dirección se solicita cuando el pedido ya ha sido despachado, el usuario deberá asumir los costos logísticos que se generen.
+    » Si el producto comprado no se encuentra disponible, el cliente puede sustituir el producto adquirido inicialmente por uno de similares características y precio, solicitar devolución del dinero por el valor total pagado por el/los productos o acordar una nueva fecha de entrega del producto.
+    » Para los Usuarios que hacen su compra por métodos no presenciales (compra telefónica, WhatsApp, o a través de este Sitio Web) aplica el derecho al retracto, es decir, pueden de manera autónoma y libre solicitar que se reverse la compra volviendo las cosas a su estado inicial;
+    » ALMACENES CORONA S.A.S será el responsable de efectuar la devolución del dinero al usuario, dentro de los quince (15) días calendario siguientes a la recepción de la mercancía devuelta y una vez entregada la información o documentos solicitados para el proceso.
+    » Almacenes Corona S.A.S solicitara ante la entidad financiera Addi la cancelación parcial o total del crédito el titular del pedido o del medio de pago Nota:
+    » Fotocopia de la cédula de ciudadanía del representante legal.
+    » Addi No aplica Almacenes Corona S.A.S solicitara ante la entidad financiera Addi la cancelación parcial o total del crédito el titular del pedido o del medio de pago Nota:
+    » ‣ El plazo máximo para solicitar el cambio o devolución de productos adquiridos en el Sitio será de 30 días calendario a partir de la fecha de entrega del producto.
+    » Se debe presentar carta de autorización original firmada, así como fotocopia de cédula o documento de identificación del titular.
+    » Esta carta deberá indicar el nombre e identificación de la persona autorizada para realizar el cambio o devolución, no podrá tener más de 30 días desde su expedición y se deberá acompañar de fotocopia de la cédula o documento de identificación del representante legal y del certificado de existencia y representación expedido por la Cámara de Comercio, con una vigencia menor a 30 días.
+    » El cliente, al realizar la devolución de productos podrá solicitar:
+    » ‣ El usuario puede solicitar cambio del producto adquirido por uno nuevo del mismo costo, un costo mayor pagando el excedente o por un costo menor obteniendo un saldo a favor.
+    » ‣ El usuario podrá solicitar un bono de recompra por el valor exacto del producto adquirido, cumpliendo las condiciones anteriormente descritas para la devolución del producto en el punto de venta autorizado de ALMACENES CORONA o con un asesor por medio del chat de Corona.co.
+    » Fotocopia de la cédula de ciudadanía del representante legal.
+    » Addi No aplica Almacenes Corona S.A.S solicitara ante la entidad financiera Addi la cancelación parcial o total del crédito el titular del pedido o del medio de pago Nota:
+    » Para solicitarlo se tendrá en cuenta los siguientes motivos:
+    » 2) Operación no solicitada
+    » 4) El producto entregado no correspondía al solicitado
+    » solicitara ante las redes financieras correspondientes en Colombia (Credibanco:
+    » Transferencias bancarias / Consignaciones Persona Natural Formato de Reversión de Pago Certificación bancaria del titular del pedido o del medio de pago con vigencia no mayor a 30 días Copia del documento de identidad del titular del pedido o del medio de pago Almacenes Corona S.A.S.
+    » Fotocopia de la cédula de ciudadanía del representante legal.
+    » Addi Formato de Reversión de Pago Almacenes Corona S.A.S solicitara ante la entidad financiera Addi la Reversion parcial o total del crédito el titular del medio de pago.
+    » Antes de instalar, revise cuidadosamente el producto y asegúrese que corresponda a las especificaciones solicitadas.
+    » En caso de repetirse la falla, a elección del Usuario se procederá a una nueva reparación, la devolución del precio pagado o al cambio del producto por otro de la misma especie, similares características o especificaciones técnicas.
+    » Pisos y paredes en calidad comercial (segunda) no tienen garantía.
+    » El Usuario reconoce que el ingreso de información personal, lo realiza de manera voluntaria y teniendo en cuenta las características del Sitio y las facultades de uso por parte de ALMACENES y de sus compañías vinculadas, y en el entendido que tal información hará parte de un archivo y/o base de datos que contenderá su perfil, la cual podrá ser usado por ALMACENES y por sus compañías vinculadas en los términos aquí establecidos.
+    » El Usuario podrá modificar, actualizar o solicitar la supresión de la información suministrada en cualquier momento.
+    » El Usuario podrá solicitar que su información personal no sea entregada por ALMACENES a sus filiales y/o subsidiarias, y/o a terceros, a través del envío de correo electrónico a la dirección misdatos@corona.com.co en cuyo caso ALMACENES y de sus compañías vinculadas, no entregará dicha información salvo en caso de que la misma sea requerida por orden judicial o de autoridad administrativa.
+    » A pesar de todos los esfuerzos en materia de seguridad y confidencialidad de la información de los Usuarios del sitio, ALMACENES y sus compañías vinculadas, no se responsabilizan por cualquier consecuencia derivada del ingreso indebido de terceros a la base de datos y/o por cualquier falla técnica en el funcionamiento y/ o conservación de datos en el sistema en cualquiera de los capítulos del Sitio.
+    » Este Sitio también podrá usar otras tecnologías para rastrear las páginas que visita un Usuario para mejorar la experiencia de compra y ayudarnos a entender cómo los visitantes usan este Sitio.
+    » Solicita tu certificado de garantía suplementaria
+✔ producto https://corona.co/productos/cementos/cemento-alion-gris-de-uso-general-50-kg/p/CEMCUGB50 → HTTP 200 · 998388 bytes · final https://corona.co/productos/cementos/cemento-alion-gris-de-uso-general-50-kg/p/CEMCUGB50
+  ld+json de producto (1):
+    {"name":"Cemento ALIÓN Gris de Uso General 50 kg","sku":"CEMCUGB50","gtin":"7709116855155","brand":{"@type":"Brand","name":"ALIÓN"},"offers":[{"@type":"Offer","url":"https://corona.co/productos/cementos/cemento-alion-gris-de-uso-general-50-kg/p/CEMCUGB50","availability":"https://schema.org/OutOfStock","priceCurrency":"COP","price":"33000","priceValidUntil":"2026-11-04"}]}
+  precios visibles en el HTML (8):
+    … de Addi donde encontrarás información detallada sobre sus términos y condiciones\",\"termsConditionsLink\":\"https://co.addi.com/tyc-links-addi\",\"minimumAmountWarning\":\"¡Verifica el valor de tu compra! Para realizar tu pago con Addi, el monto mínimo es de $50.000.\",\"errors\":{\"generic\":\"No pudimos procesar tu pago con ADDI. Intenta nuevamente.\"}}}},\"orderDetails\":{\
+    … \"BannerCarousel\",\"options\":{\"banners\":[{\"responsiveMedia\":{\"mobile\":{\"url\":\"/paginas-contenido/landing-pages/home/banners/0-interes/Banner-home-mobile-0-interes.jpg\",\"altText\":\"0 % interés pagando a 2, 3, 6 o 12 cuotas en compras superiores a $500.000\",\"format\":\"image\",\"width\":640,\"height\":865},\"tablet\":{\"url\":\"/paginas-contenido/landing-pages/hom
+    … es a $500.000\",\"format\":\"image\",\"width\":640,\"height\":865},\"tablet\":{\"url\":\"/paginas-contenido/landing-pages/home/banners/0-interes/Banner-home-tablet-0-interes.jpg\",\"altText\":\"0 % interés pagando a 2, 3, 6 o 12 cuotas en compras superiores a $500.000\",\"format\":\"image\",\"width\":1024,\"height\":532},\"desktop\":{\"url\":\"/paginas-contenido/landing-pages/h
+    … a $500.000\",\"format\":\"image\",\"width\":1024,\"height\":532},\"desktop\":{\"url\":\"/paginas-contenido/landing-pages/home/banners/0-interes/Banner-home-desktop-0-interes.jpg\",\"altText\":\"0 % interés pagando a 2, 3, 6 o 12 cuotas en compras superiores a $500.000\",\"format\":\"image\",\"width\":1440,\"height\":532}},\"tag\":\"h1\",\"title\":{\"textColor\":\"var(--color-ne
+    … \":\"image\",\"width\":1440,\"height\":532}},\"tag\":\"h1\",\"title\":{\"textColor\":\"var(--color-neutral-25, #ffffff)\",\"text\":{\"@type\":\"@builder.io/core:LocalizedValue\",\"Default\":\"0% de interés pagando a 2, 3, 6 o 12 cuotas en compras superiores a $500.000.\"}},\"alignContent\":\"center\",\"description\":{\"textColor\":\"var(--color-neutral-25, #ffffff)\",\"text\":{
+    … otalStockPickupDelivery\":0,\"totalStockService\":\"$undefined\"},\"showCalculator\":false,\"areaCovered\":\"$undefined\",\"areaUnit\":\"M2\",\"wastePercentage\":10,\"price\":{\"currencyIso\":\"COP\",\"value\":33000,\"priceType\":\"BUY\",\"formattedValue\":\"$$ 33.000\",\"minQuantity\":\"$undefined\",\"maxQuantity\":\"$undefined\"},\"discountedPrice\":\"$undefined\",\"pricePerU
+    … e-4 text-primary\",\"children\":[\"$\",\"path\",null,{\"d\":\"$b2\"}]}]}],\"$Lb3\"]}],\"$Lb4\",\"$Lb5\"],false]}]\n9a:[\"$undefined\",[\"$\",\"span\",null,{\"className\":\"text-paragraph-xl-bold text-primary\",\"data-testid\":\"lbl-pdp-price\",\"children\":\"$$ 33.000\"}],false,[\"$\",\"span\",null,{\"className\":\"text-paragraph-xl-bold text-primary\",\"data-testid\":\"lbl-pdp
+    … div hidden id="S:4"><div class="flex flex-col gap-2 lg:gap-4"><div class="flex flex-wrap gap-1"></div><div class="flex flex-col gap-1"><div class="flex flex-wrap items-center gap-2"><span class="text-paragraph-xl-bold text-primary" data-testid="lbl-pdp-price">$ 33.000</span><span class="text-paragraph-xl-bold text-primary" data-testid="lbl-pdp-price">Unidad</span><span class="t
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+■ TIENDA Ferretería Aldia
+════════════════════════════════════════════════════════════════════════════════════════════════════
+robots.txt de https://aldiaferreteria.com → HTTP 200
+# robots.txt automatically generated by PrestaShop e-commerce open-source solution
+# https://www.prestashop.com - https://www.prestashop.com/forums
+# This file is to prevent the crawling and indexing of certain parts
+# of your site by web crawlers and spiders run by sites like Yahoo!
+# and Google. By telling these "robots" where not to go on your site,
+# you save bandwidth and server resources.
+# For more information about the robots.txt standard, see:
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+# Allow Directives
+Allow: */modules/*.css
+Allow: */modules/*.js
+Allow: */modules/*.png
+Allow: */modules/*.jpg
+Allow: */modules/*.gif
+Allow: */modules/*.svg
+Allow: */modules/*.webp
+Allow: /js/jquery/*
+# Private pages
+Disallow: /*?order=
+Disallow: /*?tag=
+Disallow: /*?id_currency=
+Disallow: /*?search_query=
+Disallow: /*?back=
+Disallow: /*?n=
+Disallow: /*&order=
+Disallow: /*&tag=
+Disallow: /*&id_currency=
+Disallow: /*&search_query=
+Disallow: /*&back=
+Disallow: /*&n=
+Disallow: /*controller=addresses
+Disallow: /*controller=address
+Disallow: /*controller=authentication
+Disallow: /*controller=cart
+Disallow: /*controller=discount
+Disallow: /*controller=footer
+Disallow: /*controller=get-file
+Disallow: /*controller=header
+Disallow: /*controller=history
+Disallow: /*controller=identity
+Disallow: /*controller=images.inc
+Disallow: /*controller=init
+Disallow: /*controller=my-account
+Disallow: /*controller=order
+Disallow: /*controller=order-slip
+Disallow: /*controller=order-detail
+Disallow: /*controller=order-follow
+Disallow: /*controller=order-return
+Disallow: /*controller=order-confirmation
+Disallow: /*controller=pagination
+Disallow: /*controller=password
+Disallow: /*controller=pdf-invoice
+Disallow: /*controller=pdf-order-return
+Disallow: /*controller=pdf-order-slip
+Disallow: /*controller=product-sort
+Disallow: /*controller=registration
+Disallow: /*controller=search
+Disallow: /*controller=statistics
+Disallow: /*controller=attachment
+Disallow: /*controller=guest-tracking
+# Directories for aldiaferreteria.com
+Disallow: /app/
+Disallow: /cache/
+Disallow: /classes/
+Disallow: /config/
+Disallow: /controllers/
+Disallow: /download/
+Disallow: /js/
+Disallow: /localization/
+Disallow: /log/
+Disallow: /mails/
+Disallow: /modules/
+Disallow: /override/
+Disallow: /pdf/
+Disallow: /src/
+Disallow: /tools/
+Disallow: /translations/
+Disallow: /upload/
+Disallow: /var/
+Disallow: /vendor/
+Disallow: /webservice/
+# Files
+Disallow: /ha-olvidado-su-contrasena
+Disallow: /direccion
+Disallow: /direcciones
+Disallow: /iniciar-sesion
+Disallow: /carrito
+Disallow: /descuento
+Disallow: /historial-compra
+Disallow: /datos-personales
+Disallow: /mi-cuenta
+Disallow: /seguimiento-pedido
+Disallow: /facturas-abono
+Disallow: /pedido
+Disallow: /busqueda
+Disallow: /seguimiento-pedido-invitado
+Disallow: /confirmacion-pedido
+Sitemap: https://aldiaferreteria.com/sitemap.xml
+✔ https://aldiaferreteria.com → HTTP 200 · text/html; charset=utf-8 · 357362 bytes · final https://aldiaferreteria.com/
+  título: Ferretería Aldia | Mayorista de Materiales Bucaramanga
+  plataforma: ld+json
+  enlaces legales:
+    · Política de tratamiento de datos → https://aldiaferreteria.com/contenido/tratamiento-de-datos
+✔ producto https://aldiaferreteria.com/cementos-concretos-y-morteros/cementos → HTTP 200 · 235323 bytes · final https://aldiaferreteria.com/cementos-concretos-y-morteros/cementos
+  ld+json de producto (0):
+  precios visibles en el HTML (8):
+    … uot;:0,&quot;minFractionDigits&quot;:0,&quot;groupingUsed&quot;:true,&quot;primaryGroupSize&quot;:3,&quot;secondaryGroupSize&quot;:3}" data-slider-encoded-url="https://aldiaferreteria.com/cementos-concretos-y-morteros/cementos" ><li><p id="facet_label_93354"> $1.049 - $120.087</p><div id="slider-range_93354"></div></li></ul> </section></div></div><div class="advertising-block">
+    … uot;minFractionDigits&quot;:0,&quot;groupingUsed&quot;:true,&quot;primaryGroupSize&quot;:3,&quot;secondaryGroupSize&quot;:3}" data-slider-encoded-url="https://aldiaferreteria.com/cementos-concretos-y-morteros/cementos" ><li><p id="facet_label_93354"> $1.049 - $120.087</p><div id="slider-range_93354"></div></li></ul> </section></div></div><div class="advertising-block"> <a href=
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $120.086 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>11 Disponi
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $32.500 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>3191 Dispon
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $1.050 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>28 Disponibl
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $17.756 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>1 Disponibl
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $2.700 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>71 Disponibl
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $33.000 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>25 Disponib
+  productos: https://aldiaferreteria.com/cementos/397-euco-concrelisto-x-48-kg · https://aldiaferreteria.com/cementos/703-cemento-argos-gris-50-kg · https://aldiaferreteria.com/cementos/706-cemento-argos-gris-1-kg
+✔ producto https://aldiaferreteria.com/cementos/397-euco-concrelisto-x-48-kg → HTTP 200 · 252459 bytes · final https://aldiaferreteria.com/cementos/397-euco-concrelisto-x-48-kg
+  ld+json de producto (1):
+    {"name":"Euco Concrelisto X 48 kg","sku":"14857","brand":{"@type":"brand","name":"Toxement"},"offers":{"@type":"Offer","priceCurrency":"COP","name":"Euco Concrelisto X 48 kg","price":"120086","url":"https://aldiaferreteria.com/cementos/397-euco-concrelisto-x-48-kg","priceValidUntil":"2026-10-19","image":["https://media.aldiaferreteria.com/1589-large_default/euco-concrelisto-x-48-kg.webp"],"sku":"14857","mpn":"14857","availability":"https://schema.org/InStock","seller":{"@type":"Organization","name":"Ferretería Aldia"}}}
+  meta de precio:
+    <meta property="product:price:amount" content="120086">
+    <meta property="product:price:currency" content="COP">
+    <meta itemprop="price" content="120086.47">
+    <meta itemprop="priceCurrency" content="COP">
+  itemprop:
+    <meta itemprop="price" content="120086.47">
+    <meta itemprop="priceCurrency" content="COP">
+  precios visibles en el HTML (7):
+    … div class="col-md-6" id="fix_product_style"><h1 class="h1 namne_details" >Euco Concrelisto X 48 kg</h1><div class="product-prices js-product-prices"><div class="product-price h5 "><div class="current-price"> <span class='current-price-value' content="120086"> $120.086 </span></div></div><div class="tax-shipping-delivery-label"> Impuestos incluidos<div> <app-simulator store="661
+    … quot;:&quot;64&quot;,&quot;on_sale&quot;:&quot;0&quot;,&quot;online_only&quot;:&quot;0&quot;,&quot;ecotax&quot;:0,&quot;minimal_quantity&quot;:&quot;1&quot;,&quot;low_stock_threshold&quot;:null,&quot;low_stock_alert&quot;:&quot;0&quot;,&quot;price&quot;:&quot;$120.086&quot;,&quot;unity&quot;:&quot;&quot;,&quot;unit_price&quot;:&quot;&quot;,&quot;unit_price_ratio&quot;:0,&quot;a
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $1.050 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>28 Disponibl
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $32.500 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>3191 Dispon
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $33.000 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>25 Disponib
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $2.700 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>71 Disponibl
+    …  class="comments_note" itemprop="aggregateRating" itemscope itemtype=""><div class="star_content clearfix"> <span class="rating_star" style="width: 0%;"></span></div></div></div><div class="product-price-and-shipping"><span class="price " aria-label="Precio"> $17.756 </span></div><div class="availability"><div class="availability-list in-stock">Disponibilidad: <span>1 Disponibl
+
+Fin de la segunda ronda. Archivos en salida-tiendas

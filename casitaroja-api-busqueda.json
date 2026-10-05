@@ -1,0 +1,122 @@
+[
+ {
+  "id": 17950,
+  "name": "CEMENTO PAÍS X 50 KG USO GENERAL",
+  "permalink": "https://ferreterialacasitaroja.com/product/cemento-pais-x-50-kg-uso-general/",
+  "sku": "",
+  "type": "simple",
+  "prices": {
+   "price": "3500000",
+   "regular_price": "3900000",
+   "sale_price": "3500000",
+   "price_range": null,
+   "currency_code": "COP",
+   "currency_symbol": "$",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "$ ",
+   "currency_suffix": ""
+  },
+  "is_in_stock": true,
+  "stock": {
+   "text": "",
+   "class": "in-stock"
+  },
+  "categories": [
+   "CEMENTO",
+   "Materiales de construcción"
+  ],
+  "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;39.000,00</span></del> <span class=\"screen-reader-text\">El precio original era: &#036;&nbsp;39.000,00.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;35.000,00</span></i […]"
+ },
+ {
+  "id": 3464,
+  "name": "CEMENTO BLANCO X 40 KG  ARGOS",
+  "permalink": "https://ferreterialacasitaroja.com/product/cemento-blanco-x-40-kg-argos/",
+  "sku": "FCR104",
+  "type": "simple",
+  "prices": {
+   "price": "9200000",
+   "regular_price": "9200000",
+   "sale_price": "9200000",
+   "price_range": null,
+   "currency_code": "COP",
+   "currency_symbol": "$",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "$ ",
+   "currency_suffix": ""
+  },
+  "is_in_stock": true,
+  "stock": {
+   "text": "",
+   "class": "in-stock"
+  },
+  "categories": [
+   "CEMENTO",
+   "Materiales de construcción"
+  ],
+  "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;92.000,00</span>"
+ },
+ {
+  "id": 3463,
+  "name": "CEMENTO GRIS X 42.5 KG ESTRUCTURAL",
+  "permalink": "https://ferreterialacasitaroja.com/product/cemento-gris-x-42-5-kg-estructural/",
+  "sku": "FCR103",
+  "type": "simple",
+  "prices": {
+   "price": "3325000",
+   "regular_price": "3500000",
+   "sale_price": "3325000",
+   "price_range": null,
+   "currency_code": "COP",
+   "currency_symbol": "$",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "$ ",
+   "currency_suffix": ""
+  },
+  "is_in_stock": true,
+  "stock": {
+   "text": "",
+   "class": "in-stock"
+  },
+  "categories": [
+   "CEMENTO",
+   "Materiales de construcción"
+  ],
+  "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;35.000,00</span></del> <span class=\"screen-reader-text\">El precio original era: &#036;&nbsp;35.000,00.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;33.250,00</span></i […]"
+ },
+ {
+  "id": 3462,
+  "name": "CEMENTO GRIS USO GENERAL ARGOS 50KG",
+  "permalink": "https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-argos-50kg/",
+  "sku": "FCR102",
+  "type": "simple",
+  "prices": {
+   "price": "3800000",
+   "regular_price": "4200000",
+   "sale_price": "3800000",
+   "price_range": null,
+   "currency_code": "COP",
+   "currency_symbol": "$",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "$ ",
+   "currency_suffix": ""
+  },
+  "is_in_stock": true,
+  "stock": {
+   "text": "",
+   "class": "in-stock"
+  },
+  "categories": [
+   "CEMENTO",
+   "Materiales de construcción"
+  ],
+  "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;42.000,00</span></del> <span class=\"screen-reader-text\">El precio original era: &#036;&nbsp;42.000,00.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>&nbsp;38.000,00</span></i […]"
+ }
+]

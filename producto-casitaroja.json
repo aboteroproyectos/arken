@@ -1,0 +1,51 @@
+{
+ "productos": [
+  {
+   "@context": "https://schema.org/",
+   "@type": "Product",
+   "@id": "https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-argos-50kg/#product",
+   "name": "CEMENTO GRIS USO GENERAL ARGOS 50KG",
+   "url": "https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-argos-50kg/",
+   "description": "Características clave:\r\n\r\nTamaño: bolsa de 50 kg\r\n\r\nUso: Ideal para aplicaciones de construcción y reparación de concreto, mampostería y otros proyectos de albañilería.\r\n\r\nColor: Gris\r\n\r\nBeneficios:\r\n\r\nAlta resistencia y durabilidad\r\n\r\nVersátil y adecuado para una variedad de proyectos de construcción\r\n\r\nIdeal para trabajos de reparación y construcción en interiores y exteriores\r\n\r\nUso/aplicación:",
+   "image": "https://ferreterialacasitaroja.com/wp-content/uploads/2024/02/CEMENTO-GRIS-ARGOS-50-KG-USO-GENERAL.jpg",
+   "sku": "FCR102",
+   "offers": [
+    {
+     "@type": "Offer",
+     "priceSpecification": [
+      {
+       "@type": "UnitPriceSpecification",
+       "price": "38000.00",
+       "priceCurrency": "COP",
+       "validThrough": "2027-12-31"
+      },
+      {
+       "@type": "UnitPriceSpecification",
+       "price": "42000.00",
+       "priceCurrency": "COP",
+       "validThrough": "2027-12-31",
+       "priceType": "https://schema.org/ListPrice"
+      }
+     ],
+     "priceValidUntil": "2027-12-31",
+     "availability": "https://schema.org/InStock",
+     "url": "https://ferreterialacasitaroja.com/product/cemento-gris-uso-general-argos-50kg/",
+     "seller": {
+      "@type": "Organization",
+      "name": "Ferretería La Casita Roja",
+      "url": "https://ferreterialacasitaroja.com"
+     },
+     "price": "38000.00",
+     "priceCurrency": "COP"
+    }
+   ]
+  }
+ ],
+ "metas": [],
+ "itemprops": [],
+ "precios": [
+  "ng>.<br />Si el destino se encuentra fuera de estas zonas, se debe coordinar previamente el envío y calcular el costo correspondiente según el lugar de entrega.</p><h4><strong>Pedidos con Envío Gratis</strong></h4><p>Los pedidos iguales o superiores a <strong>$2.000.000 COP</strong> tienen <strong>envío gratuito</strong>, siempre que el destino esté dentro del perímetro urbano ",
+  "na o en el casco urbano de Turbaco.<br />Esto aplica para materiales de construcción, artículos de ferretería y demás productos ofrecidos por nuestra empresa.<strong>Pedidos Inferiores al Valor Mínimo</strong></p><p>Los pedidos con un valor inferior a <strong>$2.000.000 COP</strong> tendrán un <strong>costo de flete adicional</strong>, el cual se calculará de acuerdo con los si"
+ ],
+ "nextPrecios": []
+}
