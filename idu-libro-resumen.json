@@ -1,0 +1,93 @@
+{
+ "url": "https://www.idu.gov.co/Archivos_Portal/2026/transparencia/inf-de-interes/siipviales/economico/09-septiembre/1A_Visor_BPR_2026-I_Fase_II_MO_Ley_2101_28-09-2026.xlsx",
+ "texto": "Precios unitarios de referencia",
+ "bytes": 2862608,
+ "ultimaModificacion": "Tue, 29 Sep 2026 21:26:24 GMT",
+ "libro": "1A_Visor_BPR_2026-I_Fase_II_MO_Ley_2101_28-09-2026.xlsx",
+ "hojas": [
+  {
+   "hoja": "Portada",
+   "filas": 43,
+   "conDatos": 0,
+   "rango": "H1:H43"
+  },
+  {
+   "hoja": "Menu",
+   "filas": 20,
+   "conDatos": 10,
+   "rango": "A1:O20"
+  },
+  {
+   "hoja": "Presentación",
+   "filas": 118,
+   "conDatos": 82,
+   "rango": "A1:Q118"
+  },
+  {
+   "hoja": "Aspectos técnicos",
+   "filas": 95,
+   "conDatos": 38,
+   "rango": "A1:Q95"
+  },
+  {
+   "hoja": "Marco legal",
+   "filas": 26,
+   "conDatos": 12,
+   "rango": "A1:Q26"
+  },
+  {
+   "hoja": "Glosario",
+   "filas": 48,
+   "conDatos": 22,
+   "rango": "A1:Q48"
+  },
+  {
+   "hoja": "Inusmos",
+   "filas": 2751,
+   "conDatos": 2743,
+   "rango": "A1:O2751"
+  },
+  {
+   "hoja": "APU",
+   "filas": 3193,
+   "conDatos": 3185,
+   "rango": "A1:P3193"
+  },
+  {
+   "hoja": "Valores de Refer_Conserva",
+   "filas": 3203,
+   "conDatos": 150,
+   "rango": "A1:P3203"
+  },
+  {
+   "hoja": "Troncal Cll 13",
+   "filas": 3595,
+   "conDatos": 1401,
+   "rango": "A1:P3595"
+  },
+  {
+   "hoja": "Insumos_Proy_Especif",
+   "filas": 3293,
+   "conDatos": 600,
+   "rango": "A1:P3293"
+  },
+  {
+   "hoja": "APU_Proy_Especif",
+   "filas": 3328,
+   "conDatos": 751,
+   "rango": "A1:P3328"
+  },
+  {
+   "hoja": "Fechas de actualización",
+   "filas": 3202,
+   "conDatos": 31,
+   "rango": "A1:P3202"
+  },
+  {
+   "hoja": "Novedades",
+   "filas": 5342,
+   "conDatos": 654,
+   "rango": "A1:Q5342"
+  }
+ ]
+}

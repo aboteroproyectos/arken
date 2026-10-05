@@ -1,0 +1,3 @@
+
+User-agent: *
+Sitemap: http://www.idu.gov.co/sitemap.xml
