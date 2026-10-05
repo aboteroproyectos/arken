@@ -1,0 +1,141 @@
+{
+ "id": "rgxm-mmea",
+ "nombre": "Tienda Virtual del Estado Colombiano - Consolidado",
+ "atribucion": "Agencia Nacional de Contratación Pública - Colombia Compra Eficiente, Bogotá D.C.",
+ "licencia": "CC_40_BY_SA",
+ "rowsUpdatedAt": 1791009392,
+ "columnas": [
+  {
+   "nombre": "Año",
+   "campo": "a_o",
+   "tipo": "number",
+   "descripcion": "Año de la Orden de compra"
+  },
+  {
+   "nombre": "Identificador de la Orden",
+   "campo": "identificador_de_la_orden",
+   "tipo": "text",
+   "descripcion": "Identificador de la Orden de Compra"
+  },
+  {
+   "nombre": "Rama de la Entidad",
+   "campo": "rama_de_la_entidad",
+   "tipo": "text",
+   "descripcion": "Rama del estado de la Entidad que genera la Orden de Compra"
+  },
+  {
+   "nombre": "Orden de la Entidad",
+   "campo": "orden_de_la_entidad",
+   "tipo": "text",
+   "descripcion": "Orden territorial de la Entidad"
+  },
+  {
+   "nombre": "Sector de la Entidad",
+   "campo": "sector_de_la_entidad",
+   "tipo": "text",
+   "descripcion": "Sector Estatal de la Entidad que genera la Orden de Compra"
+  },
+  {
+   "nombre": "Entidad",
+   "campo": "entidad",
+   "tipo": "text",
+   "descripcion": "Entidad Pública que genera la Orden de compra"
+  },
+  {
+   "nombre": "Solicitante",
+   "campo": "solicitante",
+   "tipo": "text",
+   "descripcion": "Persona que hace la solicitud a nombre de la Entidad"
+  },
+  {
+   "nombre": "Fecha",
+   "campo": "fecha",
+   "tipo": "calendar_date",
+   "descripcion": "Fecha de la Orden"
+  },
+  {
+   "nombre": "Fecha vence",
+   "campo": "fecha_vence",
+   "tipo": "calendar_date",
+   "descripcion": "Fecha en la que se vence la orden de compra"
+  },
+  {
+   "nombre": "Proveedor",
+   "campo": "proveedor",
+   "tipo": "text",
+   "descripcion": "Proveedor al cual se hace la solicitud de compra pública"
+  },
+  {
+   "nombre": "Estado",
+   "campo": "estado",
+   "tipo": "text",
+   "descripcion": "Estado de la Orden "
+  },
+  {
+   "nombre": "Solicitud",
+   "campo": "solicitud",
+   "tipo": "number",
+   "descripcion": "Identificador de la Solicitud de Compra"
+  },
+  {
+   "nombre": "Items",
+   "campo": "items",
+   "tipo": "text",
+   "descripcion": "Items relacionados en la orden de compra"
+  },
+  {
+   "nombre": "Total",
+   "campo": "total",
+   "tipo": "number",
+   "descripcion": "Valor total de la Orden de compra"
+  },
+  {
+   "nombre": "Agregacion",
+   "campo": "agregacion",
+   "tipo": "text",
+   "descripcion": "Agregacion a la que corresponde la Orden de compra"
+  },
+  {
+   "nombre": "Ciudad",
+   "campo": "ciudad",
+   "tipo": "text",
+   "descripcion": "Ciudad registrada en la orden de compra"
+  },
+  {
+   "nombre": "Entidad Obigada",
+   "campo": "entidad_obigada",
+   "tipo": "text",
+   "descripcion": "Determina si la entidad esta obligada a hacer unso de la Tienda Virtual del Estado Colombiano"
+  },
+  {
+   "nombre": "EsPostconflicto",
+   "campo": "espostconflicto",
+   "tipo": "text",
+   "descripcion": "Determina si la orden de compra corresponde con procesos de compra pública asociados a eventos de postconflicto en el marco del proceso de paz "
+  },
+  {
+   "nombre": "NIT Proveedor",
+   "campo": "nit_proveedor",
+   "tipo": "text",
+   "descripcion": "NIT del proveedor"
+  },
+  {
+   "nombre": "Actividad Economica Proveedor",
+   "campo": "actividad_economica_proveedor",
+   "tipo": "text",
+   "descripcion": "Descreibe la actividad economica del proveedor al que se adjudicó la orden de compra"
+  },
+  {
+   "nombre": "NIT Entidad",
+   "campo": "nit_entidad",
+   "tipo": "text",
+   "descripcion": "El identificador NIT de la entidad"
+  },
+  {
+   "nombre": "ID Entidad",
+   "campo": "id_entidad",
+   "tipo": "text",
+   "descripcion": "ID de la entidad en la plataforma Coupa"
+  }
+ ]
+}

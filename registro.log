@@ -1,0 +1,242 @@
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+■ datos.gov.co · TVEC (compras por ítem) y consolidado de órdenes
+════════════════════════════════════════════════════════════════════════════════════════════════════
+robots.txt de https://www.datos.gov.co → HTTP 200
+Sitemap: https://sa-socrata-sitemaps-us-east-1-fedramp-prod.s3.us-east-1.amazonaws.com/sitemaps/sitemap-www.datos.gov.co.xml
+
+
+User-agent: *
+Crawl-delay: 1
+
+
+
+Disallow: /browse?*&category=
+Disallow: /browse?*&federation_filter=
+Disallow: /browse?*&limitTo=
+Disallow: /browse?*&q=
+Disallow: /browse?*&sortBy=
+Disallow: /browse?*&tags=
+Disallow: /browse?*&view_type=
+Disallow: /browse/*?*&category=
+Disallow: /browse/*?*&federation_filter=
+Disallow: /browse/*?*&limitTo=
+Disallow: /browse/*?*&q=
+Disallow: /browse/*?*&sortBy=
+Disallow: /browse/*?*&tags=
+Disallow: /browse/*?*&view_type=
+Disallow: /*/browse?*&category=
+Disallow: /*/browse?*&federation_filter=
+Disallow: /*/browse?*&limitTo=
+Disallow: /*/browse?*&q=
+Disallow: /*/browse?*&sortBy=
+Disallow: /*/browse?*&tags=
+Disallow: /*/browse?*&view_type=
+Disallow: /page/*?*&category=
+Disallow: /page/*?*&federation_filter=
+Disallow: /page/*?*&limitTo=
+Disallow: /page/*?*&q=
+Disallow: /page/*?*&sortBy=
+Disallow: /page/*?*&tags=
+Disallow: /page/*?*&view_type=
+Disallow: /catalog/*?*&category=
+Disallow: /catalog/*?*&federation_filter=
+Disallow: /catalog/*?*&limitTo=
+Disallow: /catalog/*?*&q=
+Disallow: /catalog/*?*&sortBy=
+Disallow: /catalog/*?*&tags=
+Disallow: /catalog/*?*&view_type=
+Disallow: /facet/*?*&category=
+Disallow: /facet/*?*&federation_filter=
+Disallow: /facet/*?*&limitTo=
+Disallow: /facet/*?*&q=
+Disallow: /facet/*?*&sortBy=
+Disallow: /facet/*?*&tags=
+Disallow: /facet/*?*&view_type=
+
+Disallow: */alt$
+Disallow: */alt?
+Disallow: */edit$
+Disallow: /*/*/*/widget_preview
+Disallow: /OData.svc/
+Disallow: /api/odata/
+Disallow: /browse/embed
+Disallow: /login
+Disallow: /reset_password/
+Disallow: /tiles/
+Disallow: /views/INLINE/rows.json?*method=clustered2*
+Disallow: /api/collocate*
+
+
+✔ https://www.datos.gov.co/api/views/3hdv-smhz.json → HTTP 200 · 20857 bytes
+  nombre: TVEC - Compras por item
+  descripción: Registro de las compras hechas a través de la Tienda Virtual del Estado Colombiano por item
+  atribución: Agencia Nacional de Contratación Pública - Colombia Compra Eficiente, Bogotá D.C. · licencia: CC_40_BY_SA {"name":"Creative Commons Attribution | Share Alike 4.0 International","logoUrl":"images/licenses/cc30bysa.png","termsLink":"http://creativecommons.org/licenses/by-sa/4.0/legalcode"}
+  filas actualizadas: 2026-10-03T06:38:48.000Z · vista: 2026-05-18T18:06:31.000Z
+  columnas:
+    · orden_de_compra (text) «Orden de Compra» Numero de la orden de compra con la que se adquiere el producto o servicio
+    · fecha (calendar_date) «Fecha» Fecha de generación de la orden de compra
+    · entidad (text) «Entidad» Entidad compradora
+    · nit_entidad (text) «NIT Entidad» NIT de la entidad compradora
+    · provedor (text) «Provedor» Entidad que provee el producto o servicio
+    · nit_proveedor (text) «NIT Proveedor» NIT del Proveedor
+    · item (text) «Item» Item que hace parte de la orden de compra
+    · price (number) «Precio» Precio unitario del item adquirido
+    · qty (number) «Cantidad» Cantidad de unidades del item adquirido
+    · unidad_de_medida (text) «Unidad de medida» Unidad de medida del item adquirido
+    · line_total (number) «Total por item» Valor total del item (Cantidad por Precio unitario)
+    · cdp (text) «CDP» CDP por el cual se adquirió la orden de compra
+  campos elegidos: ítem=item fecha=fecha orden=orden_de_compra
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$limit=3&$order=fecha%20DESC → HTTP 200 · 959 bytes
+[
+ {
+  "orden_de_compra": "167917",
+  "fecha": "2026-08-14T00:00:00.000",
+  "entidad": "No definido",
+  "nit_entidad": "No definido",
+  "provedor": "No definido",
+  "nit_proveedor": "No definido",
+  "item": "GSF01- BROCA SDS PLUS JGO 5 PZAS 3/16 1/2 MAKI",
+  "price": "43954",
+  "qty": "3",
+  "unidad_de_medida": "Unidad",
+  "line_total": "131862",
+  "cdp": "CDP-17326"
+ },
+ {
+  "orden_de_compra": "167924",
+  "fecha": "2026-08-14T00:00:00.000",
+  "entidad": "No definido",
+  "nit_entidad": "No definido",
+  "provedor": "No definido",
+  "nit_proveedor": "No definido",
+  "item": "GSF01-LAVALOZA CREMA X 1000 G",
+  "price": "18549",
+  "qty": "151",
+  "unidad_de_medida": "Unidad",
+  "line_total": "2800899",
+  "cdp": "CDP-7626"
+ },
+ {
+  "orden_de_compra": "167903",
+  "fecha": "2026-08-14T00:00:00.000",
+  "entidad": "No definido",
+  "nit_entidad": "No definido",
+  "provedor": "No definido",
+  "nit_proveedor": "No definido",
+  "item": "ays05--Z26 - Líquido para limpiar vidrios 1 (Compra)  - 2",
+  "price": "15000",
+  "qty": "4",
+  "unidad_de_medida": "Unidad",
+  "line_total": "60000",
+  "cdp": "CDP-4626"
+ }
+]
+✖ https://www.datos.gov.co/resource/3hdv-smhz.json?$where=upper(item)%20like%20'%25CEMENTO%25'%20AND%20fecha%20%3E%3D%20'2026-01-01'&$order=fecha%20DESC&$limit=12 → This operation was aborted
+✖ https://www.datos.gov.co/resource/3hdv-smhz.json?$select=count(*)&$where=upper(item)%20like%20'%25CEMENTO%25'%20AND%20fecha%20%3E%3D%20'2026-01-01' → This operation was aborted
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$where=upper(item)%20like%20'%25VARILLA%25'%20AND%20fecha%20%3E%3D%20'2026-01-01'&$order=fecha%20DESC&$limit=12 → HTTP 200 · 4296 bytes
+  «varilla» (12):
+    {"orden_de_compra":"167351","fecha":"2026-07-28T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - DESTORNILLADOR  DE PRECISION DE  9 MM  (0;9 MM HEX ALLEN) (PUNTA HEXAGONAL; FABRICADO EN ACERO AISI CROMO MOLIDENO VANADIO O ACERO INOXIDABLE; CON MARGO NEGORNOMICO; VARILLA LARGA Y DELGAA APRX DE  40-50 MM).  - Unidad","price":"32818.91015625","qty":"10","unidad_de_medida":"Unidad","line_total":"328189.09375","cdp":"CDP-10026"}
+    {"orden_de_compra":"167239","fecha":"2026-07-24T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01-FOLDER COLGANTE VARILLA METALICA OFICIO CAFE","price":"1547","qty":"430","unidad_de_medida":"Unidad","line_total":"665210","cdp":"2385"}
+    {"orden_de_compra":"167056","fecha":"2026-07-21T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF-01 Dobladora manual de varillas 1/4; 3/8; 1/2; 5/8; hasta 60cm de doblado","price":"1127200","qty":"2","unidad_de_medida":"Unidad","line_total":"2254400","cdp":"CDP-5126"}
+    {"orden_de_compra":"167056","fecha":"2026-07-21T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF-01 Dobladora manual de varillas 1/4; 3/8; 1/2; 5/8","price":"1327200","qty":"2","unidad_de_medida":"Unidad","line_total":"2654400","cdp":"CDP-5126"}
+    {"orden_de_compra":"166965","fecha":"2026-07-17T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01 TALADRO PERCUTOR 1/2 850W CON MANGO AUXILIAR\nLLAVE PARA BROQUERO;VARILLA DE CONTROL DE PROFUNDIDAD","price":"319000","qty":"1","unidad_de_medida":"Unidad","line_total":"319000","cdp":"CDP-7426"}
+    {"orden_de_compra":"166868","fecha":"2026-07-15T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"gsf01-Varilla corrugada de 5/8 x 6m","price":"63749","qty":"10","unidad_de_medida":"Unidad","line_total":"637490","cdp":"CDP-001F-2026"}
+    {"orden_de_compra":"166868","fecha":"2026-07-15T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"gsf01-Varilla corrugada de 1/2 x 6m","price":"40834","qty":"25","unidad_de_medida":"Unidad","line_total":"1020850","cdp":"CDP-001F-2026"}
+    {"orden_de_compra":"166868","fecha":"2026-07-15T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"gsf01-Varilla corrugada de 3/8 x 6m","price":"24833","qty":"30","unidad_de_medida":"Unidad","line_total":"744990","cdp":"CDP-001F-2026"}
+    {"orden_de_compra":"166666","fecha":"2026-07-08T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - Z6-CyF_CCE1679. Varilla Coarrugada En Acero Al Carbono De 1/2 De 6 Metros De Larga","price":"43224.390625","qty":"1015","unidad_de_medida":"Unidad","line_total":"43872756","cdp":"CDP-155"}
+    {"orden_de_compra":"166666","fecha":"2026-07-08T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - Z6-CyF_CCE1681. Varilla Coarrugada En Acero Al Carbono De 3/8 De 6 Metros De Larga","price":"20392.169921875","qty":"907","unidad_de_medida":"Unidad","line_total":"18495698","cdp":"CDP-157"}
+    {"orden_de_compra":"166556","fecha":"2026-07-06T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01 TALADRO PERCUTOR 1/2 850W CON MANGO AUXILIAR\nLLAVE PARA BROQUERO;VARILLA DE CONTROL DE PROFUNDIDAD","price":"319000","qty":"1","unidad_de_medida":"Unidad","line_total":"319000","cdp":"CDP-00001"}
+    {"orden_de_compra":"165923","fecha":"2026-06-19T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"gsf01- SOLDADURA PLATA HARRIS 0% VARILLA","price":"3570","qty":"5","unidad_de_medida":"Unidad","line_total":"17850","cdp":"CDP-10326"}
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$select=count(*)&$where=upper(item)%20like%20'%25VARILLA%25'%20AND%20fecha%20%3E%3D%20'2026-01-01' → HTTP 200 · 17 bytes
+  filas 2026 para «varilla»: [{"count":"85"}]
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$where=upper(item)%20like%20'%25TUBO%25PVC%25'%20AND%20fecha%20%3E%3D%20'2026-01-01'&$order=fecha%20DESC&$limit=12 → HTTP 200 · 4208 bytes
+  «tuberia» (12):
+    {"orden_de_compra":"167917","fecha":"2026-08-14T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01- LLAVE PARA TUBO TIPO AMERICANA DE 48 PULGADAS CON MANGO PVC UYUSTOOLS","price":"473693","qty":"2","unidad_de_medida":"Unidad","line_total":"947386","cdp":"CDP-17326"}
+    {"orden_de_compra":"167480","fecha":"2026-07-30T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01-TUBO CONDUIT PVC 1/2 PG X 3MT 10 UN GERF","price":"48000","qty":"4","unidad_de_medida":"Unidad","line_total":"192000","cdp":"CDP-8426"}
+    {"orden_de_compra":"167334","fecha":"2026-07-28T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - Z4-CyF_CCE1500. Tubo Conduit Pvc 1/2 x 3 mts de largo","price":"3448.739990234375","qty":"12","unidad_de_medida":"Unidad","line_total":"41384.87890625","cdp":"CDP 732-CDP 732"}
+    {"orden_de_compra":"167181","fecha":"2026-07-23T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01- TUBO PVC PLASTIMEC SCH40 1» GRIS PLASTIMEC 91594","price":"20968","qty":"33","unidad_de_medida":"Unidad","line_total":"691944","cdp":"CDP No. 74026"}
+    {"orden_de_compra":"166823","fecha":"2026-07-14T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - PEGAMENTO SOLDADURA PARA TODO TIPO DE TUBOS PVC X 1/8 GALON. . PEGAMENTO SOLDADURA PARA TODO TIPO DE TUBOS PVC X 1/8 GALON.  - UN","price":"48467.73046875","qty":"4","unidad_de_medida":"Unidad","line_total":"193870.921875","cdp":"cdp-3233"}
+    {"orden_de_compra":"166666","fecha":"2026-07-08T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - TUBERIA 24 X 6;5 MTS. Tubo corrugado PVC. Tubo corrugado de diametro 24 pulgadas por 6.5 metros de largo; tipo pesado - unidad - Unidad","price":"2115607","qty":"9","unidad_de_medida":"Unidad","line_total":"19040462","cdp":"CDP-155"}
+    {"orden_de_compra":"166407","fecha":"2026-07-02T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01- TUBO PVC PLASTIMEC SCH40 1» GRIS PLASTIMEC 91594","price":"28451","qty":"15","unidad_de_medida":"Unidad","line_total":"426765","cdp":"CDP-64326"}
+    {"orden_de_compra":"166237","fecha":"2026-06-26T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - Z2-CyF_CCE1505. Tubo De Presion En Pvc De 1 Por 6Mt","price":"32403","qty":"20","unidad_de_medida":"Unidad","line_total":"648060","cdp":"CDP-328"}
+    {"orden_de_compra":"166237","fecha":"2026-06-26T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - Z2-CyF_CCE1507. Tubo De Presion En Pvc De 2 Por 6Mt","price":"116862","qty":"10","unidad_de_medida":"Unidad","line_total":"1168620","cdp":"CDP-328"}
+    {"orden_de_compra":"165736","fecha":"2026-06-16T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01 TUBO EN PVC DE PRESION DE 1/2 IMAGEN DE REFERENCIA","price":"26851","qty":"3","unidad_de_medida":"Unidad","line_total":"80553","cdp":"CDP-6626"}
+    {"orden_de_compra":"165736","fecha":"2026-06-16T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01- TUBO DE PVC 3/4 DE PRESION","price":"41144","qty":"3","unidad_de_medida":"Unidad","line_total":"123432","cdp":"CDP-6626"}
+    {"orden_de_compra":"165693","fecha":"2026-06-12T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - Z5-CyF_CCE1509. Tubo De Presion En Pvc De 3/4 Por 6Mt","price":"19166.2890625","qty":"3","unidad_de_medida":"Unidad","line_total":"57498.87109375","cdp":"CDP-145926"}
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$select=count(*)&$where=upper(item)%20like%20'%25TUBO%25PVC%25'%20AND%20fecha%20%3E%3D%20'2026-01-01' → HTTP 200 · 17 bytes
+  filas 2026 para «tuberia»: [{"count":"62"}]
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$where=upper(item)%20like%20'%25PINTURA%25'%20AND%20fecha%20%3E%3D%20'2026-01-01'&$order=fecha%20DESC&$limit=12 → HTTP 200 · 4420 bytes
+  «pintura» (12):
+    {"orden_de_compra":"167765","fecha":"2026-08-06T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01-PINTURA TEMPERA JUNIOR PINCEL 6 COLORES CJ6","price":"8092","qty":"27","unidad_de_medida":"Unidad","line_total":"218484","cdp":"12-08-00-238-EPMSC CARTAGO-626"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-075APLICACIN DE ESQUEMA DE PINTURA EXTINTOR PORTATIL / UNIDAD","price":"20082.189453125","qty":"47","unidad_de_medida":"Unidad","line_total":"943862.9375","cdp":"CDP-22226"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-075APLICACIN DE ESQUEMA DE PINTURA EXTINTOR PORTATIL / UNIDAD","price":"20082.189453125","qty":"8","unidad_de_medida":"Unidad","line_total":"160657.515625","cdp":"CDP-22226"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-075APLICACIN DE ESQUEMA DE PINTURA EXTINTOR PORTATIL / UNIDAD","price":"20082.189453125","qty":"112","unidad_de_medida":"Unidad","line_total":"2249205.25","cdp":"CDP-22226"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-076APLICACIN DE ESQUEMA DE PINTURA EXTINTOR RODANTE / UNIDAD","price":"28688.83984375","qty":"3","unidad_de_medida":"Unidad","line_total":"86066.5234375","cdp":"CDP-22226"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-076APLICACIN DE ESQUEMA DE PINTURA EXTINTOR RODANTE / UNIDAD","price":"28688.83984375","qty":"3","unidad_de_medida":"Unidad","line_total":"86066.5234375","cdp":"CDP-22226"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-076APLICACIN DE ESQUEMA DE PINTURA EXTINTOR RODANTE / UNIDAD","price":"28688.83984375","qty":"50","unidad_de_medida":"Unidad","line_total":"1434442","cdp":"CDP-22226"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-076APLICACIN DE ESQUEMA DE PINTURA EXTINTOR RODANTE / UNIDAD","price":"28688.83984375","qty":"7","unidad_de_medida":"Unidad","line_total":"200821.875","cdp":"CDP-22226"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-075APLICACIN DE ESQUEMA DE PINTURA EXTINTOR PORTATIL / UNIDAD","price":"20082.189453125","qty":"51","unidad_de_medida":"Unidad","line_total":"1024191.6875","cdp":"CDP-22226"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-075APLICACIN DE ESQUEMA DE PINTURA EXTINTOR PORTATIL / UNIDAD","price":"20082.189453125","qty":"21","unidad_de_medida":"Unidad","line_total":"421726","cdp":"CDP-22226"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-075APLICACIN DE ESQUEMA DE PINTURA EXTINTOR PORTATIL / UNIDAD","price":"20082.189453125","qty":"55","unidad_de_medida":"Unidad","line_total":"1104520.5","cdp":"CDP-22226"}
+    {"orden_de_compra":"167708","fecha":"2026-08-05T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"ate01C1-076APLICACIN DE ESQUEMA DE PINTURA EXTINTOR RODANTE / UNIDAD","price":"28688.83984375","qty":"2","unidad_de_medida":"Unidad","line_total":"57377.6796875","cdp":"CDP-22226"}
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$select=count(*)&$where=upper(item)%20like%20'%25PINTURA%25'%20AND%20fecha%20%3E%3D%20'2026-01-01' → HTTP 200 · 18 bytes
+  filas 2026 para «pintura»: [{"count":"636"}]
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$where=upper(item)%20like%20'%25BLOQUE%25'%20AND%20fecha%20%3E%3D%20'2026-01-01'&$order=fecha%20DESC&$limit=12 → HTTP 200 · 4209 bytes
+  «bloque» (12):
+    {"orden_de_compra":"167554","fecha":"2026-07-31T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mpg02---JU-PR-013_S2_Zona 1-Región 3-SET DE BLOQUES DE CONSTRUCCIóN","price":"200000","qty":"43","unidad_de_medida":"Unidad","line_total":"8600000","cdp":"CDP-7100080299"}
+    {"orden_de_compra":"167351","fecha":"2026-07-28T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - CAJA DE HERRAMIENTA(CAJAS PARA HERRAMIENTAS CON RUEDAS PLASTICO;FACIL DE CONECTAR: APILAMIENTO AUTOMATICO CON MECANISMO DE CAIDA Y BLOQUEO FACIL DE QUITAR: LIBERACION DE UN TOQUE PARA DESMONTAR RAPIDAMENTE LAS UNIDADES ALMACENAR MAS: E","price":"531521","qty":"6","unidad_de_medida":"Unidad","line_total":"3189126","cdp":"CDP-10026"}
+    {"orden_de_compra":"167334","fecha":"2026-07-28T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - Bloquelon 80 x 23 x 8 cm 4;87 u/m2. Bloquelon 80 x 23 x 8 cm 4;87 u/m2 - UND","price":"6184","qty":"210","unidad_de_medida":"Unidad","line_total":"1298640","cdp":"CDP 732-CDP 732"}
+    {"orden_de_compra":"167156","fecha":"2026-07-23T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01- FILTRO DE CARBÓN BLOQUE 10 VALOR","price":"84000","qty":"5","unidad_de_medida":"Unidad","line_total":"420000","cdp":"cdp- 38326"}
+    {"orden_de_compra":"166819","fecha":"2026-07-14T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"gsf01-LEGO CLASSIC CAJA DE BLOQUES CREATIVOS MEDIANO","price":"460000","qty":"3","unidad_de_medida":"Unidad","line_total":"1380000","cdp":"CDP-34226"}
+    {"orden_de_compra":"166589","fecha":"2026-07-07T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"gsf01-Cera De Soya En Bloque 1 Kilo","price":"59000","qty":"5","unidad_de_medida":"Unidad","line_total":"295000","cdp":"CDP-10826"}
+    {"orden_de_compra":"166237","fecha":"2026-06-26T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"mcf01 - Bloques de cemento No. 4. Bloques de cemento No. 4 - UNIDAD","price":"3098","qty":"20","unidad_de_medida":"Unidad","line_total":"61960","cdp":"CDP-328"}
+    {"orden_de_compra":"166202","fecha":"2026-06-25T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSFO1 - TORRE BLOQUEO 6T - T","price":"532500","qty":"4","unidad_de_medida":"Unidad","line_total":"2130000","cdp":"CDP-14126"}
+    {"orden_de_compra":"165881","fecha":"2026-06-19T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01-LIBRO DEMOCRACIA BLOQUEADA - 220000030 cod: 900536006","price":"59900","qty":"1","unidad_de_medida":"Unidad","line_total":"59900","cdp":"CDP-2026001776"}
+    {"orden_de_compra":"165730","fecha":"2026-06-16T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01-KIT BLOQUES APRENDIZAJE ELECT. NIÑOS","price":"720000","qty":"1","unidad_de_medida":"Unidad","line_total":"720000","cdp":"CDP-13-2026"}
+    {"orden_de_compra":"165733","fecha":"2026-06-16T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"GSF01- CHAZO COLAPSIBLE BLOQUE HUECO 1/4X1 100UN","price":"43308","qty":"2","unidad_de_medida":"Unidad","line_total":"86616","cdp":"CDP-4226"}
+    {"orden_de_compra":"165143","fecha":"2026-05-28T00:00:00.000","entidad":"No definido","nit_entidad":"No definido","provedor":"No definido","nit_proveedor":"No definido","item":"gsf01-MOSQUETON DE ALUMINIO EN D BLOQUEO AUTOMATICO 3 PASOS PRECIO VALIDO PARA ENTIDADES EXCENTAS DE IVA","price":"152750","qty":"109","unidad_de_medida":"Unidad","line_total":"16649750","cdp":"CDP-39026"}
+✔ https://www.datos.gov.co/resource/3hdv-smhz.json?$select=count(*)&$where=upper(item)%20like%20'%25BLOQUE%25'%20AND%20fecha%20%3E%3D%20'2026-01-01' → HTTP 200 · 17 bytes
+  filas 2026 para «bloque»: [{"count":"45"}]
+✔ https://www.datos.gov.co/api/views/rgxm-mmea.json → HTTP 200 · 34048 bytes
+  nombre: Tienda Virtual del Estado Colombiano - Consolidado
+  descripción: Procesos de compra pública hechos a través de procesos de agregacion de la demanda en acuerdos marco, en la plataforma de Tienda Virtual del Estado Colombiano
+  atribución: Agencia Nacional de Contratación Pública - Colombia Compra Eficiente, Bogotá D.C. · licencia: CC_40_BY_SA {"name":"Creative Commons Attribution | Share Alike 4.0 International","logoUrl":"images/licenses/cc30bysa.png","termsLink":"http://creativecommons.org/licenses/by-sa/4.0/legalcode"}
+  filas actualizadas: 2026-10-03T06:36:32.000Z · vista: 2026-05-31T20:20:43.000Z
+  columnas:
+    · a_o (number) «Año» Año de la Orden de compra
+    · identificador_de_la_orden (text) «Identificador de la Orden» Identificador de la Orden de Compra
+    · rama_de_la_entidad (text) «Rama de la Entidad» Rama del estado de la Entidad que genera la Orden de Compra
+    · orden_de_la_entidad (text) «Orden de la Entidad» Orden territorial de la Entidad
+    · sector_de_la_entidad (text) «Sector de la Entidad» Sector Estatal de la Entidad que genera la Orden de Compra
+    · entidad (text) «Entidad» Entidad Pública que genera la Orden de compra
+    · solicitante (text) «Solicitante» Persona que hace la solicitud a nombre de la Entidad
+    · fecha (calendar_date) «Fecha» Fecha de la Orden
+    · fecha_vence (calendar_date) «Fecha vence» Fecha en la que se vence la orden de compra
+    · proveedor (text) «Proveedor» Proveedor al cual se hace la solicitud de compra pública
+    · estado (text) «Estado» Estado de la Orden 
+    · solicitud (number) «Solicitud» Identificador de la Solicitud de Compra
+    · items (text) «Items» Items relacionados en la orden de compra
+    · total (number) «Total» Valor total de la Orden de compra
+    · agregacion (text) «Agregacion» Agregacion a la que corresponde la Orden de compra
+    · ciudad (text) «Ciudad» Ciudad registrada en la orden de compra
+    · entidad_obigada (text) «Entidad Obigada» Determina si la entidad esta obligada a hacer unso de la Tienda Virtual del Estado Colombiano
+    · espostconflicto (text) «EsPostconflicto» Determina si la orden de compra corresponde con procesos de compra pública asociados a eventos de postconflicto en el marco del proceso de paz 
+    · nit_proveedor (text) «NIT Proveedor» NIT del proveedor
+    · actividad_economica_proveedor (text) «Actividad Economica Proveedor» Descreibe la actividad economica del proveedor al que se adjudicó la orden de compra
+    · nit_entidad (text) «NIT Entidad» El identificador NIT de la entidad
+    · id_entidad (text) «ID Entidad» ID de la entidad en la plataforma Coupa
+  campo de orden en el consolidado: identificador_de_la_orden · órdenes a cruzar: 167351, 167239, 167056, 166965, 166868, 166666, 166556, 165923, 167917, 167480
+✔ https://www.datos.gov.co/resource/rgxm-mmea.json?$where=identificador_de_la_orden%20in%20('167351'%2C'167239'%2C'167056'%2C'166965'%2C'166868'%2C'166666'%2C'166556'%2C'165923'%2C'167917'%2C'167480')&$limit=20 → HTTP 200 · 23169 bytes
+    {"a_o":"2026","identificador_de_la_orden":"165923","rama_de_la_entidad":"No Definido","orden_de_la_entidad":"No Definido","sector_de_la_entidad":"No Definido","entidad":"ANTIOQUIA - COMANDO AEREO DE COMBATE N° 5 FUERZA AEREA COLOMBIANA","solicitante":"Caterine Cardenas Granados","fecha":"2026-06-19T00:00:00.000","proveedor":"FERRICENTROS (FERRICENTROS SAS)","estado":"Se ha emitido","solicitud":"263846","items":"gsf01- COMPRESOR HERMETICO DANFOSS 1.5 HP 220 V ; gsf01- REFRIGERANTE R-404A REFRIGERANT 24 LBS ; gsf01- SOLDADURA PLATA HARRIS 0% VARILLA","total":"5184235","agregacion":"No Definido","ciudad":"RIONEGRO - ANTIOQUIA","entidad_obigada":"No Definido","espostconflicto":"No Definido","nit_proveedor":"No Aplica","actividad_economica_proveedor":"No Definido","nit_entidad":"No Definido","id_entidad":"476"}
+    {"a_o":"2026","identificador_de_la_orden":"166556","rama_de_la_entidad":"No Definido","orden_de_la_entidad":"No Definido","sector_de_la_entidad":"No Definido","entidad":"CORPORACION AUTONOMA REGIONAL DEL ATLANTICO C.R.A. - BARRANQUILLA","solicitante":"Pedro  Cepeda Anaya","fecha":"2026-07-06T00:00:00.000","proveedor":"FIELD FOOD S.A.S","estado":"Se ha emitido","solicitud":"263529","items":"GSF01   ACEITE SINTÉTICO PARA MOTOR DE 2 TIEMPOS 400 ML; GSF01  CARRETILLA SUPER REFORZADA PLATON PLASTICO 6 FT3; GSF01   TIJERA PARA PODA 10 FORJADA CUCHILLA DE PASO; GSF01   HIDROLAVADORA ELÉCTRICA 1800 PSI; GSF01   LAMPARA LINTERNA REFLECTORA LED 2000 LM RECARGABLE; GSF01   LLAVE STILSON 12 PARA TUBO CALIDAD INDUSTRIAL; GSF01 Pulidora Angular Profesional de 7 Pulgadas 2200 W Truper; GSF01 Juego de 11 llaves métricas TRUPER; GSF01 Cinturon Portaherramientas Lona Impermeable 10 Bolsillos; GSF01 TALADR […]
+    {"a_o":"2026","identificador_de_la_orden":"166666","rama_de_la_entidad":"No Definido","orden_de_la_entidad":"No Definido","sector_de_la_entidad":"No Definido","entidad":"CAQUETA - ALCALDIA DE EL DONCELLO","solicitante":"Jair Diaz Diaz","fecha":"2026-07-08T00:00:00.000","proveedor":"SOLUCIONES INTEGRALES UNION","estado":"Se ha emitido","solicitud":"265934","items":"mcf01 - TUBERIA 24 X 6;5 MTS. Tubo corrugado PVC. Tubo corrugado de diametro 24 pulgadas por 6.5 metros de largo; tipo pesado - unidad - Unidad; mcf01 - ALAMBRE DE ACERO. Alambre de acero bajo carbono; para usos generales; obtenido por trefilacion; que le otorga excelente ductilidad y maleabilidad; con alta resistencia fisica y mecanica que permite que no se rompa facilmente; permita tr; mcf01 - Z6-CyF_CCE339. Cemento Gris 50Kl - (De Uso General Para Construccion); mcf01 - Z6-CyF_CCE992. Puntilla Con Cabeza 2-1/2 Pulgadas En Ac […]
+    {"a_o":"2026","identificador_de_la_orden":"166868","rama_de_la_entidad":"No Definido","orden_de_la_entidad":"No Definido","sector_de_la_entidad":"No Definido","entidad":"ESCUELA TALLER CARTAGENA DE INDIAS","solicitante":"Sandra Patricia Leon Blanco","fecha":"2026-07-15T00:00:00.000","proveedor":"INVESAKK SAS","estado":"Se ha emitido","solicitud":"265972","items":"gsf01-Barra De Acero De 18 Pulgadas; gsf01-Cincel 3/4 x 10 pulgadas; gsf01-Escoba Monocolor Suave Blanca con mango; gsf01-Igasol cubierta x galon; gsf01-Ladrillo macizo de 30 X 15 X 5CM;; gsf01-Listón de amargo de 2x2x10pies; gsf01-Manguera De Nivel 100 Metros; Diámetro 1/4''; X rollo; gsf01-Martillo una 13 onzas mango madera; gsf01-Metaldeck 2-Pulg 940x5100mm Cal.22 0.75mm; gsf01-Pala Cuadrada Profesional Largo 144 cm y Ancho 24 cm con cabo; gsf01-Pala redonda N2 con cabo; gsf01-Palustre Collins 9 Pulido Mango Plastico Amarillo […]
+    {"a_o":"2026","identificador_de_la_orden":"166965","rama_de_la_entidad":"No Definido","orden_de_la_entidad":"No Definido","sector_de_la_entidad":"No Definido","entidad":"POLICIA NACIONAL - ESCUELA DE SUBOFICIALES Y NIVEL EJECUTIVO GONZALO JIMENEZ DE QUESADA","solicitante":"Richard Edwin Flor","fecha":"2026-07-17T00:00:00.000","proveedor":"FIELD FOOD S.A.S","estado":"Se ha emitido","solicitud":"265368","items":"GSF01  ASPIRADORA DE ACERO INOXIDABLE 4 HP 16 L -  ACCESORIOS INCLUIDOS; GSF01 TALADRO INALAMBRIO COMPACTO COMPACTO 3/8 12V CON 1 BATERÍA ION LITIO 2AH Y 1 CARGADOR; GSF01 Kit Boquilla Alcantarillado 5000 Psi Acero Inoxidable; GSF01 \nTaladro Inalámbrico 3/8 Pulg 12V 1350Rpm + 27 Accesorios Furius; GSF01 Máquina Limpiadora De Drenaje De 50 Pies X 3/8 Pulgadas; GSF01 PULIDORA ANGULAR 4-1/2 700W 11;000 RPM 5.1 A PROTECCIÓN IP20; GSF01 TALADRO PERCUTOR 1/2 850W CON MANGO AUXILIAR\nLLA […]
+    {"a_o":"2026","identificador_de_la_orden":"167056","rama_de_la_entidad":"No Definido","orden_de_la_entidad":"No Definido","sector_de_la_entidad":"No Definido","entidad":"SENA CENTRO MINERO REGIONAL BOYACA","solicitante":"Karina Stefany Otalora Morales","fecha":"2026-07-21T00:00:00.000","proveedor":"CLARYICON S.A.S\t (CLARYICON S.A.S)","estado":"Se ha emitido","solicitud":"263272","items":"GSF-01 Mezcladora 1 Bulto Motor Diesel KAMA 5hp 3600rpm; GSF-01 Atadora de ferralla de 18V; GSF-01 Rubimix-9 supertorque; GSF-01 Placa Vibratoria 53X50cm; GSF-01 Cepillo Texturizador para Concreto 120 x 360cm; GSF-01 Flota canal Redonda 1;20 metros; GSF-01 Hidrolavadora industrial 3800 PSI; GSF-01 Dobladora manual de varillas 1/4; 3/8; 1/2; 5/8; hasta 60cm de doblado; GSF-01 Dobladora manual de varillas 1/4; 3/8; 1/2; 5/8","total":"75477000","agregacion":"No Definido","ciudad":"SOGAMOSO","entidad_obigad […]
+    {"a_o":"2026","identificador_de_la_orden":"167239","rama_de_la_entidad":"No Definido","orden_de_la_entidad":"No Definido","sector_de_la_entidad":"No Definido","entidad":"VALLE DEL CAUCA-MUNICIPIO CANDELARIA","solicitante":"Leonor   Triana Diaz","fecha":"2026-07-24T00:00:00.000","proveedor":"Sumimas S.A.S.","estado":"Se ha emitido","solicitud":"243421","items":"GSF01-FOLDER COLGANTE VARILLA METALICA OFICIO CAFE; GSF01-BOLIGRAFO OFFI-ESCO SEMIGEL C/TAPA 0.7 TINTA NEGRA; GSF01-LAPIZ PAPER MATE MINA NEGRA N.2HB; GSF01-GANCHO LEGAJADOR FRAMECO PLASTICO BLANCO CJ20; GSF01-CLIP COLORES PLASTIFICADO CAJA X 80; GSF01-CLIP JUMBO CJ50; GSF01-COSEDORA METALICA CORTA 25HJ DL0315; GSF01-PERFORADORA METALICA 2 HUECOS 20HJ DL8250 -  cod: 1006144; GSF01-GRAPA NHITAN ESTANDAR GALVANIZADA 26/6 CJ1000; GSF01-TACO NOTAS ADHESIVAS 5 COLORES 76MM*76MM PQ100; GSF01-TACO NOTAS ADHESIVAS SURTIDAS 76*76MM PQ320; G […]
+    {"a_o":"2026","identificador_de_la_orden":"167351","rama_de_la_entidad":"No Definido","orden_de_la_entidad":"No Definido","sector_de_la_entidad":"No Definido","entidad":"CENTRAL ADMIN Y CONTABLE CENAC PUENTE ARANDA","solicitante":"Efrain  Samaniego Parra","fecha":"2026-07-28T00:00:00.000","proveedor":"SOLUCIONES INTEGRALES UNION","estado":"Se ha emitido","solicitud":"266847","items":"mcf01 - ESTIBADORA: ET-04765 ESTIBADORA NSN  NP  ARM-00.  - Unidad; mcf01 - CUCHILLO INDUSTRIAL: JEMPP-CEDE4-DIETE-ET-04434/ INS-0.  - Unidad; mcf01 - JUEGO DE LIMAS  PLANA GRANDE DE 10: ET-04733 JUEGO DE LIMAS  NSN  NP  ARM-00.  - JUEGO; mcf01 - JUEGO DE LIMAS  PLANA PEQUENA DE 4 A 7 : ET-04733 JUEGO DE LIMAS  NSN  NP  ARM-00.  - JUEGO; mcf01 - ALICATE ARTICULADO: ET-04740 PUNTA PALA PARA DESTORNILLADOR NSN  NP  INS ARM-00.  - Unidad; mcf01 - ALICATE DE PRESION Y/O HOMBRE SOLO GRANDE ENTRE 9 Y 10 ET-04751 A […]
+    {"a_o":"2026","identificador_de_la_orden":"167480","rama_de_la_entidad":"No Definido","orden_de_la_entidad":"No Definido","sector_de_la_entidad":"No Definido","entidad":"SERVICIO NACIONAL DE APRENDIZAJE - CENTRO DE ELECTRICIDAD; ELECTRONICA Y TELECOMUNICACIONES","solicitante":"Lina Samaris Silva Beltrán","fecha":"2026-07-30T00:00:00.000","proveedor":"CENCOSUD COLOMBIA S.A.","estado":"Se ha emitido","solicitud":"0","items":"GSF01-SENSOR SOBREPONER CIELORASO 360G CILES; GSF01-SENSOR INCRUSTAR TIPO SWITCH 180G CILES; GSF01-CAJA CONTAD ET901 PINT ELECT C20 STICKER; GSF01-BREAKER MONOPOLAR ENCHUFABL 20A LEGRAND; GSF01-BREAKER PARA RIEL 1 POLO 20A-10KA; GSF01-TUBO CONDUIT EMT 3/4 PG X 3MT; GSF01-TUBO CONDUIT PVC 1/2 PG X 3MT 10 UN GERF; GSF01-ADAPTADOR TERMINAL PVC 1/2  X20 INDUMA; GSF01-CABLE FLEXIBLE THHW 90 C 12 AWG BLA100 M; GSF01-CABLE FLEXIBLE THHW 90 C 12 AWG NEG100 M; GSF01-CABLE FLEXI […]
+    {"a_o":"2026","identificador_de_la_orden":"167917","rama_de_la_entidad":"No Definido","orden_de_la_entidad":"No Definido","sector_de_la_entidad":"No Definido","entidad":"DISPESNARIO MEDICO NIVEL II BOGOTÁ","solicitante":"Camilo Alejandro Vargas Silva","fecha":"2026-08-14T00:00:00.000","proveedor":"PROVEER INSTITUCIONAL SAS","estado":"Se ha emitido","solicitud":"0","items":"GSF01- BOQUILLA PARA GAS BUTANO 6 CON MANGUERA DE 1.5MTS. Y CHISPERO; GSF01- CINCEL 3/4 X 10 PULGADAS E821052; GSF01- SERRUCHO LUCTADOR 18 PULGADAS REF 15-470; GSF01- SERRUCHO PARA DRYWALL 6; GSF01- MARCO SEGUETA FIJO STANLEY 12 PULGADAS; GSF01- BROCA SDS PLUS JGO 5 PZAS 3/16 1/2 MAKI; GSF01- JUEGO 9 LLAVES ALLEN HEXAGONALES 1.5-10MM TOTAL THT106191; GSF01- JUEGO DE LLAVES HEXAGONALES 1/16 A 3/8 12 PIEZAS SATA ST09104SJ; GSF01- DESTORNILLADORES T.PESADO JGO 6 PZ. REF. 69170; GSF01- ALICATE CORTAFRIO Y PINZA + HOMBRESOL […]
+
+Fin de la segunda ronda. Archivos en salida-tvec

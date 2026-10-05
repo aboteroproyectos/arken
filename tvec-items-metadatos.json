@@ -1,0 +1,87 @@
+{
+ "id": "3hdv-smhz",
+ "nombre": "TVEC - Compras por item",
+ "descripcion": "Registro de las compras hechas a través de la Tienda Virtual del Estado Colombiano por item",
+ "atribucion": "Agencia Nacional de Contratación Pública - Colombia Compra Eficiente, Bogotá D.C.",
+ "licencia": "CC_40_BY_SA",
+ "license": {
+  "name": "Creative Commons Attribution | Share Alike 4.0 International",
+  "logoUrl": "images/licenses/cc30bysa.png",
+  "termsLink": "http://creativecommons.org/licenses/by-sa/4.0/legalcode"
+ },
+ "rowsUpdatedAt": 1791009528,
+ "columnas": [
+  {
+   "nombre": "Orden de Compra",
+   "campo": "orden_de_compra",
+   "tipo": "text",
+   "descripcion": "Numero de la orden de compra con la que se adquiere el producto o servicio"
+  },
+  {
+   "nombre": "Fecha",
+   "campo": "fecha",
+   "tipo": "calendar_date",
+   "descripcion": "Fecha de generación de la orden de compra"
+  },
+  {
+   "nombre": "Entidad",
+   "campo": "entidad",
+   "tipo": "text",
+   "descripcion": "Entidad compradora"
+  },
+  {
+   "nombre": "NIT Entidad",
+   "campo": "nit_entidad",
+   "tipo": "text",
+   "descripcion": "NIT de la entidad compradora"
+  },
+  {
+   "nombre": "Provedor",
+   "campo": "provedor",
+   "tipo": "text",
+   "descripcion": "Entidad que provee el producto o servicio"
+  },
+  {
+   "nombre": "NIT Proveedor",
+   "campo": "nit_proveedor",
+   "tipo": "text",
+   "descripcion": "NIT del Proveedor"
+  },
+  {
+   "nombre": "Item",
+   "campo": "item",
+   "tipo": "text",
+   "descripcion": "Item que hace parte de la orden de compra"
+  },
+  {
+   "nombre": "Precio",
+   "campo": "price",
+   "tipo": "number",
+   "descripcion": "Precio unitario del item adquirido"
+  },
+  {
+   "nombre": "Cantidad",
+   "campo": "qty",
+   "tipo": "number",
+   "descripcion": "Cantidad de unidades del item adquirido"
+  },
+  {
+   "nombre": "Unidad de medida",
+   "campo": "unidad_de_medida",
+   "tipo": "text",
+   "descripcion": "Unidad de medida del item adquirido"
+  },
+  {
+   "nombre": "Total por item",
+   "campo": "line_total",
+   "tipo": "number",
+   "descripcion": "Valor total del item (Cantidad por Precio unitario)"
+  },
+  {
+   "nombre": "CDP",
+   "campo": "cdp",
+   "tipo": "text",
+   "descripcion": "CDP por el cual se adquirió la orden de compra"
+  }
+ ]
+}
