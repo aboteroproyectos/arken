@@ -54,8 +54,9 @@ La barra de totales se reacomoda en pantallas angostas, porque en el HTML quedab
 
 ## Actualizar el programa
 
-1. Reemplace `programa/ARKEN_CONTROL.html` por la versión nueva **sin datos**: el contenido de `<script id="arken-datos" type="application/json">` debe ser `null`.
-2. Súbalo a `main`. GitHub Actions compila y prueba las cuatro apps.
+1. Consiga la versión nueva **sin datos**: el bloque `arken-datos` del archivo debe decir `null`. Si la genera Claude, pídale que le quite los datos.
+2. En github.com abra la carpeta `programa`, pulse «Add file» › «Upload files» y arrastre el archivo. Debe llamarse exactamente `ARKEN_CONTROL.html` y quedar dentro de `programa/`, no en la raíz del repositorio.
+3. Deje marcado «Commit directly to the main branch» y pulse «Commit changes». GitHub Actions compila y prueba las cuatro apps; el resultado se ve en la pestaña «Actions».
 
 > **Importante: este repositorio es público.** Nunca suba un `ARKEN_CONTROL.html` que tenga datos de la empresa. La compilación falla si lo detecta, pero para entonces el archivo ya quedó publicado. Si la versión nueva la genera Claude, pídale que le quite los datos antes de subirla.
 

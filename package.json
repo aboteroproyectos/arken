@@ -1,7 +1,7 @@
 {
   "name": "arken-control",
   "productName": "ARKEN CONTROL",
-  "version": "1.0.0",
+  "version": "1.26.10",
   "description": "ARKEN CONTROL · Sistema integral para el control de obra, empaquetado para Android, iOS, Windows y macOS.",
   "private": true,
   "main": "electron/main.cjs",
@@ -25,7 +25,8 @@
     "@capacitor/core": "^8.5.2",
     "@capacitor/filesystem": "^8.1.3",
     "@capacitor/ios": "^8.5.2",
-    "@capacitor/share": "^8.0.2"
+    "@capacitor/share": "^8.0.2",
+    "tesseract.js": "5.1.1"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
