@@ -1,5 +1,35 @@
 # ARKEN PRECIOS · Registro de cambios
 
+## 0.2.0 · Fase 2, Investigador IA · 4 de octubre de 2026
+
+El programa busca precios publicados en internet con la API de Claude y solo deja entrar los que están escritos en la página que leyó. Es opcional: se enciende con la clave de API de Anthropic del usuario.
+
+**Programa**
+
+- **Investigador IA** (§7.3): por cada insumo y ciudad, Claude busca con la búsqueda web, lee cada página y registra cada precio con su texto literal, su enlace, la unidad, la presentación, el IVA y la ciudad. El SDK oficial de Anthropic va dentro del archivo. Modelos Claude Opus 5.5 (por defecto), Sonnet 5.5 y Haiku 4.5, con esfuerzo configurable y respaldo de modelo.
+- **Verificación literal obligatoria** (criterio 9): un precio entra solo si está en el texto literal y el texto literal está en la página leída en esa misma búsqueda. Lo que no se pudo leer queda pendiente hasta que una persona lo vea en la página. La IA nunca escribe en la base: todo pasa por el registro, que vuelve a exigirlo.
+- **Revisar hallazgos** (Módulo 02): Por revisar, Pendientes de verificar, Productos nuevos, Registrados y Descartados. Confirmar (también varios a la vez), elegir otro insumo, rechazar, descartar, verificar con el enlace a la vista, retirar un precio ya registrado y volver a revisar.
+- **Vínculos de producto** (ficha del insumo): las páginas de cada producto, automáticas, confirmadas, rechazadas o rotas. La siguiente búsqueda lee primero las confirmadas, y lo que venga de una página rechazada se descarta.
+- **Centro de actualización** (Módulo 02): la búsqueda con IA dentro del alcance elegido; vista previa con las búsquedas, las solicitudes, el costo estimado y el gasto del mes; avance por categoría y por sitio, con el registro en vivo de cada búsqueda, página y precio; pausar, reanudar y cancelar; resultado por fuente, «Revisar hallazgos», «Revisar cambios en la base» y «Crear corte».
+- **Ficha:** «Actualizar este insumo ahora» ofrece «Solo recalcular» o «Buscar con IA y recalcular», con el costo estimado. Las observaciones del Investigador dicen cómo se verificaron y llevan la huella de la página. Las observaciones de alcance nacional se ven en todas las ciudades.
+- **Fuentes propuestas** (Módulo 03) con las páginas leídas, y **bandeja de nuevos** (Módulo 09) con el enlace y el precio visto. Nada se activa solo; decidir una propuesta resuelve los hallazgos que la originaron.
+- **Configuración › Investigador IA:** aviso antes de escribir la clave, autorización, clave cifrada en el equipo o solo para la sesión, probar la conexión (sin costo), activar y apagar; modelo, esfuerzo, respaldo, tope de gasto del mes, TRM, precios, búsquedas y páginas por insumo, texto por página, búsquedas a la vez, reutilizar lo buscado en la semana, sitios permitidos o bloqueados y tabla de tarifas con su fecha.
+- **Control de costo:** estimación antes de ejecutar, costo real de cada búsqueda, tope del mes, caché semanal por insumo y ciudad, caché de instrucciones de Anthropic y prioridad por clase ABC.
+- **Base de datos versión 2:** almacenes de hallazgos, búsquedas y secretos. Una base de la Fase 1 se actualiza sola, sin perder nada.
+- **Ayuda:** Investigador IA, Revisar hallazgos y Costo de la IA.
+
+**Pruebas y herramientas**
+
+- `pruebas/investigador.mjs`: 125 comprobaciones del núcleo del Investigador con respuestas de la API simuladas.
+- `pruebas/investigador-navegador.mjs`: 59 comprobaciones de punta a punta en Chromium con la API simulada, sin clave real.
+- `herramientas/armar-sdk.mjs` y `herramientas/sdk/`: rehacen el SDK incrustado desde versiones fijas; `npm run sdk:comprobar` lo compara en la CI.
+- El flujo `.github/workflows/precios.yml` corre los pasos nuevos.
+
+**Correcciones antes de entregar**
+
+- La prueba de punta a punta fallaba a veces: revisaba un dato antes de que el programa terminara de guardar la acción. Ahora espera el aviso con que termina cada acción.
+- El aviso de la clave no decía que, abierto como archivo, Chrome y Edge comparten lo guardado con otros HTML abiertos desde el disco. Ahora lo dice (decisión 53).
+
 ## 0.1.0 · Fase 1, núcleo sin internet · 2 de octubre de 2026
 
 Primera versión. Un solo HTML (`programa/ARKEN_PRECIOS.html`) con el sistema visual de ARKEN CONTROL, que guarda todo en el navegador y funciona sin conexión.

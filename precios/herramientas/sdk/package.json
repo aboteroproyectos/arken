@@ -1,0 +1,10 @@
+{
+  "name": "arken-precios-sdk",
+  "private": true,
+  "description": "SDK oficial de Anthropic que va dentro de ARKEN PRECIOS. Lo empaqueta herramientas/armar-sdk.mjs; estas versiones fijas (y el package-lock.json) permiten rehacerlo idéntico.",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.131.0",
+    "esbuild": "0.25.12"
+  }
+}
