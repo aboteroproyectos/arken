@@ -56,6 +56,9 @@ try {
   await w.fill('#gPass', 'arken');
   await w.click('#gBtn');
   await w.waitForSelector('#ccA', { timeout: 30000 });
+  // El programa enfoca la primera casilla 40 ms después de abrir el cuadro; si se escribe antes,
+  // ese foco tardío se lleva lo que iba en la segunda casilla.
+  await w.waitForFunction(() => document.activeElement && document.activeElement.id === 'ccA', null, { timeout: 5000 });
   await w.fill('#ccA', 'prueba123');
   await w.fill('#ccB', 'prueba123');
   await w.click('text=Cambiar y continuar');
