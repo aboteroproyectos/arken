@@ -1,5 +1,40 @@
 # ARKEN PRECIOS · Registro de cambios
 
+## 0.4.0 · Fase 4, analítica completa · 6 de octubre de 2026
+
+El programa muestra cómo se mueven los precios y avisa cuando algo cambia: un tablero completo con el índice de costo de obra, canastas, pesos constantes y proyecciones rotuladas; alertas; un comparador de ciudades, fechas, cortes y fuentes, y el precio puesto en obra, también en el Excel para ARKEN. El catálogo llega a 1.052 insumos, ninguno con un precio inventado.
+
+**Programa**
+
+- **00 · Tablero** (§13): los filtros valen para todo el tablero (periodo, ciudades, categoría ARKEN, grupos y categorías, insumos, fuentes, tipo de precio, estadístico, vista en valores, índice o variación, pesos corrientes o constantes, canasta y umbral de alza). Seis indicadores y las nueve gráficas: evolución de precios, índices por categoría frente al ICOCED y al IPC, mapas de calor categoría × ciudad y ciudad × mes, comparación entre ciudades, mayores alzas y bajas, dispersión por fuente, composición de la canasta con la contribución a la variación y mapa de ciudades. Además, la proyección y la comparación de dos fechas o dos cortes. Un clic en una ciudad, una categoría o un insumo filtra todo y deja una miga para volver; arrastrar sobre la gráfica del periodo lo elige. Cada gráfica sale en PNG, SVG o PDF y se abre en pantalla completa, las vistas se guardan con nombre y el tablero entero sale en PDF. Todo se calcula en un Web Worker.
+- **Índice de costo de obra:** Jevons encadenado por categoría y Laspeyres con los pesos fijos de una canasta. Canastas tipo de vivienda campestre de alto estándar, VIS y edificación comercial (pesos supuestos, rotulados así), de pesos iguales, del presupuesto real de ARKEN (la última lista maestra importada) y propias.
+- **Pesos constantes:** el IPC del DANE se carga en **03 · Fuentes › Índices (ICOCED e IPC)** desde el archivo que publica el DANE (Excel o CSV) o a mano, con vista previa antes de guardar. El tablero lleva los precios a pesos de un mes base.
+- **Proyección** a 3 o 6 meses con el método de Holt y su banda del 95 %, siempre con el rótulo «Proyección: no es un precio de mercado». No entra a la base, a los cortes ni a las exportaciones.
+- **07 · Alertas** (§12): siete reglas de partida y un editor para crear otras, con destinatarios y canal (correo o WhatsApp). La revisión corre sola después de cada cambio y cada media hora, sin repetir lo ya avisado. Bandeja con nueva, vista y resuelta (con nota), insignia en el menú y bandeja de salida, que abre el correo o WhatsApp con el texto listo, como en ARKEN. **Administración › Usuarios** pide ahora el correo y el celular de quien recibe alertas.
+- **06 · Comparador** (§12): ciudades y fechas (hasta 12 columnas, con una columna base y la diferencia en pesos y en porcentaje), corte contra corte, y fuente contra fuente (un insumo en todas sus fuentes, o dos fuentes en todos sus insumos). Todo sale en Excel y en PDF.
+- **04 · Cotizaciones › Fletes** (§5 y §8.7): la tabla de fletes hasta cada obra (municipio y, si se quiere, vereda) en volqueta, doble troque, camión, camioneta, tractomula o acarreo en mula, por viaje, m³·km, bulto o tonelada. **Precio puesto en obra** muestra cada voluminoso con su precio de almacén y su flete, deja quitar fletes y sale en Excel. **Pesos y ajustes** recibe el peso de lo que se compra por unidad y la lista de grupos voluminosos.
+- **08 · Excel para ARKEN CONTROL:** la opción «Precio puesto en obra» del paso 4. El archivo lo declara en su encabezado, en su nombre, en tres columnas más de la hoja «Detalle» y en la hoja «Notas», y ARKEN lo importa como cualquier otro.
+- **Catálogo de 1.052 insumos:** los 336 de ARKEN y 716 nuevos (168 más que en la Fase 3). Una base que ya existe los recibe desde **10 · Configuración › Empresa › Catálogo de la semilla**, sin cambiar nada de lo que ya tiene.
+- **Roles:** el analista de costos también arma canastas, configura alertas y registra fletes.
+- **Ayuda:** tablero, índices y canastas; pesos constantes; alertas; comparador; fletes y precio puesto en obra.
+
+**Pruebas**
+
+- `pruebas/analitica.mjs` (nueva): 43 comprobaciones en Chromium del catálogo, el tablero con 14 meses de demostración, el IPC cargado desde un archivo, las canastas (también la del presupuesto real, con una lista maestra como la que exporta ARKEN), las alertas, el comparador, los fletes y el Excel con precio puesto en obra, también a 360 px.
+- `pruebas/unitarias.mjs`: 35 más, 110 en total: registro por cambios, índices Jevons y Laspeyres, canastas, lectura del IPC, pesos constantes, proyección, fletes y el libro para ARKEN con precio puesto en obra.
+- `pruebas/ida-y-vuelta.mjs`: 5 más, 34 en total: el Excel con precio puesto en obra entra al ARKEN CONTROL real con todos sus insumos como «Ya existe» y los precios con el flete.
+- `pruebas/investigador-navegador.mjs`: una más, 60 en total: la semilla nueva se ofrece en Configuración y entra a una base anterior sin tocar lo que tiene.
+- `pruebas/comun.mjs`: antes de escribir la contraseña nueva, las pruebas esperan el foco de su casilla, como las de ARKEN CONTROL desde su PR #4. Si escribían antes, el foco tardío podía llevarse lo de la segunda casilla.
+- `pruebas/escritorio.mjs`: una más, 47 en total: un correo de la bandeja de salida de las alertas se abre en el programa de correo del sistema y la ventana se queda en la app.
+- El flujo `precios.yml` corre la prueba nueva.
+
+**Correcciones antes de entregar**
+
+- Con el registro por cambios (Fase 3), un precio que una fuente repetía cada semana envejecía y salía de la ventana de 45 días aunque siguiera publicado. Ahora vale hasta la última vez que se vio (decisión 100).
+- Los conectores dejaban la disponibilidad («agotado») en las condiciones del precio y no llegaba a la observación. Ahora llega, y la regla de agotados la ve.
+- La tabla de **03 · Fuentes › Índices** (Fase 3) mostraba cien veces más grande toda variación menor que 1 %: un 0,35 % mensual del ICOCED salía como 35 %. Ahora muestra cada variación como la publica el DANE, y el IPC se guarda en porcentaje, igual que el ICOCED (decisión 96).
+- Cerrar el administrador de canastas con la ✕, con Escape o con un clic afuera no refrescaba el tablero; ahora sí. Y después de cerrar una ventana hija, Escape ya no cerraba la de abajo; ahora cierra siempre la de encima.
+
 ## 0.3.0 · Fase 3, motor y escritorio · 5 de octubre de 2026
 
 El programa lee por su cuenta las fuentes que la empresa certifique, desde la app de escritorio o desde un servidor, y sigue sin dejar entrar un precio que no esté escrito en lo que se leyó. ARKEN PRECIOS llega como app para Windows, macOS, Android e iOS.

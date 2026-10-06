@@ -167,7 +167,74 @@ Lo que el prompt maestro deja a criterio profesional quedó decidido así. Cada 
 88. **Dependencias:** las de ARKEN CONTROL con sus mismas versiones (Electron 44, electron-builder 26, Capacitor 8 y sus complementos, jsPDF, jspdf-autotable, SheetJS, pdf.js y, para las pruebas, playwright-core), más htmlparser2, css-select, domhandler y domutils para el motor (decisión 59). No se agregó ninguna otra.
 89. **Las pruebas nunca leen sitios reales ni usan claves reales.** El motor, la recolección, el servidor y el programa con el motor leen las páginas de prueba. La app de escritorio empacada se prueba con Electron de verdad en Linux, con un llavero de prueba para que la bóveda cifre de verdad; en la CI, la falta de ese llavero es una falla. Esa prueba abre Electron con `--no-sandbox`, porque la carpeta que se empaca para la prueba no instala el ayudante de aislamiento de Chromium en Linux; en Windows y macOS la app corre con el aislamiento normal. Android e iOS solo se prueban simulados en Chromium, y Windows, macOS, Android e iOS solo se compilan en la CI: **no se han probado en un equipo o un teléfono de verdad.**
 
-## Hallazgos en ARKEN CONTROL (no se tocaron en las fases 1 a 3)
+## Fase 4 · Analítica completa
+
+### Catálogo (§17.4)
+
+90. **El catálogo llega a 1.052 insumos:** los 336 de ARKEN y 716 nuevos (168 más que en la Fase 1), repartidos en los 60 grupos. Ninguno trae precio: solo los 334 de ARKEN que lo tienen llevan su precio de referencia (decisión 9), y los nuevos salen «Sin dato» hasta que alguien registre un precio o una fuente lo lea.
+91. **Una base que ya existe recibe los insumos nuevos sin perder nada.** La semilla tiene versión; si la base es de una versión anterior, **10 · Configuración** ofrece agregar lo nuevo (solo el administrador). Ningún insumo existente cambia: se salta lo que ya está por código, por descripción o por código del Anexo A, y si un código nuevo ya lo usa un insumo de la empresa, el nuevo toma el siguiente libre de su grupo y la auditoría lo dice.
+
+### Índices y canastas (§13)
+
+92. **Índices por categoría: Jevons encadenado.** El valor de un insumo en un mes es el estadístico elegido de sus observaciones (la mediana por defecto) y, con varias ciudades, la mediana entre ellas. Cada mes, el eslabón de una clave (grupo y categoría ARKEN) es la media geométrica de los cocientes p(mes)/p(mes anterior) de sus insumos. Un insumo sin dato en un mes se imputa con el eslabón de su clave hasta tres meses seguidos, y uno que aparece después entra al mes siguiente. Base 100 en el primer mes con dato. *Por qué:* encadenar deja entrar y salir insumos sin saltos falsos en el índice.
+93. **Agregación tipo Laspeyres con los pesos fijos de la canasta**, también encadenada: el eslabón es Σ w·N(mes anterior)·eslabón(mes) / Σ w·N(mes anterior). Cuando todas las claves tienen dato, da lo mismo que el Laspeyres de base fija (las pruebas unitarias lo comprueban con un ejemplo hecho a mano). Una clave sin peso en la canasta no entra; si ninguna clave de una vista tiene peso, se agregan con pesos iguales y la serie lo dice. La **cobertura** de cada mes es la parte del peso que tuvo dato.
+94. **Las tres canastas tipo del §13 traen pesos supuestos.** Vivienda campestre de alto estándar, vivienda de interés social (VIS) y edificación comercial tienen pesos por grupo en porcentaje del costo directo (suman 100). Son razonados, no medidos, y la pantalla los rotula «(supuesta)». Lo indirecto (estudios, licencias, pólizas y AIU) y los subcontratos a todo costo quedan fuera. El peso de un grupo se reparte entre sus categorías ARKEN según cuántos insumos del catálogo tiene cada una.
+95. **El presupuesto real sale de ARKEN.** La canasta «Presupuesto real de ARKEN» toma el valor presupuestado de la última lista maestra importada (Módulo 09), por grupo y categoría del insumo equivalente. Lo que no tiene equivalencia confirmada queda fuera, y la pantalla dice qué parte del valor es. El analista también puede armar **canastas propias**: parte de una canasta tipo y ajusta el peso de cada grupo (no tienen que sumar 100, se normalizan).
+96. **Pesos constantes con el IPC.** El IPC se carga en **03 · Fuentes › Índices (ICOCED e IPC)** desde un Excel o un CSV, o a mano, mes por mes. El archivo puede ser la matriz de los anexos del DANE (meses en filas y años en columnas) o una tabla con el año y el mes (o una fecha) y el índice, y antes de guardar se ve lo que se leyó. Ningún conector lee el IPC: el del DANE lee el ICOCED (decisión 75). El factor de cada mes es IPC(base) / IPC(mes), con la base a elegir (por defecto, el último mes cargado). Un mes posterior al último IPC usa el último publicado, y la pantalla lo avisa; un mes anterior al primero no se puede deflactar y queda fuera. Las variaciones del IPC se guardan en porcentaje, como las del ICOCED. Si el índice salta más del 20 % de un mes al siguiente, la vista previa avisa que el archivo puede mezclar dos bases.
+
+### Tablero (§13)
+
+97. **Todo el tablero se calcula en el Worker** sobre los agregados por insumo, ciudad y mes, y solo pinta la última consulta pedida. Trae las nueve gráficas del §13 y la comparación de dos fechas o dos cortes. Un clic en una ciudad, una categoría o un insumo filtra todo el tablero y deja una miga para volver, y arrastrar sobre la gráfica resumen elige el periodo. Cada gráfica sale en PNG, SVG o PDF y se ve en pantalla completa, y las vistas se guardan con nombre.
+98. **El mapa de ciudades es un esquema:** círculos ubicados por latitud y longitud, sin límites ni mapa de fondo. *Por qué:* funciona sin internet y no depende de un servicio de mapas.
+99. **La proyección usa el método de Holt sobre el logaritmo de las medianas mensuales.** En logaritmo, los precios crecen en proporción y la banda nunca baja de cero. Solo se proyecta con 12 meses seguidos de historia: un hueco de hasta dos meses se rellena con crecimiento constante, y con uno más largo solo cuenta el último tramo. Los parámetros α y β se eligen con el menor error al proyectar un mes adelante, y la banda del 95 % sale de la varianza del modelo. El horizonte va de 3 a 6 meses (6 por defecto). La proyección siempre lleva el rótulo «Proyección: no es un precio de mercado», y solo se ve en el tablero y en su PDF: no entra a la base, a los cortes ni a las exportaciones.
+
+### Registro por cambios
+
+100. **Un precio vale hasta la última vez que se vio.** Con el registro por cambios (decisión 74), una captura que repite el precio suma una vista a la observación que ya estaba, en vez de crear otra. La consolidación, el tablero, el comparador y las alertas cuentan esa observación hasta su última vista. La ventana de 45 días y la edad, que pesa en el recomendado y en la confianza, se miden desde esa fecha y no desde la primera captura. Al consolidar en una fecha pasada, un precio que se vio antes y después de ese día cuenta como visto ese día. *Por qué:* sin esto, un precio que una fuente repite cada semana envejecía y salía de la ventana aunque siguiera publicado.
+
+### Alertas (§12, módulo 07)
+
+101. **Alertas como en ARKEN, y el programa no envía nada por su cuenta.** Hay siete reglas de partida, una por cada condición de la §12: activas y sin destinatarios. No se borran, se desactivan, y el editor permite agregar más. Cada regla tiene destinatarios (usuarios del programa con correo o celular) y canales (correo o WhatsApp). La bandeja de salida arma el correo o el WhatsApp listo para abrir en la aplicación del equipo, como ARKEN, y al abrirlo queda marcado como enviado, con quién y cuándo. *Por qué:* una página no puede mandar correos ni mensajes de WhatsApp sin un servidor y sin credenciales de la empresa.
+102. **Ninguna alerta se repite.** Cada hallazgo tiene una clave: el insumo con su precio en una ciudad, la fuente con la fecha en que cayó o el mes de un índice. Una alerta lleva solo lo que su regla no avisó en los últimos 90 días, y una alerta igual no se repite dentro de 20 horas, como en ARKEN. La revisión corre 4 segundos después de un cambio en las observaciones, los cálculos, las fuentes, los índices o los parámetros, y cada 30 minutos mientras haya sesión. Si el motor está leyendo, espera a que termine. La insignia del menú cuenta las alertas nuevas. Se guardan hasta 1.000; si sobran, se van primero las resueltas más viejas.
+103. **Lo que vigila cada regla de partida:**
+     - una variación de más del 10 % en 30 días del precio recomendado, en la ciudad de referencia;
+     - insumos sin precio de mercado nuevo en 60 días, solo entre los que ya tuvieron alguno, para no avisar de los cientos de insumos del catálogo que nunca han tenido precio;
+     - una fuente caída o bloqueada;
+     - precios atípicos nuevos;
+     - un insumo agotado en dos fuentes o más, con las lecturas de los últimos 30 días;
+     - un dato nuevo del ICOCED o del IPC;
+     - un cambio en los parámetros laborales o tributarios.
+
+     **Una limitación:** la regla de agotados solo ve los productos que siguen publicando un precio, porque una tienda que muestra el producto sin precio no deja observación. Las alertas que solo vienen de la demostración van rotuladas DEMO y se borran con ella.
+
+### Comparador (§12, módulo 06)
+
+104. **Ciudades y fechas.** Se ven hasta 12 columnas de ciudades por fechas: hoy, hace 1, 3, 6, 12 o 24 meses, y una fecha elegida. «Hoy» es la base de precios tal como está. Una fecha pasada muestra el precio adoptado que regía ese día o, si no hay, lo que da la consolidación con las observaciones registradas hasta ese día, los factores regionales de ese día y los parámetros de hoy. *Por qué:* recalcular el pasado con la configuración de entonces exigiría guardar cada versión de la configuración; con la de hoy, las columnas se comparan entre sí. Las diferencias se calculan frente a una columna base, en pesos y en porcentaje; por defecto es la primera ciudad en la fecha más reciente. El resumen de cada columna es la media geométrica de los cocientes frente a la base, sobre los insumos con dato en las dos. La pantalla muestra hasta 600 filas; el Excel las trae todas.
+105. **Corte contra corte y fuente contra fuente.** Dos cortes se comparan con sus precios congelados, en una ciudad o en todas, con un umbral para resaltar las diferencias y un resumen por categoría ARKEN (media geométrica). Fuente contra fuente compara las observaciones válidas de los últimos 180 días; las promociones y los precios «desde» entran solo si la consolidación los incluye, y las referencias nunca. Hay dos formas:
+     - para un insumo, cada fuente frente a la mediana de todas;
+     - para dos fuentes, la mediana de cada una por insumo y ciudad, con la diferencia B − A.
+
+     Todo sale en Excel y en PDF.
+
+### Fletes y precio puesto en obra (§5 y §8.7)
+
+106. **La tabla de fletes** (**04 · Cotizaciones › Fletes**). Cada flete guarda el origen, el destino (un municipio y, si se quiere, una vereda), el vehículo, la forma de cobro, el precio, la fecha, la fuente y una nota. Los vehículos son la volqueta sencilla, el doble troque, el camión, la camioneta, la tractomula y el acarreo en mula. Se cobra por viaje (con lo que carga el vehículo en m³, toneladas o bultos), por m³·km (con la distancia), por tonelada o por bulto. De cada ruta, vehículo y forma de cobro cuenta el registro más reciente. Un flete que ya no vale se retira (sale de los cálculos y se puede reactivar), y el administrador puede eliminarlo.
+107. **Cómo se lleva un flete a la unidad del insumo**, sin adivinar:
+     - **por volumen**, solo lo que se compra por m³ (arenas, triturados y rellenos);
+     - **por peso**, lo que tiene una masa conocida: la del contenido de su unidad (el bulto de 50 kg) o el peso que se escriba en **Fletes › Pesos y ajustes** para lo que se compra por unidad (bloques y tejas, por ejemplo, con el dato de la ficha técnica del fabricante);
+     - **por bulto**, los bultos, y lo demás que tenga masa, a razón de un bulto de carga por cada 50 kg (se puede cambiar).
+
+     Si no se puede, el insumo queda sin flete y la pantalla dice por qué. Por defecto son voluminosos los grupos que nombra la §8.7: agregados, cementos, acero de refuerzo y estructural, mampostería, prefabricados y cubiertas (G01, G02, G05, G06, G07, G08 y G10). La lista se cambia en **Pesos y ajustes**.
+108. **El precio puesto en obra se arma así:** el precio de almacén, más el flete del vehículo más barato que lleva el insumo, más el acarreo en mula si la obra lo tiene (es el último tramo, así que se suma). El flete se suma tal como está en la tabla, sin agregarle IVA; si un transportador cobra IVA, el precio se escribe con él. La pantalla **Precio puesto en obra** deja quitar fletes y ver el resultado, y sale en Excel.
+109. **En el Excel para ARKEN, el flete va solo si se pide (§8.7).** En el paso 4 del asistente se marca «Precio puesto en obra» y se eligen la obra y sus fletes. El archivo lo declara de cuatro maneras:
+     - una fila de su encabezado, que ARKEN no lee como datos;
+     - un nombre que termina en «_puesto-en-obra_» y el nombre de la obra;
+     - tres columnas más en la hoja «Detalle»: el precio de almacén, el flete y el flete aplicado;
+     - la hoja «Notas», con los fletes usados y los voluminosos que van sin flete, con el motivo.
+
+     Los fletes de la demostración solo cuentan si se incluye la demostración, y si no queda ningún flete, el archivo no se guarda. ARKEN lo importa como cualquier otro: lo comprueba la ida y vuelta.
+
+## Hallazgos en ARKEN CONTROL (no se tocaron en las fases 1 a 4)
 
 - **El importador coincide con el prompt** (decisión 4): no hubo que corregir el contrato.
 - **Tres variables de color sin definir:** `--ink-2` (13 usos), `--ink-3` (9) y `--muted` (1), en la firma de los documentos y otros detalles. El navegador las ignora y esos textos toman el color heredado. ARKEN PRECIOS las cambia por `--steel` y `--slate` al copiar el CSS.

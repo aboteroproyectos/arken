@@ -2,7 +2,7 @@
 
 Observatorio de precios de insumos de obra en Colombia, app hermana de [ARKEN CONTROL](../README.md). Guarda cada precio con su fuente, su fecha, su ciudad y el texto donde apareció; calcula por insumo y ciudad un precio recomendado con su nivel de confianza, y entrega un Excel que ARKEN CONTROL importa sin tocarlo (**Módulo 04 › Exportar / importar… › Importar desde Excel**).
 
-**Estado:** Fase 3. Sobre el núcleo de la Fase 1, que funciona sin internet (cotizaciones, listas de precios en Excel, CSV o PDF y registros a mano), y el **Investigador IA** de la Fase 2, que busca precios publicados con la API de Claude, llegan el **motor de recolección**, que lee las fuentes que la empresa certifique, y las **apps** para Windows, macOS, Android e iOS, con un **servidor de recolección** opcional. En todos los casos, un precio entra solo si está escrito en lo que se leyó. El plan está en [PLAN.md](PLAN.md), las decisiones en [DECISIONES.md](DECISIONES.md) y lo que cambió en [CAMBIOS.md](CAMBIOS.md).
+**Estado:** Fase 4. Sobre el núcleo de la Fase 1, que funciona sin internet (cotizaciones, listas de precios en Excel, CSV o PDF y registros a mano), el **Investigador IA** de la Fase 2, que busca precios publicados con la API de Claude, y el **motor de recolección** de la Fase 3, que lee las fuentes que la empresa certifique desde las **apps** o un **servidor** opcional, llega la **analítica completa**: el tablero con el índice de costo de obra, canastas, pesos constantes y proyecciones rotuladas; las alertas; el comparador de ciudades, fechas, cortes y fuentes, y el **precio puesto en obra** con la tabla de fletes. El catálogo trae 1.052 insumos. En todos los casos, un precio entra solo si está escrito en lo que se leyó. El plan está en [PLAN.md](PLAN.md), las decisiones en [DECISIONES.md](DECISIONES.md) y lo que cambió en [CAMBIOS.md](CAMBIOS.md).
 
 ## Abrirlo
 
@@ -22,7 +22,7 @@ Cada cambio en `precios/` compila las apps en GitHub Actions:
 1. Abra la pestaña **Actions** y elija la última ejecución de «Compilar ARKEN PRECIOS» con marca verde (en un PR, también aparece al pie del PR, en los «checks»).
 2. Al final de la página, en **Artifacts**, descargue la de su plataforma (hay que haber iniciado sesión en GitHub).
 
-Cuando se publica una versión con la etiqueta `precios-vX.Y.Z` (por ejemplo `precios-v0.3.0`), los instaladores también quedan en **Releases**, sin necesidad de iniciar sesión. Las etiquetas `vX.Y.Z` siguen siendo de ARKEN CONTROL.
+Cuando se publica una versión con la etiqueta `precios-vX.Y.Z` (por ejemplo `precios-v0.4.0`), los instaladores también quedan en **Releases**, sin necesidad de iniciar sesión. Las etiquetas `vX.Y.Z` siguen siendo de ARKEN CONTROL.
 
 | Plataforma | Archivo | Cómo se instala |
 |---|---|---|
@@ -53,6 +53,8 @@ La app de escritorio es la que lee las fuentes. La del celular sirve para consul
 4. Revise la lista: los insumos que ya existen salen como «Ya existe». Pulse **Sobrescribir todos los que coinciden**, luego **Importar** y confirme.
 
 Al sobrescribir, ARKEN cambia solo el precio: la unidad y la categoría quedan iguales. Para que los códigos coincidan con los de un proyecto, exporte en ARKEN la lista maestra (**Módulo 04 › Excel — Lista maestra**) e impórtela en **09 · Catálogo y equivalencias › Lista maestra de ARKEN**.
+
+**Precio puesto en obra:** registre los fletes hasta la obra en **04 · Cotizaciones › Fletes** y, en el paso 4 del asistente, marque «Precio puesto en obra» y elija la obra. Los insumos voluminosos (agregados, cementos, acero, mampostería, prefabricados y cubiertas) llevan su precio de almacén más el flete. El archivo lo declara en su encabezado, en su nombre y en la hoja «Notas», que lista los fletes usados y los voluminosos que van sin flete. ARKEN lo importa igual que cualquier otro.
 
 ## Fuentes automáticas (motor de recolección)
 
@@ -94,16 +96,16 @@ Es opcional y se paga con su propia cuenta de Anthropic. Por cada insumo y ciuda
 
 | | Módulo | Para qué |
 |---|---|---|
-| 00 | Tablero | Índice de la canasta, evolución, comparación entre ciudades, mayores alzas y bajas, con filtros de fechas, ciudades y categorías. |
+| 00 | Tablero | Índice de costo de obra (Jevons y Laspeyres) con canastas tipo, del presupuesto de ARKEN o propias; las nueve gráficas del §13, la proyección rotulada y la comparación de dos fechas o dos cortes. Un clic filtra todo, se arrastra para elegir el periodo, cada gráfica sale en PNG, SVG o PDF y las vistas se guardan. Pesos corrientes o constantes con el IPC. |
 | 01 | Base de precios | Precio recomendado por insumo y ciudad, con su confianza; un clic lleva a las observaciones que lo sostienen. Cortes con fecha. La ficha de cada insumo tiene sus vínculos de producto y «Actualizar este insumo ahora», también con el Investigador IA. |
 | 02 | Actualizar precios | Recalcula un alcance (todo, categorías o insumos) y muestra el antes y el después. Antes puede leer las fuentes certificadas con sus conectores y buscar con el Investigador IA: vista previa, avance por fuente, pausa y cancelación, y la bandeja **Revisar hallazgos**. **Programación** de las actualizaciones y paquetes del servidor. |
-| 03 | Fuentes | Fuentes con su tipo, confiabilidad, salud y revisión legal; certificación, prueba técnica y activación de las que se leen solas; **fuentes propuestas** por el Investigador IA, que nunca se activan solas, e **Índices (ICOCED)**. |
-| 04 | Cotizaciones | Cotizaciones, precios a mano, listas de precios (Excel, CSV o PDF) y solicitudes de cotización, siempre con revisión antes de guardar. |
+| 03 | Fuentes | Fuentes con su tipo, confiabilidad, salud y revisión legal; certificación, prueba técnica y activación de las que se leen solas; **fuentes propuestas** por el Investigador IA, que nunca se activan solas, e **Índices (ICOCED e IPC)**, donde se carga el IPC del DANE desde su archivo o a mano. |
+| 04 | Cotizaciones | Cotizaciones, precios a mano, listas de precios (Excel, CSV o PDF) y solicitudes de cotización, siempre con revisión antes de guardar. **Fletes:** la tabla de fletes hasta cada obra, el precio puesto en obra y el peso de lo que se compra por unidad. |
 | 05 | Mano de obra | Oficios por ciudad, calculadora del costo empresa con el desglose a la vista, cuadrillas y parámetros laborales con vigencia. |
-| 06 | Comparador | Entre ciudades, entre cortes y entre fuentes. |
-| 07 | Alertas | Llegan en la Fase 4. |
+| 06 | Comparador | Ciudades y fechas lado a lado frente a una columna base, corte contra corte y fuente contra fuente, en Excel y PDF. |
+| 07 | Alertas | Siete reglas de partida y las que se creen, con destinatarios por correo o WhatsApp; bandeja de alertas y bandeja de salida, que abre el correo o WhatsApp con el texto listo, como ARKEN. |
 | 08 | Exportar e imprimir | Excel para ARKEN, Excel de análisis, PDF e impresión (completos o por categorías), paquete de precios, archivo de intercambio y respaldo. |
-| 09 | Catálogo y equivalencias | 884 insumos (los 336 de ARKEN y 548 nuevos), grupos y categorías, equivalencias con ARKEN, lista maestra y bandeja de nuevos insumos (también los que encuentra el Investigador IA). |
+| 09 | Catálogo y equivalencias | 1.052 insumos (los 336 de ARKEN y 716 nuevos), grupos y categorías, equivalencias con ARKEN, lista maestra y bandeja de nuevos insumos (también los que encuentra el Investigador IA). |
 | 10 | Configuración | Empresa, ciudades, consolidación, IVA, parámetros laborales, apariencia (tema y densidad), Investigador IA (clave, modelo, tope de gasto y sitios) y **Motor y servidor** (correo de contacto, topes de lectura y servidor de recolección). |
 | 11 | Ayuda | Cómo funciona cada parte. |
 
@@ -125,14 +127,15 @@ Ninguna prueba lee sitios reales ni usa una clave real: los sitios se simulan co
 | Prueba | Qué comprueba |
 |---|---|
 | `verificar-sin-datos` | El HTML del programa no trae datos de la empresa ni claves. |
-| `prueba:unitarias` | Lector de precios (60 formatos), unidades, IVA y AIU, estadísticos y confianza, emparejamiento, calculadora laboral contra el ejemplo hecho a mano, validador del Excel para ARKEN, escape de textos y claves, y el tablero con 50.000 observaciones. |
+| `prueba:unitarias` | Lector de precios (60 formatos), unidades, IVA y AIU, estadísticos y confianza, emparejamiento, calculadora laboral contra el ejemplo hecho a mano, validador del Excel para ARKEN, escape de textos y claves, el tablero con 50.000 observaciones, índices Jevons y Laspeyres con ejemplos hechos a mano, lectura del IPC, pesos constantes, proyección y fletes. |
 | `prueba:investigador` | El Investigador IA con la API de Claude simulada: la verificación literal, la solicitud, las pausas, los errores, el costo, el tope y el destino de cada hallazgo; y, en Chromium, la configuración y la clave cifrada, una búsqueda desde el Módulo 02, las bandejas, la ficha y que una base anterior se actualice sin perder nada. |
 | `prueba:motor` | El motor con sitios de prueba: robots.txt, agente con contacto, pausas, reintentos, caché, bloqueos que no se evaden, salud de fuentes, lectores de HTML, Excel y PDF, los seis conectores certificados y los cinco genéricos. |
 | `prueba:recoleccion` | El plan del motor, la programación en hora de Colombia, el reparto de lo leído (el programa vuelve a verificar cada precio), los índices y los paquetes del servidor. |
 | `prueba:motor-navegador` | El motor dentro del programa, en Chromium: certificar, probar, activar y leer las seis fuentes desde los módulos 02, 03 y 10, revisar lo que traen, una segunda lectura sin duplicados, un motor alterado que no logra meter un precio inventado y un paquete alterado que no entra. |
 | `prueba:servidor` | El servidor de recolección de verdad en un puerto local: token, lecturas, programación, paquetes con su hash y el programa conectado a él. |
-| `prueba:ida-y-vuelta` | El Excel generado se importa en el `programa/ARKEN_CONTROL.html` real de este repositorio: todos los de la semilla salen «Ya existe» y al sobrescribir solo cambia el precio. |
+| `prueba:ida-y-vuelta` | El Excel generado se importa en el `programa/ARKEN_CONTROL.html` real de este repositorio: todos los de la semilla salen «Ya existe» y al sobrescribir solo cambia el precio, también con precio puesto en obra. |
 | `prueba:humo` | Recorre todos los módulos en Chromium: captura de precios por la interfaz, demostración, tablero, exportaciones, impresión, sin conexión, temas, densidades y 360 px. |
+| `prueba:analitica` | En Chromium, con 14 meses de demostración: el catálogo, el tablero completo y su tiempo, el IPC cargado desde un archivo, las canastas (también la del presupuesto real de ARKEN), las alertas automáticas, el comparador con sus Excel y PDF, los fletes, el precio puesto en obra y su Excel para ARKEN, y 360 px. |
 | `prueba:app` | La capa de las apps en Chromium, sobre la carpeta `www/` que arma la misma prueba: copia interna, bóveda, Android simulado y la política de seguridad de contenido. |
 
 El SDK de Anthropic que va dentro del programa se rehace desde versiones fijas y se compara con el del programa:

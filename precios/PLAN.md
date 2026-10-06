@@ -24,7 +24,7 @@ precios/
   herramientas/                 preparar-web.mjs (arma www/ para las apps), verificar-sin-datos.mjs, armar-sdk.mjs
   herramientas/sdk/             versiones fijas del SDK de Anthropic y de esbuild
   pruebas/                      unitarias, Investigador IA, motor, recolección, motor en el programa, servidor,
-                                ida y vuelta con ARKEN CONTROL, humo, capa de la app y app de escritorio empacada
+                                ida y vuelta con ARKEN CONTROL, humo, analítica, capa de la app y app de escritorio empacada
   pruebas/fixtures/motor/       páginas de prueba con la forma de los sitios reales y datos inventados
   PLAN.md  DECISIONES.md  CAMBIOS.md  GUIA_DE_PRUEBA.md  README.md
 .github/workflows/precios.yml            pruebas de ARKEN PRECIOS en cada cambio
@@ -38,6 +38,8 @@ precios/
 Versión 2 (Fase 2): `hallazgos` (lo que encontró el Investigador IA, con su verificación y su destino), `investigaciones` (cada búsqueda de un insumo en una ciudad, con su costo) y `secretos` (la clave de API cifrada, que no sale del equipo ni entra en los respaldos).
 
 Versión 3 (Fase 3): `indices` (el ICOCED del DANE: número índice y variaciones por dominio geográfico y grupo de costos, con su cita). Lo que traen los conectores entra a `observaciones`, `hallazgos` y `vinculosProducto`, y cada lectura queda en `ejecuciones`.
+
+Fase 4, sin cambiar de versión: `indices` guarda también el IPC (cargado de un archivo o a mano); `fletes` guarda la tabla de fletes; `alertas`, las reglas y las alertas con su bandeja de salida; `configuracion`, las canastas propias y los ajustes del flete, y cada insumo puede llevar su peso por unidad (`pesoKg`) para el flete.
 
 ## Fuentes candidatas (todas por certificar)
 
@@ -60,4 +62,4 @@ Las que tienen conector certificado en la Fase 3 son Easy, La Casita Roja, Aldia
 1. **Núcleo sin internet** (hecha): sistema visual de ARKEN, ingreso y roles, catálogo (336 de ARKEN + más de 300 nuevos), ciudades, equivalencias e importación de la lista maestra de ARKEN, cotizaciones y precios manuales, listas históricas, consolidación y cortes, Base de precios, mano de obra, Excel para ARKEN con su validador, Excel de análisis, PDF e impresión, respaldos, tablero básico y modo demostración rotulado.
 2. **Investigador IA** (hecha): búsqueda abierta con verificación literal, bandejas de revisión, vínculos de producto, centro de actualización completo (alcances, progreso y resultados) y control de costo.
 3. **Motor y escritorio** (hecha): motor de recolección con conectores certificados (tienda en línea, entidad pública en Excel, datos abiertos e ICOCED), certificación de fuentes con revisión legal y prueba técnica, salud de fuentes, actualizaciones programadas, app de escritorio (Windows, macOS y Linux) y del celular (Android e iOS), servidor opcional y paquetes de precios.
-4. Analítica completa, alertas, comparador avanzado, precio puesto en obra y catálogo de más de 1.000 insumos.
+4. **Analítica completa** (hecha): tablero completo del §13 con sus nueve gráficas, índices Jevons y Laspeyres, canastas (tipo, del presupuesto de ARKEN y propias), pesos constantes con el IPC y proyección de Holt rotulada; alertas con reglas, bandeja y bandeja de salida; comparador de ciudades y fechas, cortes y fuentes; tabla de fletes y precio puesto en obra, también en el Excel para ARKEN; catálogo de 1.052 insumos.
