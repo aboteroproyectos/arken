@@ -3,9 +3,10 @@ name: ARKEN PRECIOS
 # Pruebas de ARKEN PRECIOS (carpeta precios/): el núcleo de cálculo, el Investigador IA con la
 # API de Claude simulada (nunca con una clave real), el motor de recolección y sus conectores con
 # sitios de prueba locales (nunca los sitios reales), el servidor opcional, la ida y vuelta con el
-# programa/ARKEN_CONTROL.html real de este repositorio, la prueba de humo y la capa de las apps en
-# Chromium. También se comprueba que el SDK de Anthropic que va dentro del programa es el oficial,
-# sin cambios. Corren también cuando cambia ARKEN CONTROL, porque el contrato de importación vive
+# programa/ARKEN_CONTROL.html real de este repositorio, la prueba de humo, la analítica completa
+# (tablero, alertas, comparador y precio puesto en obra) y la capa de las apps en Chromium.
+# También se comprueba que el SDK de Anthropic que va dentro del programa es el oficial, sin
+# cambios. Corren también cuando cambia ARKEN CONTROL, porque el contrato de importación vive
 # allí. Las apps se compilan y la de escritorio se prueba empacada en compilar-precios.yml.
 
 on:
@@ -74,5 +75,7 @@ jobs:
         run: npm run prueba:ida-y-vuelta
       - name: Prueba de humo en Chromium (módulos, exportaciones, temas, densidades y 360 px)
         run: npm run prueba:humo
+      - name: Analítica completa (tablero, IPC, canastas, alertas, comparador y precio puesto en obra)
+        run: npm run prueba:analitica
       - name: Capa de las apps (copia interna, bóveda, Android simulado) en Chromium
         run: npm run prueba:app

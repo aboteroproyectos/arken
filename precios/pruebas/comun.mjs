@@ -92,12 +92,18 @@ export async function abrirPrecios(pagina, url) {
   await pagina.waitForFunction(() => document.documentElement.dataset.listo === '1', null, { timeout: 60000 });
   await pagina.waitForFunction(() => !document.getElementById('splash'), null, { timeout: 30000 });
 }
+/** Los dos programas enfocan la primera casilla del cambio de contraseña unos milisegundos después de
+    abrir el cuadro; si se escribe antes, ese foco tardío se lleva lo que iba en la segunda casilla. */
+async function esperarFocoCcA(pagina) {
+  await pagina.waitForFunction(() => document.activeElement && document.activeElement.id === 'ccA', null, { timeout: 5000 });
+}
 export async function ingresarPrecios(pagina, usuario, clave, nuevaClave) {
   await pagina.fill('#gUser', usuario);
   await pagina.fill('#gPass', clave);
   await pagina.click('#gBtn');
   if (nuevaClave) {
     await pagina.waitForSelector('#ccA', { timeout: 30000 });
+    await esperarFocoCcA(pagina);
     await pagina.fill('#ccA', nuevaClave);
     await pagina.fill('#ccB', nuevaClave);
     await pagina.click('text=Guardar contraseña');
@@ -125,6 +131,7 @@ export async function ingresarArken(pagina, usuario, clave, nuevaClave) {
   await pagina.click('#gBtn');
   if (nuevaClave) {
     await pagina.waitForSelector('#ccA', { timeout: 30000 });
+    await esperarFocoCcA(pagina);
     await pagina.fill('#ccA', nuevaClave);
     await pagina.fill('#ccB', nuevaClave);
     await pagina.click('text=Cambiar y continuar');

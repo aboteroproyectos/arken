@@ -9,6 +9,8 @@
 //   · emparejamiento · calculadora laboral contra el ejemplo hecho a mano (criterio 10)
 //   · contrato con ARKEN (validador) · escape, enlaces y claves (criterio 8)
 //   · SHA-256 y PBKDF2 frente a Node · agregados del tablero con 50.000 observaciones
+//   · registro por cambios · índices Jevons y Laspeyres, IPC, pesos constantes y proyección (Fase 4)
+//   · fletes y precio puesto en obra, también en el libro para ARKEN (Fase 4)
 //
 // Uso: npm run prueba:unitarias
 
@@ -173,6 +175,21 @@ ok(r.recomendado === null && r.confianza === 'sin dato', 'sin observaciones no h
 const val = N.Observaciones.validar({ id: 'z', insumoId: 'i1', ciudad: '05001', fechaCaptura: '2026-10-02', precioConIva: 250 }, obs);
 ok(val.estado === 'atípica', 'un precio fuera del rango aprendido entra como atípico, sin borrarse');
 
+/* ── Registro por cambios (§6) ── */
+seccion('Registro por cambios: un precio vale hasta su última vista');
+const vieja = { id: 'rv', insumoId: 'i1', ciudad: '05001', fechaCaptura: '2026-06-24', fechaUltimaVista: '2026-09-27', precioConIva: 120, fuenteId: 'f9', tipoPrecio: 'lista', estado: 'válida', confianza: 0.8 };
+const sinVista = Object.assign({}, vieja, { fechaUltimaVista: '' });
+ok(N.Observaciones.vistaHasta(vieja, '2026-10-02') === '2026-09-27' && N.Observaciones.vistaHasta(vieja, '2026-08-01') === '2026-08-01' &&
+  N.Observaciones.vistaHasta(vieja, '2026-06-01') === null && N.Observaciones.vistaHasta(sinVista, '2026-10-02') === '2026-06-24',
+  'vistaHasta: la última vista, o la fecha pedida si es anterior; nada si se capturó después; sin otra vista, la captura');
+r = C.consolidar(insumo, '05001', '2026-10-02', [vieja], { ciudades });
+ok(r.recomendado === 120 && r.n === 1 && r.edadMediana === 5 && r.ultimaObservacion.fecha === '2026-09-27',
+  'capturado hace 100 días y visto otra vez hace 5: sigue en la ventana de 45 días y su edad se cuenta desde la última vista');
+r = C.consolidar(insumo, '05001', '2026-10-02', [sinVista], { ciudades });
+ok(r.recomendado === null && r.confianza === 'sin dato' && r.ultimaObservacion.fecha === '2026-06-24', 'sin esa vista, el mismo precio queda fuera de la ventana');
+r = C.consolidar(insumo, '05001', '2026-07-15', [vieja], { ciudades });
+ok(r.recomendado === 120 && r.edadMediana === 0, 'consolidado en una fecha pasada, el precio cuenta como visto ese día (la serie queda completa)');
+
 /* ── Emparejamiento (§9) ── */
 seccion('Emparejamiento');
 const catalogo = [
@@ -247,6 +264,30 @@ const lm = K.leerListaMaestra([['ARKEN CONTROL — Empresa'], ['Lista maestra'],
 ok(lm.ok && lm.filas.length === 1 && lm.filas[0].codigo === 'MAT-0001' && lm.filas[0].valor === 335000, 'lee la lista maestra que exporta ARKEN (encabezado por nombre)');
 const abc = K.abc([{ descripcion: 'a', valor: 800 }, { descripcion: 'b', valor: 150 }, { descripcion: 'c', valor: 50 }]);
 ok(abc.map((x) => x.clase).join('') === 'ABC', 'análisis ABC por valor presupuestado (80 % · 95 %)');
+// Precio puesto en obra (§8.7): el archivo lo declara y trae el detalle del flete
+const libroObra = K.armarLibro({ ciudadNombre: 'Medellín', corteNombre: 'Corte 2026-10', corteFecha: '2026-10-01', precioExportado: 'Recomendado', redondeo: 'ninguno',
+  usuario: 'admin', incluyeDemo: false, excluidos: [],
+  puestoEnObra: { nombre: 'Rionegro · Vereda de prueba', fletes: ['Camión · viaje de 8 toneladas · $ 520,000 · desde Medellín · 20/09/2026', 'Acarreo en mula · por bulto · $ 6,500 · desde Fin de la vía · 20/09/2026'],
+    grupos: ['G02', 'G07'], kgPorBulto: 50, conFlete: 1, sinFlete: [{ descripcion: 'Bloque de prueba', motivo: 'No se sabe cuánto pesa una unidad (UN)' }] },
+  renglones: [
+    { categoria: 'Materiales', unidad: 'BTO', descripcion: 'Cemento gris tipo I x 50 kg', precioArken: 43250.5, precioAlmacenArken: 33500.5, fleteArken: 9750,
+      fleteDetalle: 'Camión · viaje de 8 toneladas + Acarreo en mula · por bulto', codigoInterno: 'G02-0001', factor: 1, unidadCanonica: 'BTO', tarifaIva: 19, n: 6,
+      minimo: 32000, mediana: 33500, maximo: 34900, confianza: 'alta', fuentes: [], enlaces: [] },
+    { categoria: 'Ferretería', unidad: 'LB', descripcion: 'Clavo de acero 2"', precioArken: 6400, codigoInterno: 'G13-0001', factor: 1, unidadCanonica: 'LB', tarifaIva: 19, n: 4,
+      minimo: 6000, mediana: 6400, maximo: 6900, confianza: 'media', fuentes: [], enlaces: [] }] });
+const infoObra = libroObra.hojas[0].filas.slice(0, libroObra.hojas[0].filas.findIndex((f) => f[0] === 'Categoría'));
+ok(infoObra.some((f) => /^PRECIO PUESTO EN OBRA en Rionegro · Vereda de prueba: 1 insumos voluminosos/.test(f[0])) && infoObra.every((f) => !/categor/i.test(N.normaliza(f[0]))),
+  'con precio puesto en obra, el encabezado del archivo lo declara (y sigue sin decir «categor»)');
+ok(K.validar(libroObra.hojas[0].filas, libroObra.esperado, lista).ok && libroObra.esperado[0].precio === 43250.5 && libroObra.hojas[0].filas.length === infoObra.length + 3,
+  'el libro puesto en obra pasa la validación de ARKEN con el precio de almacén más el flete');
+const detObra = libroObra.hojas[1].filas;
+ok(detObra[0].length === 24 && detObra[0][23] === 'Flete aplicado' && detObra[1].slice(21).join('|') === '33500.5|9750|Camión · viaje de 8 toneladas + Acarreo en mula · por bulto' &&
+  detObra[2].slice(21).join('|') === '6400|0|' && libro.hojas[1].filas[0].length === 21,
+  'la hoja «Detalle» agrega precio de almacén, flete y flete aplicado solo cuando se pide');
+const notasObra = libroObra.hojas[2].filas.map((f) => f[0]).join('\n');
+ok(/Fletes usados \(2\)/.test(notasObra) && /van SIN flete.*\(1\)/.test(notasObra) && /No se sabe cuánto pesa una unidad \(UN\) \(1\):\n   Bloque de prueba/.test(notasObra),
+  'las notas listan los fletes usados y los voluminosos que van sin flete, con el motivo');
+ok(/_puesto-en-obra_Rionegro/.test(libroObra.nombreArchivo) && !/puesto-en-obra/.test(libro.nombreArchivo), 'el nombre del archivo dice que es puesto en obra, y en qué obra');
 
 /* ── Seguridad (§16, criterio 8) ── */
 seccion('Escape, enlaces y claves');
@@ -299,13 +340,116 @@ const indTarde = N.Agregados.indice(ag, ids, ciudadesT.slice(0, 4), ['2023-11', 
 ok(indTarde[0].indice === null && indTarde[1].indice === null && indTarde[2].indice === 100 && indTarde[3].indice > 0,
   'si los datos empiezan a mitad del periodo, el índice toma como base el primer mes con datos');
 
+/* ── Índices, pesos constantes y proyección (§13) ── */
+seccion('Índices, IPC y proyección');
+const A = N.Analitica;
+const mesesI = ['2026-01', '2026-02', '2026-03'];
+const valsI = new Map([
+  ['a', new Map([['2026-01', 100], ['2026-02', 110], ['2026-03', 121]])],
+  ['b', new Map([['2026-01', 50], ['2026-02', 50], ['2026-03', 60]])],
+]);
+const jev = A.indicesEncadenados(valsI, () => 'k', mesesI).get('k');
+ok(jev.base === '2026-01' && jev.puntos[0].indice === 100 && cerca(jev.puntos[1].indice, 100 * Math.sqrt(1.1), 1e-9) && cerca(jev.puntos[2].indice, 100 * Math.sqrt(1.1) * Math.sqrt(1.32), 1e-9),
+  'Jevons encadenado: cada eslabón es la media geométrica de los relativos del mes');
+const porClave = A.indicesEncadenados(valsI, (id) => (id === 'a' ? 'x' : 'y'), mesesI);
+const las = A.laspeyres(porClave, { x: 3, y: 1 }, mesesI);
+ok(cerca(las.puntos[1].indice, 107.5, 1e-9) && cerca(las.puntos[2].indice, 120.75, 1e-9) && las.puntos[2].cobertura === 1,
+  'Laspeyres encadenado con pesos 3 y 1: igual al de base fija (107,5 y 120,75) cuando todas las claves tienen dato');
+const valsHueco = new Map([['a', new Map([['2026-01', 100], ['2026-03', 121]])], ['b', new Map([['2026-01', 50], ['2026-02', 55], ['2026-03', 60.5]])]]);
+const hueco = A.indicesEncadenados(valsHueco, () => 'k', mesesI).get('k');
+ok(cerca(hueco.puntos[1].indice, 110, 1e-9) && cerca(hueco.puntos[2].indice, 121, 1e-9), 'un insumo sin dato un mes se imputa con su clase y no salta el índice cuando vuelve');
+ok(A.CANASTAS_TIPO.length === 3 && A.CANASTAS_TIPO.every((c) => cerca(Object.values(c.pesos).reduce((s, w) => s + w, 0), 100, 1e-9)),
+  'las tres canastas tipo suman 100 en sus pesos por grupo');
+const pe = A.pesosElementales({ i1: { g: 'G01', a: 'Materiales' }, i2: { g: 'G01', a: 'Materiales' }, i3: { g: 'G01', a: 'Equipo' }, i4: { g: 'G02', a: 'Materiales' } }, { pesos: { G01: 3, G02: 1 } });
+ok(pe['G01|Materiales'] === 2 && pe['G01|Equipo'] === 1 && pe['G02|Materiales'] === 1, 'el peso de un grupo se reparte entre sus categorías según cuántos insumos tiene cada una');
+ok(A.numeroIndice('144,62') === 144.62 && A.numeroIndice('144.62') === 144.62 && A.numeroIndice('1.234,5') === 1234.5 && A.numeroIndice('abc') === null,
+  'número índice con coma o punto decimal');
+ok(['2025-01', '2025-01-31', '01/2025', '31/01/2025', 'ene-25', 'Enero de 2025', 'Ene. 2025', 45688].every((v) => A.mesDeCelda(v) === '2025-01') && A.mesDeCelda('13/2025') === '',
+  'el mes se lee en ocho formatos, también un serial de Excel');
+const ipcMatriz = A.leerIpc([['Índice (sintético, solo para la prueba)'], ['Mes', 2024, 2025], ['Enero', '100,00', '104,00'], ['Febrero', '101,00', '105,50'], ['Total', '', '']]);
+ok(ipcMatriz.forma.startsWith('matriz') && ipcMatriz.filas.map((x) => x.mes + '=' + x.indice).join(' ') === '2024-01=100 2024-02=101 2025-01=104 2025-02=105.5' && !ipcMatriz.avisos.length,
+  'IPC en matriz (meses en filas, años en columnas), como los anexos del DANE');
+const ipcLarga = A.leerIpc([['Año', 'Mes', 'Índice'], [2025, 1, 104], [2025, 'febrero', '105,5'], [2025, 3, 'x'], [2025, 4, 140]]);
+ok(ipcLarga.forma === 'larga (año y mes)' && ipcLarga.filas.length === 3 && ipcLarga.avisos.some((t) => /mezcla dos bases/.test(t)) === false,
+  'IPC en tabla larga: año y mes en columnas aparte; una celda que no es número se omite');
+ok(A.leerIpc([['Fecha', 'Índice'], ['2025-01', 100], ['2025-02', 130]]).avisos.some((t) => /mezcla dos bases/.test(t)) && !A.leerIpc([['nada']]).filas.length,
+  'un salto de más del 20 % en un mes se avisa; una hoja sin IPC no se lee');
+const df = A.deflactor([{ mes: '2025-01', indice: 100 }, { mes: '2025-02', indice: 102 }, { mes: '2025-03', indice: 105 }], ['2024-12', '2025-01', '2025-02', '2025-03', '2025-04'], '2025-03');
+ok(df.ok && df.base === '2025-03' && df.factores.get('2024-12') === null && cerca(df.factores.get('2025-01'), 1.05, 1e-12) && cerca(df.factores.get('2025-02'), 105 / 102, 1e-12) &&
+  df.factores.get('2025-04') === 1 && df.arrastrados.join() === '2025-04' && df.sinIpc.join() === '2024-12' && !A.deflactor([], ['2025-01']).ok,
+  'pesos constantes: IPC(base)/IPC(mes); después del último IPC se usa el último, antes del primero no se deflacta');
+const tramoI = A.tramoContinuo([{ mes: '2024-01', valor: 50 }, { mes: '2024-06', valor: 60 }, { mes: '2025-01', valor: 100 }, { mes: '2025-04', valor: 133.1 }]);
+ok(tramoI.puntos.map((p) => p.mes).join() === '2025-01,2025-02,2025-03,2025-04' && tramoI.interpolados === 2 && cerca(tramoI.puntos[1].valor, 110, 1e-9),
+  'para proyectar se toma el último tramo sin huecos de más de dos meses; los huecos se interpolan con crecimiento constante');
+const serieP = (n, f) => Array.from({ length: n }, (_, t) => ({ mes: N.sumaMeses('2024-01', t), valor: f(t) }));
+const corta = A.proyectar(serieP(11, (t) => 1000 * Math.pow(1.01, t)));
+ok(!corta.ok && /12 meses/.test(corta.motivo) && corta.rotulo === A.ROTULO_PROYECCION, 'con menos de 12 meses de historia no se proyecta, y se dice por qué');
+const exacta = A.proyectar(serieP(24, (t) => 1000 * Math.pow(1.01, t)));
+ok(exacta.ok && exacta.puntos.length === 6 && exacta.puntos[0].mes === '2026-01' && cerca(exacta.puntos[0].valor, 1000 * Math.pow(1.01, 24), 1e-6) &&
+  cerca(exacta.puntos[5].valor, 1000 * Math.pow(1.01, 29), 1e-6) && A.proyectar(serieP(24, (t) => 1000 + t), 3).puntos.length === 3,
+  'Holt sobre el logaritmo: una serie que crece 1 % al mes se proyecta con ese 1 %, de 3 a 6 meses');
+const ruidosa = A.proyectar(serieP(30, (t) => 1000 * Math.pow(1.008, t) * (1 + 0.03 * Math.sin(t * 1.7))), 9);
+ok(ruidosa.ok && ruidosa.horizonte === 6 && ruidosa.puntos.every((p, k, l) => p.bajo < p.valor && p.valor < p.alto && (!k || p.alto - p.bajo > l[k - 1].alto - l[k - 1].bajo)) &&
+  ruidosa.rotulo === 'Proyección: no es un precio de mercado', 'la banda del 95 % rodea la proyección y se abre con el horizonte; siempre va rotulada');
+
+/* ── Fletes y precio puesto en obra (§5 y §8.7) ── */
+seccion('Fletes y precio puesto en obra');
+{
+const FL = N.Fletes;
+const arena = { id: 'ar', descripcion: 'Arena de pega', unidad: 'M3', grupo: 'G01' };
+const cemento = { id: 'ce', descripcion: 'Cemento gris', unidad: 'BTO', grupo: 'G02', contenido: { cantidad: 50, unidad: 'KG' } };
+const acero = { id: 'ac', descripcion: 'Acero de refuerzo', unidad: 'KG', grupo: 'G05' };
+const bloque = { id: 'bl', descripcion: 'Bloque de concreto', unidad: 'UN', grupo: 'G07' };
+const pintura = { id: 'pi', descripcion: 'Pintura', unidad: 'GL', grupo: 'G25' };
+let nFlete = 0;
+const flete = (vehiculo, unidad, precio, extra) => Object.assign({ id: 'fl' + ++nFlete, origen: 'Medellín', destino: 'Rionegro', vereda: '', vehiculo, unidad, precio,
+  capacidad: null, capacidadUnidad: '', distanciaKm: null, fecha: '2026-09-20', fuente: 'Transportador de prueba', creado: '2026-09-20T10:00:00-05:00' }, extra);
+const volq = flete('volqueta sencilla', 'viaje', 380000, { capacidad: 6, capacidadUnidad: 'm3' });
+const cam = flete('camión', 'viaje', 520000, { capacidad: 8, capacidadUnidad: 't' });
+const mula = flete('acarreo en mula', 'bulto', 6500, { origen: 'Fin de la vía' });
+const porKm = flete('volqueta sencilla', 'm3km', 3500, { distanciaKm: 25 });
+const porTon = flete('camión', 'tonelada', 70000);
+ok(FL.esVoluminoso(arena) && FL.esVoluminoso(cemento) && FL.esVoluminoso(bloque) && !FL.esVoluminoso(pintura) && FL.esVoluminoso(pintura, { grupos: ['G25'] }),
+  'son voluminosos los grupos de agregados, cemento, acero, mampostería, prefabricados y cubiertas (se puede cambiar)');
+const v = (ins, f, P) => { const x = FL.porUnidad(ins, f, P); return x ? Math.round(x.valor * 1000) / 1000 + ' ' + x.base : null; };
+ok(v(arena, volq) === '63333.333 volumen' && v(acero, volq) === null && v(arena, porKm) === '87500 volumen',
+  'volqueta de 6 m³ a $ 380.000: $ 63.333,333 por m³ de arena; por m³·km, precio × km; el acero no va por volumen');
+ok(v(cemento, cam) === '3250 peso' && v(acero, cam) === '65 peso' && v(cemento, porTon) === '3500 peso' && v(bloque, cam) === null &&
+  v(Object.assign({}, bloque, { pesoKg: 9 }), cam) === '585 peso',
+  'camión de 8 t a $ 520.000: $ 3.250 por bulto de 50 kg y $ 65 por kg; el bloque necesita su peso (con 9 kg, $ 585)');
+ok(v(cemento, mula) === '6500 bultos' && v(acero, mula) === '130 bultos' && v(arena, mula) === null && v(Object.assign({}, arena, { pesoKg: 1500 }), mula) === '195000 bultos' &&
+  v(acero, mula, { kgPorBulto: 40 }) === '162.5 bultos',
+  'mula por bulto: un bulto de cemento es un bulto; un kg de acero es 1/50 de bulto (el bulto de carga se puede cambiar)');
+const pi = FL.paraInsumo(cemento, [volq, cam, porTon, mula]);
+ok(pi.valor === 9750 && pi.vehiculo.flete === cam && pi.mula.flete === mula && FL.paraInsumo(arena, [volq, porKm]).vehiculo.flete === volq && FL.paraInsumo(pintura, [cam]) === null,
+  'puesto en obra: el vehículo más barato que lo lleva, más la mula del último tramo ($ 3.250 + $ 6.500)');
+ok(/escriba su peso/.test(FL.motivoSinFlete(bloque)) && /va por volumen \(escriba la masa de un m³/.test(FL.motivoSinFlete(arena)), 'si un voluminoso queda sin flete se dice por qué');
+ok(FL.tarifa(volq).valor === 380000 / 6 && FL.tarifa(volq).por === 'm³' && FL.tarifa(porKm).valor === 87500 && FL.tarifa(cam).por === 'tonelada' && FL.tarifa(mula).por === 'bulto',
+  'la tabla muestra cuánto sale cada m³, tonelada o bulto');
+ok(FL.validar({}).length === 6 && FL.validar(flete('camión', 'viaje', 520000)).some((t) => /lo que carga/.test(t)) &&
+  FL.validar(flete('volqueta sencilla', 'm3km', 3500)).some((t) => /kilómetros/.test(t)) && FL.validar(Object.assign({}, cam, { fecha: '2026-10-09' }), '2026-10-02').some((t) => /posterior/.test(t)) &&
+  FL.validar(cam, '2026-10-02').length === 0, 'un flete sin destino, vehículo, cobro, precio, fecha o fuente no se guarda; tampoco con fecha futura');
+const viejo = Object.assign({}, cam, { id: 'fl-viejo', precio: 500000, fecha: '2026-08-01' });
+const retirado = Object.assign({}, volq, { id: 'fl-ret', retirado: true });
+const vig = FL.vigentes([viejo, cam, mula, retirado, Object.assign({}, cam, { id: 'fl-otra', destino: 'Guarne' })], FL.claveDestino({ destino: 'RIONEGRO' }));
+ok(vig.length === 2 && vig[0] === cam && vig[1] === mula, 'de cada ruta, vehículo y cobro cuenta el registro más reciente; los retirados no cuentan; la mula va de último');
+const des = FL.destinos([cam, Object.assign({}, mula, { vereda: 'Vereda de prueba' }), Object.assign({}, cam, { id: 'x', destino: 'Medellin', esDemo: true }), Object.assign({}, cam, { id: 'y', destino: 'Medellín', esDemo: true })]);
+ok(des.length === 3 && des.map((d) => d.nombre).join(' | ') === 'Medellin | Rionegro | Rionegro · Vereda de prueba' && des[0].n === 2 && des[0].demo && !des[1].demo,
+  'cada obra es un municipio y, si se quiere, una vereda (sin importar tildes ni mayúsculas)');
+ok(FL.describir(Object.assign({}, cam, { esDemo: true })).replace(/\s/g, ' ') === 'Camión · viaje de 8 toneladas · $ 520,000 · desde Medellín · 20/09/2026 · DEMO', 'cada flete usado se describe en una línea');
+}
+
 /* ── Semilla (§9, §15 y Anexo A) ── */
 seccion('Semilla');
 const res = Semilla.resumen();
 ok(res.arken === 336 && res.nuevos >= 300, `${res.arken} insumos de ARKEN (Anexo A) y ${res.nuevos} nuevos (mínimo 300 en la Fase 1)`);
+ok(res.total > 1000, `${res.total} insumos en el catálogo semilla: más de 1.000 (Fase 4)`);
 const cat = Semilla.catalogo('2026-10-02T00:00:00-05:00');
 ok(cat.every((i) => N.CATEGORIAS_ARKEN.includes(i.categoriaArken)), 'cada insumo tiene una de las siete categorías de ARKEN');
 ok(new Set(cat.map((i) => i.codigo)).size === cat.length && new Set(cat.map((i) => N.normaliza(i.descripcion))).size === cat.length, 'códigos y descripciones sin repetir');
+ok(cat.every((i) => i.palabrasClave.every((t) => typeof t === 'string')), 'las palabras clave del catálogo son texto (también las de «Oficial constructor en guadua»)');
+ok(N.Emparejamiento.tokens('Oficial constructor valueOf toString').every((t) => typeof t === 'string') && N.Unidades.normalizar('constructor') === null &&
+  N.Unidades.dimension('constructor') === null, 'un texto externo con «constructor» o «valueOf» no devuelve propiedades heredadas de Object');
 const eqs = Semilla.equivalencias(cat, '2026-10-02T00:00:00-05:00');
 ok(eqs.length === 336 && eqs.every((e) => e.estado === 'exacta'), 'las 336 equivalencias con ARKEN vienen confirmadas, con la descripción literal');
 const refs = Semilla.observacionesReferencia(cat, '2026-10-02T00:00:00-05:00');

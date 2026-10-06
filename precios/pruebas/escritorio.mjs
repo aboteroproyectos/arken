@@ -12,9 +12,10 @@
 //     su robots.txt, revisa la redirección antes de seguirla, se identifica con el agente y el
 //     correo de contacto y no devuelve cookies; la fuente se prueba y se activa en su ficha y se
 //     lee desde el Módulo 02
-//   · los enlaces de afuera se abren en el navegador del sistema, nunca dentro de la app; un PDF
-//     que el programa abre en otra ventana se ofrece para guardar; y una segunda copia de la app no
-//     abre otra ventana sobre los mismos datos
+//   · los enlaces de afuera se abren en el navegador del sistema, nunca dentro de la app, y un
+//     correo de las alertas (mailto:) en el programa de correo; un PDF que el programa abre en
+//     otra ventana se ofrece para guardar; y una segunda copia de la app no abre otra ventana
+//     sobre los mismos datos
 //   · al cerrar, la copia interna, la copia del día y la bitácora de la lectura; al abrir otra vez
 //     los datos siguen; si el almacenamiento interno se pierde, la app los recupera de la copia
 //
@@ -545,6 +546,19 @@ try {
     }
   });
   if (desvio2) {
+    // «Enviar» un correo de la bandeja de salida de las alertas es un enlace mailto: sin ventana nueva
+    await h.bd(() => {
+      const a = document.createElement('a');
+      a.href = 'mailto:costos%40ejemplo.com?subject=ARKEN%20PRECIOS';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+    await new Promise((r) => setTimeout(r, 1000));
+    const correo = await app.evaluate(({ BrowserWindow }) => ({ url: BrowserWindow.getAllWindows()[0].webContents.getURL(), fuera: globalThis.__abiertas.slice() }));
+    m.ok(correo.url === 'app://precios/index.html' && correo.fuera.join() === 'mailto:costos%40ejemplo.com?subject=ARKEN%20PRECIOS',
+      'un correo de la bandeja de salida de las alertas se abre en el programa de correo del sistema', correo);
+    await app.evaluate(() => { globalThis.__abiertas = []; });
     await h.bd(() => {
       location.href = 'https://www.example.com/otra';
     });

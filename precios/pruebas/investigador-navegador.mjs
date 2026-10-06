@@ -156,7 +156,13 @@ async function migracion() {
     await Datos.fijarConfig('empresa', { razonSocial: 'Constructora de prueba S.A.S.' });
     const d = {};
     for (const a of Object.keys(esquema)) d[a] = await BD.todos(a);
-    return { d, obs: r.nuevas[0].id };
+    // Catálogo de la semilla anterior (884 insumos): sin los 168 que agregó la Fase 4, y un insumo
+    // propio de la empresa que ocupa el código del primero de ellos
+    const nuevos = Semilla.catalogo().slice(884);
+    const quitar = new Set(nuevos.map((i) => i.id));
+    d.insumos = d.insumos.filter((i) => !quitar.has(i.id)).concat([Object.assign({}, nuevos[0], { descripcion: 'Insumo propio de la empresa', origen: 'usuario', sinonimos: [] })]);
+    d.configuracion = d.configuracion.map((c) => (c.id === 'semillaVersion' ? Object.assign({}, c, { valor: '2026-10-02' }) : c));
+    return { d, obs: r.nuevas[0].id, propio: nuevos[0].id, nuevos: nuevos.length };
   }, ESQUEMA_V1);
   // La misma base, pero creada con el esquema de la versión 1
   await p.goto(srv.url('/__vacia.html'));
@@ -190,8 +196,24 @@ async function migracion() {
   }, volcado.obs);
   m.ok(antes === 1 && despues.version === 3 && despues.backend === 'indexeddb' && despues.nuevos && despues.cuenta === 0,
     'una base de la Fase 1 (versión 1) se actualiza a la versión 3: agrega hallazgos, búsquedas, secretos e índices', { antes, despues });
-  m.ok(despues.precio === 31500 && despues.empresa === 'Constructora de prueba S.A.S.' && despues.insumos === 884,
+  m.ok(despues.precio === 31500 && despues.empresa === 'Constructora de prueba S.A.S.' && despues.insumos === 885,
     'con la actualización no se pierde nada: el precio registrado, la empresa, el catálogo y la contraseña cambiada', despues);
+  // La semilla nueva se ofrece en Configuración y se incorpora sin tocar lo existente
+  const semilla = await p.evaluate(async (propio) => {
+    const pend = Arranque.semillaPendiente();
+    const tarjeta = (await (async () => { App.ir('10'); await new Promise((r) => setTimeout(r, 50)); return (document.getElementById('cfSemilla') || {}).textContent || ''; })());
+    const r = await Arranque.incorporarSemilla();
+    const mio = Datos.insumo(propio);
+    const original = Semilla.catalogo().find((i) => i.id === propio);
+    const movido = Datos.insumos().find((i) => i.descripcion === original.descripcion);
+    return { pendientes: pend.insumos.length, recodificados: pend.recodificados, tarjeta, agregados: r && r.insumos.length, total: Datos.insumos().length,
+             mio: mio && mio.descripcion, movido: movido && movido.codigo, version: Datos.config('semillaVersion', '') === Semilla.VERSION,
+             quedan: Arranque.semillaPendiente().insumos.length, precio: Datos.obs('G02-0001').some((o) => o.precioPublicado === 31500) };
+  }, volcado.propio);
+  m.ok(semilla.pendientes === volcado.nuevos && semilla.tarjeta.includes(String(volcado.nuevos)) && semilla.agregados === volcado.nuevos && semilla.total === 885 + volcado.nuevos &&
+    semilla.recodificados.length === 1 && semilla.mio === 'Insumo propio de la empresa' && semilla.movido && semilla.movido !== volcado.propio &&
+    semilla.version && semilla.quedan === 0 && semilla.precio,
+    `la semilla nueva se ofrece en Configuración y agrega ${volcado.nuevos} insumos sin tocar los existentes; el que chocaba con un código propio toma otro`, semilla);
   m.ok(errores.length === 0, 'la actualización de la base no deja errores de JavaScript', errores.slice(0, 3));
   await ctx.close();
 }

@@ -1,7 +1,7 @@
 {
   "name": "arken-precios",
   "productName": "ARKEN PRECIOS",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "ARKEN PRECIOS · Observatorio de precios de insumos de obra en Colombia, app hermana de ARKEN CONTROL, empaquetada para Windows, macOS, Linux, Android e iOS.",
   "private": true,
   "type": "module",
@@ -28,9 +28,10 @@
     "prueba:servidor": "node pruebas/servidor.mjs",
     "prueba:ida-y-vuelta": "node pruebas/ida-y-vuelta.mjs",
     "prueba:humo": "node pruebas/humo.mjs",
+    "prueba:analitica": "node pruebas/analitica.mjs",
     "prueba:app": "node pruebas/app.mjs",
     "prueba:escritorio": "node pruebas/escritorio.mjs",
-    "prueba": "npm run verificar-sin-datos && npm run prueba:unitarias && npm run prueba:investigador && npm run prueba:motor && npm run prueba:recoleccion && npm run prueba:motor-navegador && npm run prueba:servidor && npm run prueba:ida-y-vuelta && npm run prueba:humo && npm run prueba:app"
+    "prueba": "npm run verificar-sin-datos && npm run prueba:unitarias && npm run prueba:investigador && npm run prueba:motor && npm run prueba:recoleccion && npm run prueba:motor-navegador && npm run prueba:servidor && npm run prueba:ida-y-vuelta && npm run prueba:humo && npm run prueba:analitica && npm run prueba:app"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

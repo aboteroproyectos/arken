@@ -10,6 +10,9 @@
 //      el precio; los nuevos se crean con su categoría, unidad y precio.
 //   4. Vuelta: la lista maestra que exporta ARKEN se importa en ARKEN PRECIOS (Módulo 09)
 //      y el siguiente Excel ya sale con todos sus renglones como «Ya existe».
+//   5. Precio puesto en obra (§8.7): el Excel con flete hasta una obra rural pasa el
+//      validador, ARKEN lo lee igual y, al sobrescribir, cada voluminoso queda con su
+//      precio de almacén más el flete.
 //
 // Uso: npm run prueba:ida-y-vuelta
 
@@ -47,7 +50,7 @@ function leerComoArken(ruta) {
 }
 
 /** Asistente del Módulo 08 hasta guardar el Excel para ARKEN. Devuelve la validación y la ruta. */
-async function excelParaArken(pagina, carpeta, nombre, { incluirDemo, incluirReferencia }) {
+async function excelParaArken(pagina, carpeta, nombre, { incluirDemo, incluirReferencia, obra }) {
   await irA(pagina, '08');
   if (await pagina.locator('#e8Otra').count()) await pagina.click('#e8Otra');   // el asistente quedó en «Generar»
   await pagina.click('.opcion[data-t="arken"]');
@@ -58,6 +61,11 @@ async function excelParaArken(pagina, carpeta, nombre, { incluirDemo, incluirRef
   for (const [k, v] of [['incluirDemo', incluirDemo], ['incluirReferencia', incluirReferencia]]) {
     const caja = pagina.locator(`[data-o="${k}"]`);
     if (await caja.count()) await caja.setChecked(v);
+  }
+  if (obra) {                                                     // precio puesto en obra, con los fletes de esa obra
+    await pagina.check('[data-o="puestoEnObra"]');
+    const valor = await pagina.evaluate((re) => { const o = Array.from(document.querySelectorAll('#e8ObraSel option')).find((x) => new RegExp(re).test(x.textContent)); return o ? o.value : null; }, obra.source);
+    await pagina.selectOption('#e8ObraSel', valor);
   }
   await pagina.click('#e8Sig');                                   // 4 → 5
   await pagina.waitForSelector('#e8Paso .validador', { timeout: 60000 });
@@ -217,6 +225,38 @@ try {
   const vuelta = await excelParaArken(pp, carpeta, 'vuelta.xlsx', { incluirDemo: true, incluirReferencia: true });
   const v2 = vuelta.validacion;
   m.ok(v2.ok && v2.nuevas === 0 && v2.coinciden === v2.leidas, `con la lista maestra, los ${v2.leidas} renglones salen «Ya existe» (nuevos: ${v2.nuevas})`);
+
+  /* ── 5. Precio puesto en obra (§8.7) ── */
+  const obra = await excelParaArken(pp, carpeta, 'obra.xlsx', { incluirDemo: true, incluirReferencia: true, obra: /Vereda de demostración/ });
+  const v3 = obra.validacion;
+  const leidoObra = leerComoArken(obra.ruta);
+  const wbObra = XLSX.read(readFileSync(obra.ruta));
+  const declara = XLSX.utils.sheet_to_json(wbObra.Sheets.Insumos, { header: 1 }).slice(0, 12).some((f) => /^PRECIO PUESTO EN OBRA en /.test(f[0] || ''));
+  const detalle = XLSX.utils.sheet_to_json(wbObra.Sheets.Detalle, { header: 1 }).slice(1).filter((f) => f[22] > 0);
+  m.ok(v3.ok && v3.nuevas === 0 && declara && /_puesto-en-obra_/.test(obra.sugerido) && detalle.length > 0,
+    `el Excel con precio puesto en obra pasa el validador y lo declara en su encabezado (${detalle.length} voluminosos con flete; ${obra.sugerido})`);
+  m.ok(leidoObra.encabezado[0] === 'Categoría' && leidoObra.filas.length === v3.leidas, `ARKEN encuentra su encabezado debajo de la declaración y lee ${leidoObra.filas.length} filas`);
+  const precioVuelta = new Map(leerComoArken(vuelta.ruta).filas.map((r) => [normaliza(r[2]), r[3]]));
+  const sumaBien = detalle.every((f) => Math.abs(f[21] - precioVuelta.get(normaliza(f[2]))) < 0.0006 && Math.abs(f[7] - Math.round((f[21] + f[22]) * 1000) / 1000) < 0.0006);
+  m.ok(sumaBien, 'en cada voluminoso, el precio es el de almacén (el mismo del Excel anterior) más el flete hasta la obra');
+  await pa.selectOption('#b4Exp', 'xlsIn');
+  const [selector3] = await Promise.all([pa.waitForEvent('filechooser'), pa.click('text=Seleccionar archivo…')]);
+  await selector3.setFiles(obra.ruta);
+  await pa.waitForSelector('#riCuerpo tr', { timeout: 15000 });
+  const statsObra = await pa.evaluate(() => Array.from(document.querySelectorAll('.overlay:last-child .stat .val')).map((x) => Number(x.textContent)));
+  m.ok(statsObra[0] === leidoObra.filas.length && statsObra[1] === 0 && statsObra[2] === leidoObra.filas.length,
+    `ARKEN CONTROL lee ${statsObra[0]} filas, todas «Ya existe»`);
+  await pa.click('#riSobreTodos');
+  await pa.click('.overlay:last-child .modal-foot .btn.primary');     // Importar
+  await pa.click('text=Sí, importar con estos precios');
+  const unVoluminoso = detalle[0];
+  await pa.waitForFunction(([nombre, precio]) => S.proyectos.find((x) => x.id === Sesion.proyectoActivo).insumos.some((i) => i.nombre === nombre && Math.abs(i.precio - precio) < 0.0005),
+    [unVoluminoso[2], unVoluminoso[7]], { timeout: 15000 }).catch(() => {});
+  const enArken = new Map((await insumosActivos()).map((i) => [normaliza(i.nombre), i.precio]));
+  const precioObra = new Map(leidoObra.filas.map((r) => [normaliza(r[2]), r[3]]));
+  const distintos = Array.from(precioObra).filter(([k, pr]) => !enArken.has(k) || Math.abs(enArken.get(k) - pr) > 0.0005);
+  m.ok(distintos.length === 0 && detalle.every((f) => Math.abs(enArken.get(normaliza(f[2])) - f[7]) < 0.0006),
+    `en ARKEN CONTROL cada insumo queda con el precio del archivo; los ${detalle.length} voluminosos, con el flete hasta la obra` + (distintos.length ? ` (difieren: ${distintos.slice(0, 3).map(([k]) => k).join(' · ')})` : ''));
 
   m.ok(erroresP.length === 0, 'ARKEN PRECIOS sin errores de JavaScript' + (erroresP.length ? ': ' + erroresP.join(' | ') : ''));
   m.ok(erroresA.length === 0, 'ARKEN CONTROL sin errores de JavaScript' + (erroresA.length ? ': ' + erroresA.join(' | ') : ''));
