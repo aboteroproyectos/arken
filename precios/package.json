@@ -1,7 +1,7 @@
 {
   "name": "arken-precios",
   "productName": "ARKEN PRECIOS",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "ARKEN PRECIOS · Observatorio de precios de insumos de obra en Colombia, app hermana de ARKEN CONTROL, empaquetada para Windows, macOS, Linux, Android e iOS.",
   "private": true,
   "type": "module",
