@@ -210,7 +210,8 @@ seccion('Solicitud a la API: modelo, esfuerzo, herramientas, ciudad y caché');
   ok(b.type === 'web_search_20260209' && b.name === 'web_search' && b.max_uses === 4, 'búsqueda web_search_20260209 con máximo de búsquedas');
   ok(f.type === 'web_fetch_20260209' && f.name === 'web_fetch' && f.max_uses === 5 && f.max_content_tokens === 8000, 'lectura web_fetch_20260209 con máximo de páginas y de tokens por página');
   ok(json(b.allowed_callers) === json(['direct']) && json(f.allowed_callers) === json(['direct']), 'búsqueda y lectura directas, para que el texto de la página vuelva completo y se pueda verificar');
-  ok(json(b.user_location) === json({ type: 'approximate', city: 'Medellín', region: 'Antioquia', country: 'CO', timezone: 'America/Bogota' }), 'ubicación: Colombia y la ciudad de la tarea');
+  ok(!('user_location' in b) && !('user_location' in I.solicitud({ modelo: 'claude-haiku-4-5' }, TAREA).tools[0]),
+    'búsqueda sin user_location: la API rechaza la solicitud entera con el país CO (400 «Country code CO is not supported»)');
   ok(h.name === 'registrar_hallazgo' && h.strict === true && h.eager_input_streaming === true, 'registrar_hallazgo estricta y con entrada anticipada (streaming)');
   ok(s.system[0].cache_control.type === 'ephemeral' && s.cache_control.type === 'ephemeral', 'caché de instrucciones (parte fija) y caché automática de la conversación');
   ok(json(s.betas) === json([I.BETA_RESPALDO]) && s.fallbacks === 'default', 'respaldo de modelo del lado de Anthropic activado');
@@ -222,7 +223,8 @@ seccion('Solicitud a la API: modelo, esfuerzo, herramientas, ciudad y caché');
   const so = I.solicitud({ modelo: 'claude-sonnet-5-5', esfuerzo: 'high' }, TAREA);
   ok(so.model === 'claude-sonnet-5-5' && so.output_config.effort === 'high' && so.tools[0].type === 'web_search_20260209', 'Sonnet 5.5 con esfuerzo alto');
   const msg = I.mensaje(Object.assign({}, TAREA, { vinculos: [{ url: URL_HC }, { url: 'javascript:alert(1)' }] }), {});
-  ok(msg.includes('Cemento gris tipo UG (bulto 50 kg)') && msg.includes('Medellín, Antioquia') && msg.includes('como máximo 4'), 'el mensaje lleva el insumo, la ciudad y el máximo de hallazgos');
+  ok(msg.includes('Cemento gris tipo UG (bulto 50 kg)') && msg.includes('Ciudad: Medellín, Antioquia (Colombia).') && msg.includes('como máximo 4'),
+    'el mensaje lleva el insumo, la ciudad con su departamento y el país, y el máximo de hallazgos');
   ok(msg.includes(URL_HC) && !msg.includes('javascript:'), 'las páginas ya confirmadas van en el mensaje (web_fetch solo abre direcciones de la conversación); nunca una dirección insegura');
   const cfgP = { modoDominios: 'permitir', dominiosPermitidos: ['homecenter.com.co/construccion', 'easy.com.co'] };
   const sp = I.solicitud(cfgP, TAREA);
