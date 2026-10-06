@@ -1,0 +1,97 @@
+/* ARKEN PRECIOS · visor de la app (celular): los PDF e imágenes que en el
+   navegador se abrirían en una ventana nueva. Usa la paleta del programa. */
+
+.precios-visor {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  background: #2a2d31;
+  font-family: var(--font-body, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);
+}
+
+.precios-visor-barra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  min-height: 52px;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 8px
+    max(12px, env(safe-area-inset-left, 0px));
+  background: var(--ink, #16181a);
+  color: #fff;
+  border-bottom: 1px solid #000;
+}
+
+.precios-visor-titulo {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.precios-visor-acciones {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+
+.precios-visor-boton {
+  appearance: none;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #3a3e43;
+  border-radius: 6px;
+  background: transparent;
+  color: #d6d8d9;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.precios-visor-boton.primario {
+  border-color: var(--brass, #b08d57);
+  background: var(--brass, #b08d57);
+  color: #fff;
+  font-weight: 600;
+}
+
+.precios-visor-cuerpo {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px 10px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.precios-visor-pagina {
+  margin: 0 auto 10px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.precios-visor-pagina canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.precios-visor-imagen {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.precios-visor-nota {
+  max-width: 420px;
+  margin: 40px auto;
+  color: #d6d8d9;
+  font-size: 15px;
+  line-height: 1.5;
+  text-align: center;
+}

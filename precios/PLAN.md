@@ -7,19 +7,28 @@ App hermana de ARKEN CONTROL: investiga, guarda con su historia y consolida los 
 Dos piezas, porque una página web no puede leer otros sitios (CORS):
 
 1. **El programa**, `precios/programa/ARKEN_PRECIOS.html`. Un solo archivo, como ARKEN CONTROL, que funciona sin internet. Lleva cuatro bloques de código: el **SDK oficial de Anthropic** (`@anthropic-ai/sdk`, empaquetado desde versiones fijas); el **núcleo** (cálculo puro: lector de precios, unidades, IVA y AIU, estadística, consolidación, emparejamiento, calculadora laboral, validador del Excel para ARKEN y el Investigador IA sin red: solicitud, lectura de la respuesta, verificación literal, destino de cada hallazgo y costo), que corre igual en la página, en un Web Worker y en las pruebas de Node; la **semilla** (taxonomía, catálogo, ciudades, fuentes y parámetros); y la **interfaz** (IndexedDB, clave cifrada, llamadas a la API, módulos 00 a 11, documentos).
-2. **El motor de actualización**, `precios/motor/` (Node 22, Fase 3), dentro de Electron o como servidor opcional `precios/servidor/`. El Investigador IA (Fase 2) corre desde el programa porque la búsqueda y la lectura de páginas ocurren en los servidores de Anthropic.
+2. **El motor de recolección**, `precios/motor/` (Node 22, Fase 3): red respetuosa (robots.txt, agente con contacto, pausas por sitio, caché), salud de fuentes y conectores certificados. Corre en el proceso principal de la app de escritorio (Electron) y en el servidor opcional `precios/servidor/`, que deja paquetes de precios. No escribe en la base: el programa vuelve a verificar cada precio con su núcleo, que el motor carga del mismo HTML. El Investigador IA (Fase 2) corre desde el programa porque la búsqueda y la lectura de páginas ocurren en los servidores de Anthropic.
 
 ## Estructura de archivos
 
 ```
 precios/
   programa/ARKEN_PRECIOS.html   el programa, sin datos
-  herramientas/                 verificar-sin-datos.mjs, armar-sdk.mjs (rehace y compara el SDK incrustado)
+  motor/                        motor de recolección: red, robots.txt, caché, salud, lectores de HTML, Excel y PDF
+  motor/conectores/             seis certificados (Easy, La Casita Roja, Aldia, IDU, Tienda Virtual, DANE) y cinco genéricos
+  servidor/                     servidor de recolección opcional (LEAME.md)
+  app/                          capa de la app: copia interna, archivos y enlaces en el celular
+  electron/                     app de escritorio: ventana, motor, bóveda de secretos, copias
+  android/  ios/                proyectos nativos (Capacitor)
+  recursos/                     ícono (el de ARKEN CONTROL)
+  herramientas/                 preparar-web.mjs (arma www/ para las apps), verificar-sin-datos.mjs, armar-sdk.mjs
   herramientas/sdk/             versiones fijas del SDK de Anthropic y de esbuild
-  pruebas/                      unitarias, Investigador IA (núcleo y de punta a punta), ida y vuelta con ARKEN CONTROL, humo en Chromium
+  pruebas/                      unitarias, Investigador IA, motor, recolección, motor en el programa, servidor,
+                                ida y vuelta con ARKEN CONTROL, humo, capa de la app y app de escritorio empacada
+  pruebas/fixtures/motor/       páginas de prueba con la forma de los sitios reales y datos inventados
   PLAN.md  DECISIONES.md  CAMBIOS.md  GUIA_DE_PRUEBA.md  README.md
-  (Fase 3) motor/  servidor/  app/  electron/  android/  ios/  recursos/
-.github/workflows/precios.yml   pruebas de ARKEN PRECIOS en cada cambio
+.github/workflows/precios.yml            pruebas de ARKEN PRECIOS en cada cambio
+.github/workflows/compilar-precios.yml   compila y prueba las apps (Windows, macOS, Linux, Android, iOS)
 ```
 
 ## Modelo de datos (IndexedDB `arken_precios`, esquema versionado)
@@ -28,7 +37,11 @@ precios/
 
 Versión 2 (Fase 2): `hallazgos` (lo que encontró el Investigador IA, con su verificación y su destino), `investigaciones` (cada búsqueda de un insumo en una ciudad, con su costo) y `secretos` (la clave de API cifrada, que no sale del equipo ni entra en los respaldos).
 
+Versión 3 (Fase 3): `indices` (el ICOCED del DANE: número índice y variaciones por dominio geográfico y grupo de costos, con su cita). Lo que traen los conectores entra a `observaciones`, `hallazgos` y `vinculosProducto`, y cada lectura queda en `ejecuciones`.
+
 ## Fuentes candidatas (todas por certificar)
+
+Las que tienen conector certificado en la Fase 3 son Easy, La Casita Roja, Aldia, el IDU, la Tienda Virtual del Estado y el DANE (ICOCED); Homecenter, Corona e INVÍAS quedan solo a mano por sus términos (DECISIONES.md, decisiones 70 a 72).
 
 | Tipo | Ejemplos | Método | Riesgo principal |
 |---|---|---|---|
@@ -46,5 +59,5 @@ Versión 2 (Fase 2): `hallazgos` (lo que encontró el Investigador IA, con su ve
 
 1. **Núcleo sin internet** (hecha): sistema visual de ARKEN, ingreso y roles, catálogo (336 de ARKEN + más de 300 nuevos), ciudades, equivalencias e importación de la lista maestra de ARKEN, cotizaciones y precios manuales, listas históricas, consolidación y cortes, Base de precios, mano de obra, Excel para ARKEN con su validador, Excel de análisis, PDF e impresión, respaldos, tablero básico y modo demostración rotulado.
 2. **Investigador IA** (hecha): búsqueda abierta con verificación literal, bandejas de revisión, vínculos de producto, centro de actualización completo (alcances, progreso y resultados) y control de costo.
-3. Motor, conectores certificados, escritorio y celular, servidor y paquetes de precios.
+3. **Motor y escritorio** (hecha): motor de recolección con conectores certificados (tienda en línea, entidad pública en Excel, datos abiertos e ICOCED), certificación de fuentes con revisión legal y prueba técnica, salud de fuentes, actualizaciones programadas, app de escritorio (Windows, macOS y Linux) y del celular (Android e iOS), servidor opcional y paquetes de precios.
 4. Analítica completa, alertas, comparador avanzado, precio puesto en obra y catálogo de más de 1.000 insumos.

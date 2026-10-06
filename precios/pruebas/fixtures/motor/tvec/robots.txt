@@ -1,0 +1,11 @@
+Sitemap: https://www.datos.gov.co/sitemap.xml
+
+User-agent: *
+Crawl-delay: 1
+
+Disallow: /browse?*&q=
+Disallow: /browse/*?*&q=
+Disallow: /api/odata/
+Disallow: /OData.svc/
+Disallow: /login
+Disallow: /api/collocate*

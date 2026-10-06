@@ -429,6 +429,45 @@ try {
   m.ok(anchoFicha <= 361, `la ficha de un precio cabe en 360 px (${anchoFicha} px)`);
   await cerrarModales(p);
   await p.screenshot({ path: join(carpeta, 'base-360-oscuro.png') });
+  // Las demás pestañas de cada módulo y la ficha de una fuente (revisión legal, conector y salud)
+  await p.evaluate(() => Datos.fijarConfig('apariencia', { tema: 'claro', densidad: 'normal' }).then(() => App.aplicarConfig()));
+  const anchosTab = [];
+  for (const mod of MODULOS) {
+    await p.evaluate((x) => App.ir(x), mod);
+    await p.waitForTimeout(120);
+    const tabs = await p.evaluate(() => Array.from(document.querySelectorAll('#stage .tabs:not(.sub) .tab')).map((t) => t.dataset.k));
+    for (const t of tabs.slice(1)) {
+      await p.click(`#stage .tabs:not(.sub) .tab[data-k="${t}"]`);
+      await p.waitForTimeout(150);
+      const ancho = await p.evaluate(() => document.documentElement.scrollWidth);
+      if (ancho > 361) anchosTab.push(`${mod}/${t}: ${ancho} px`);
+    }
+    if (tabs.length > 1) await p.click(`#stage .tabs:not(.sub) .tab[data-k="${tabs[0]}"]`);
+  }
+  // En un modal, lo que se sale por la derecha sin quedar dentro de un recuadro con desplazamiento propio
+  const desborde = () => {
+    const capa = document.querySelector('#modales .overlay:last-child');
+    let max = 0;
+    capa.querySelectorAll('*').forEach((e) => {
+      const r = e.getBoundingClientRect();
+      if (r.width === 0 || r.right <= 361) return;
+      for (let a = e.parentElement; a && a !== capa; a = a.parentElement) {
+        if (/(auto|scroll|hidden)/.test(getComputedStyle(a).overflowX) && a.getBoundingClientRect().right <= 361) return;
+      }
+      max = Math.max(max, Math.round(r.right));
+    });
+    return Math.max(max, document.documentElement.scrollWidth);
+  };
+  const anchosFuente = [];
+  for (const id of ['easy', 'idu', 'tvec', 'dane', 'homecenter']) {
+    await p.evaluate((x) => FuentesUI.ficha(x), id);
+    await p.waitForSelector('#modales .overlay', { timeout: 15000 });
+    const ancho = await p.evaluate(desborde);
+    if (ancho > 361) anchosFuente.push(`${id}: ${ancho} px`);
+    await cerrarModales(p);
+  }
+  m.ok(!anchosTab.length && !anchosFuente.length, 'a 360 px tampoco se desplaza de lado ninguna otra pestaña de los módulos ni la ficha de una fuente' +
+    (anchosTab.length || anchosFuente.length ? ' · ' + anchosTab.concat(anchosFuente).slice(0, 6).join(', ') : ''));
   await p.setViewportSize({ width: 1366, height: 860 });
   await p.evaluate(() => Datos.fijarConfig('apariencia', { tema: 'claro', densidad: 'normal' }).then(() => App.aplicarConfig()));
 

@@ -1,0 +1,14 @@
+# Reglas con la forma del robots.txt de la tienda (prueba)
+ User-agent: * 
+
+Disallow: /Account*
+Disallow: /account*
+Disallow: /busca/
+Disallow: /busca*
+Disallow: /checkout/
+Disallow: /login*
+
+# Disallow URL Parameters
+Disallow: /*?*specificationFilter*
+Disallow: /*?*map*
+Disallow: /*?*fq*

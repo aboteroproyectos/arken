@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ARKEN PRECIOS</string>
+    <string name="title_activity_main">ARKEN PRECIOS</string>
+    <string name="package_name">com.aboteroproyectos.arkenprecios</string>
+    <string name="custom_url_scheme">com.aboteroproyectos.arkenprecios</string>
+</resources>

@@ -16,7 +16,7 @@
 //   · revisar: confirmar con sugerido, verificar con el enlace, rechazar la propuesta, retirar
 //   · vínculos de producto en la ficha y «Actualizar este insumo ahora» con IA
 //   · error de la API y falta de red explicados en español (el recálculo sigue) · tope de gasto del mes
-//   · una base de la Fase 1 (IndexedDB versión 1) se actualiza a la versión 2 sin perder nada
+//   · una base de la Fase 1 (IndexedDB versión 1) se actualiza a la versión actual (3) sin perder nada
 //
 // Uso: npm run prueba:investigador   (CAPTURAS=carpeta guarda imágenes de cada pantalla)
 
@@ -140,7 +140,7 @@ const ESQUEMA_V1 = {
   usuarios: { keyPath: 'id' }, auditoria: { keyPath: 'id' }, configuracion: { keyPath: 'id' },
 };
 
-/** Una base con datos de la Fase 1 se abre con este programa: se actualiza a la versión 2 sin perder nada. */
+/** Una base con datos de la Fase 1 se abre con este programa: se actualiza a la versión actual sin perder nada. */
 async function migracion() {
   const ctx = await contexto(nav);
   await ctx.route('**/__vacia.html', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>vacía</title>' }));
@@ -184,12 +184,12 @@ async function migracion() {
   const despues = await p.evaluate(async (obsId) => {
     const o = await Datos.observacion(obsId);
     return { version: (await indexedDB.databases()).find((x) => x.name === 'arken_precios').version, backend: BD.backend,
-             nuevos: ['hallazgos', 'investigaciones', 'secretos'].every((a) => typeof BD.ESQUEMA[a] === 'object'),
-             cuenta: await BD.contar('hallazgos') + await BD.contar('investigaciones') + await BD.contar('secretos'),
+             nuevos: ['hallazgos', 'investigaciones', 'secretos', 'indices'].every((a) => typeof BD.ESQUEMA[a] === 'object'),
+             cuenta: await BD.contar('hallazgos') + await BD.contar('investigaciones') + await BD.contar('secretos') + await BD.contar('indices'),
              precio: o && o.precioPublicado, empresa: (Datos.config('empresa', {}) || {}).razonSocial, insumos: Datos.insumos().length };
   }, volcado.obs);
-  m.ok(antes === 1 && despues.version === 2 && despues.backend === 'indexeddb' && despues.nuevos && despues.cuenta === 0,
-    'una base de la Fase 1 (versión 1) se actualiza a la versión 2: agrega hallazgos, búsquedas y secretos', { antes, despues });
+  m.ok(antes === 1 && despues.version === 3 && despues.backend === 'indexeddb' && despues.nuevos && despues.cuenta === 0,
+    'una base de la Fase 1 (versión 1) se actualiza a la versión 3: agrega hallazgos, búsquedas, secretos e índices', { antes, despues });
   m.ok(despues.precio === 31500 && despues.empresa === 'Constructora de prueba S.A.S.' && despues.insumos === 884,
     'con la actualización no se pierde nada: el precio registrado, la empresa, el catálogo y la contraseña cambiada', despues);
   m.ok(errores.length === 0, 'la actualización de la base no deja errores de JavaScript', errores.slice(0, 3));
@@ -313,8 +313,8 @@ try {
   await p.waitForSelector('#a2Hallazgos', { timeout: 60000 });
   await capturar('03-resultado');
   const res = await p.textContent('#a2Paso');
-  m.ok(/Revisar hallazgos \(3\)/.test(await p.textContent('#a2Hallazgos')) && /Resultado por fuente/.test(res) && /tiendaxss\.com\.co/.test(res),
-    'resultado: 3 hallazgos para revisar y el resultado por fuente (sitios leídos)');
+  m.ok(/Revisar hallazgos \(3\)/.test(await p.textContent('#a2Hallazgos')) && /Resultado por sitio/.test(res) && /tiendaxss\.com\.co/.test(res),
+    'resultado: 3 hallazgos para revisar y el resultado por sitio leído');
   const q = mensajes();
   m.ok(q.length === 2, 'la búsqueda hizo 2 solicitudes a la API (herramientas y cierre)', q.length);
   const [q1, q2] = q;

@@ -1,0 +1,84 @@
+[
+  {
+    "productId": "9000001",
+    "productName": "Cemento gris uso general UG 50 kg Prueba",
+    "brand": "PRUEBA",
+    "linkText": "cemento-gris-uso-general-ug-50-kg-prueba",
+    "link": "https://www.easy.com.co/cemento-gris-uso-general-ug-50-kg-prueba/p",
+    "categories": ["/Construcción/Materiales de Construcción/Cementos y Morteros/"],
+    "items": [
+      {
+        "itemId": "9000001",
+        "name": "Cemento gris uso general UG 50 kg Prueba",
+        "nameComplete": "Cemento gris uso general UG 50 kg Prueba",
+        "measurementUnit": "un",
+        "unitMultiplier": 1,
+        "ean": "0000000000001",
+        "sellers": [
+          {
+            "sellerId": "1",
+            "sellerName": "TIENDA DE PRUEBA S.A.S.",
+            "sellerDefault": true,
+            "commertialOffer": {
+              "Price": 33333,
+              "ListPrice": 33333,
+              "PriceWithoutDiscount": 33333,
+              "Tax": 0,
+              "AvailableQuantity": 120,
+              "IsAvailable": true,
+              "PriceValidUntil": "2027-10-05T00:00:00Z"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "productId": "9000002",
+    "productName": "Vinilo tipo 1 color gris cemento 1 galón Prueba",
+    "brand": "PRUEBA",
+    "linkText": "vinilo-tipo-1-gris-cemento-galon-prueba",
+    "link": "https://www.easy.com.co/vinilo-tipo-1-gris-cemento-galon-prueba/p",
+    "categories": ["/Pinturas/Pinturas para Interior/"],
+    "items": [
+      {
+        "itemId": "9000002",
+        "name": "Vinilo tipo 1 color gris cemento 1 galón Prueba",
+        "measurementUnit": "un",
+        "unitMultiplier": 1,
+        "sellers": [
+          {
+            "sellerId": "1",
+            "sellerName": "TIENDA DE PRUEBA S.A.S.",
+            "sellerDefault": true,
+            "commertialOffer": {
+              "Price": 55555,
+              "ListPrice": 66666,
+              "PriceWithoutDiscount": 66666,
+              "Tax": 0,
+              "AvailableQuantity": 0,
+              "IsAvailable": false,
+              "PriceValidUntil": "2027-10-05T00:00:00Z"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "productId": "9000003",
+    "productName": "Producto sin precio Prueba",
+    "brand": "PRUEBA",
+    "link": "https://www.easy.com.co/producto-sin-precio-prueba/p",
+    "items": [
+      {
+        "itemId": "9000003",
+        "name": "Producto sin precio Prueba",
+        "measurementUnit": "un",
+        "sellers": [
+          { "sellerId": "1", "sellerName": "TIENDA DE PRUEBA S.A.S.", "sellerDefault": true, "commertialOffer": { "Price": 0, "ListPrice": 0, "AvailableQuantity": 0, "IsAvailable": false } }
+        ]
+      }
+    ]
+  }
+]

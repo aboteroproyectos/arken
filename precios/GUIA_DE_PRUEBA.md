@@ -1,14 +1,15 @@
 # ARKEN PRECIOS · Guía de prueba
 
-Esta guía recorre lo que hace el programa y dice qué debe ver en cada paso. Las secciones 1 a 11 son de la Fase 1 y siguen valiendo; las secciones 12 a 18 son del Investigador IA (Fase 2). Si ya probó la Fase 1, vaya directo a la sección 12. Al final está el estado de cada criterio de aceptación del prompt (§18), con lo que se probó y lo que no.
+Esta guía recorre lo que hace el programa y dice qué debe ver en cada paso. Las secciones 1 a 11 son de la Fase 1, las 12 a 18 del Investigador IA (Fase 2) y las 19 a 28 del motor de recolección y las apps (Fase 3); todas siguen valiendo. Si ya probó las fases anteriores, vaya directo a la sección 19. Al final está el estado de cada criterio de aceptación del prompt (§18), con lo que se probó y lo que no.
 
 ## Antes de empezar
 
-1. Descargue los dos programas de la rama de la Fase 2 (en cada enlace, botón «Download raw file»):
-   - [ARKEN_PRECIOS.html](https://github.com/aboteroproyectos/arken/blob/arken-precios-fase-2/precios/programa/ARKEN_PRECIOS.html)
-   - [ARKEN_CONTROL.html](https://github.com/aboteroproyectos/arken/blob/arken-precios-fase-2/programa/ARKEN_CONTROL.html) (el mismo de `main`; las fases 1 y 2 no lo cambian)
+1. Descargue los dos programas de la rama de la Fase 3 (en cada enlace, botón «Download raw file»):
+   - [ARKEN_PRECIOS.html](https://github.com/aboteroproyectos/arken/blob/arken-precios-fase-3/precios/programa/ARKEN_PRECIOS.html)
+   - [ARKEN_CONTROL.html](https://github.com/aboteroproyectos/arken/blob/arken-precios-fase-3/programa/ARKEN_CONTROL.html) (el mismo de `main`; las fases 1 a 3 no lo cambian)
 2. Haga la prueba en una **ventana de incógnito** de Chrome o Edge, con internet. Así no toca sus datos reales de ARKEN CONTROL, y al cerrar la ventana se borra todo lo de la prueba. La clave de API que escriba en la sección 12 también se borra al cerrar la ventana.
 3. Para las secciones 12 a 18 necesita una **clave de API de Anthropic con saldo**. Créela en la consola de Claude (console.anthropic.com), de preferencia una solo para esta prueba y con un límite de gasto. Con Claude Opus 5.5, el programa estima de partida unos US$ 0,35 por insumo y ciudad, y hasta unos US$ 0,90 en el caso alto; estas secciones hacen entre tres y cinco búsquedas. Si su organización tiene apagadas en la consola la búsqueda web o la lectura de páginas, el programa lo dice en la primera búsqueda.
+4. Para las secciones 19 a 28 necesita la **app de escritorio** en Windows o en un Mac (sección 19) y un correo de la empresa que los sitios puedan ver como contacto. **Es la primera vez que los conectores leen los sitios reales:** las pruebas automáticas usan páginas guardadas con la forma que tenían esos sitios el 5 de octubre de 2026. Si una prueba técnica o una lectura falla, la ficha de la fuente dice por qué; copie ese mensaje y envíemelo.
 
 > Si prueba la importación en su ARKEN de trabajo, hágalo en un proyecto nuevo. Con la «lista maestra única» activa, sobrescribir un precio en un proyecto lo cambia en todos los proyectos que tengan ese insumo.
 
@@ -148,9 +149,100 @@ Con el programa abierto, apague el wifi. Recorra los módulos, registre un preci
    **Debe ver:** si la usó solo en la sesión, el programa la olvidó. Si la guardó cifrada, sigue ahí.
 3. Para terminar, en **10 · Configuración › Investigador IA** pulse **Borrar la clave** y **Apagar el Investigador IA**.
 
+## 19. Instalar la app de escritorio
+
+1. En GitHub, abra el PR de la Fase 3, pestaña **Checks**, y elija **Compilar ARKEN PRECIOS**. En **Summary**, al final, en **Artifacts**, descargue `ARKEN-PRECIOS-0.3.0-Windows.exe` o `ARKEN-PRECIOS-0.3.0-macOS.dmg`.
+2. Instálela. Como la app no está firmada, la primera vez Windows (SmartScreen: «Más información» › «Ejecutar de todas formas») o macOS (Configuración del Sistema › Privacidad y seguridad › «Abrir igualmente») piden confirmar.
+3. Ábrala e ingrese con `admin` / `arken`; cambie la contraseña.
+
+**Debe ver:** el mismo programa en su propia ventana, sin la barra del navegador, y el menú **Ayuda** con «Abrir la carpeta de copias diarias» y «Abrir la bitácora de la última lectura». La app arranca con sus propios datos, aparte de los del navegador. Si quiere probar con los suyos, restaure un respaldo (**Administración › Respaldos › Restaurar…**).
+
+> Las apps de Windows y macOS se compilan en GitHub Actions, pero solo la de Linux se probó abierta (sección «Pruebas automáticas»). Esta es la primera vez que alguien las abre en esos sistemas: si algo no funciona, dígamelo.
+
+## 20. Certificar una fuente
+
+1. **10 · Configuración › Motor y servidor:** escriba el correo de contacto de la empresa y guarde.
+   **Debe ver:** el aviso de que el motor corre en este equipo.
+2. **03 · Fuentes:** abra la ficha de **Homecenter**.
+   **Debe ver:** la revisión legal «rechazada», con la cláusula de sus términos que lo impide, los enlaces a la evidencia y la recomendación de registrar sus precios a mano o por cotización. Es una fuente manual: el motor no la lee.
+3. Abra la ficha de **Easy**. En «Lectura automática», la lista de requisitos marca con ✗ lo que falta (la revisión aprobada, la fecha y el responsable, y la prueba técnica), y **Probar ahora** está apagado: el motor no le pide nada al sitio antes de la revisión legal.
+4. Pulse **Firmar la revisión legal**. Abra los enlaces del robots.txt y de los términos, compare con lo que trae el formulario y lea la recomendación. Elija el resultado (para Easy se recomienda «aprobada»), confirme su nombre como responsable, marque «Leí el robots.txt y los términos de uso…» y pulse **Guardar la revisión**.
+5. Pulse **Probar ahora**.
+   **Debe ver:** en «Última prueba técnica», el resultado «aprobada», cuántas solicitudes hizo, cuántos precios verificó y unos ejemplos con el producto, el precio, el texto donde está y el enlace. Si sale «rechazada», el motivo dice por qué (por ejemplo, que el sitio cambió de forma o negó el acceso).
+6. Pulse **Activar** y confirme.
+   **Debe ver:** la salud «activa» y todos los requisitos con ✓.
+
+Si quiere más fuentes: La Casita Roja y Aldia se recomiendan «aprobada con restricciones» (la ficha dice cuáles), la Tienda Virtual también, y el DANE «aprobada» (sección 23). Para el **IDU** la recomendación es consultar antes: sus condiciones prohíben el uso comercial sin autorización previa, así que apruébelo solo si la empresa la tiene.
+
+## 21. Leer las fuentes desde el Módulo 02
+
+1. **02 · Actualizar precios.** En «¿Qué actualizar?» elija **Insumos seleccionados** y agregue tres que venda Easy, por ejemplo «Cemento gris tipo UG (bulto 50 kg)», un tubo PVC sanitario y una pintura vinilo. Deje su ciudad.
+2. En la tarjeta «Conectores de fuentes», marque **Leer las fuentes certificadas antes de recalcular** y pulse **Ver la vista previa**.
+   **Debe ver:** las fuentes que se van a leer, las solicitudes y el tiempo estimado.
+3. Ejecute.
+   **Debe ver:** el avance por fuente y, al terminar, el «Resultado por fuente» con las solicitudes, los precios verificados, los que van a revisión y los descartados.
+4. **01 · Base de precios:** haga clic en el precio del cemento.
+   **Debe ver:** la observación de Easy con su enlace y el texto donde estaba el precio. Abra el enlace y busque el precio en la página (Ctrl+F); si la tienda lo cambió después de la lectura, el texto guardado muestra lo que se leyó.
+5. **Revisar hallazgos:** lo dudoso de Easy (otro producto parecido), a lo sumo tres por insumo.
+6. Repita la misma lectura.
+   **Debe ver:** en la ficha de Easy, «Última lectura con el motor» cuenta los precios «ya conocidos»: la misma página con el mismo precio no se guarda dos veces.
+
+## 22. Salud de una fuente
+
+1. En la ficha de Easy pulse **Suspender**, escriba el motivo y confirme.
+   **Debe ver:** la salud «suspendida» y el cambio en el historial de salud, con su motivo y su usuario. Una lectura desde el Módulo 02 ya no la incluye.
+2. Pulse **Activar** de nuevo.
+
+Si una fuente falla seguido, el motor la deja «degradada» y luego «caída»; si el sitio pide un CAPTCHA o iniciar sesión, queda «bloqueada» y solo se reactiva después de probarla otra vez. El «Registro de errores» de la ficha dice qué pasó en cada caso.
+
+## 23. Índices del DANE (ICOCED)
+
+1. **03 · Fuentes:** firme la revisión legal del **DANE** (se recomienda «aprobada», con la cita que piden sus términos), pruébelo y actívelo.
+2. Lea las fuentes desde el Módulo 02 (sección 21, cualquier alcance).
+   **Debe ver:** en **03 · Fuentes › Índices (ICOCED)**, el total nacional y los dominios geográficos con el número índice, las variaciones y el mes, y la cita «Fuente: Departamento Administrativo Nacional de Estadística: www.dane.gov.co». Los índices no aparecen como precios en la base.
+
+## 24. Actualización programada
+
+1. **02 · Actualizar precios › Programación:** marque «Actualizar automáticamente», «Todos los días», una hora unos cinco minutos más tarde y «Solo los desactualizados». Pulse **Guardar la programación**.
+2. Deje la app abierta, con su sesión.
+   **Debe ver:** a esa hora, la lectura de las fuentes activas y el recálculo corren solos, y quedan en el historial de ejecuciones. El Investigador IA no se usa, aunque esté encendido.
+3. Apague la programación si no la quiere dejar.
+
+## 25. Las copias de la app
+
+1. **Administración › Respaldos.**
+   **Debe ver:** la tarjeta «Copia interna de la app» con la hora de la última copia y el botón **Abrir la carpeta de copias diarias**, que abre una carpeta con `ARKEN_PRECIOS_copia_<fecha>.json.gz`.
+2. Cierre la app y ábrala otra vez.
+   **Debe ver:** sus datos siguen ahí.
+3. **Ayuda › Abrir la bitácora de la última lectura.**
+   **Debe ver:** un archivo con la última lectura: el agente con su correo, lo que respondió el robots.txt de cada sitio y cada solicitud con su respuesta, sus reintentos y lo que vino de la caché.
+
+## 26. Servidor de recolección (opcional)
+
+Solo si quiere que las fuentes se lean aunque nadie abra el programa. Instálelo en un equipo que quede encendido siguiendo [`servidor/LEAME.md`](https://github.com/aboteroproyectos/arken/blob/arken-precios-fase-3/precios/servidor/LEAME.md). En el programa:
+
+1. **10 · Configuración › Motor y servidor:** la dirección del servidor y el token.
+2. **02 · Actualizar precios › Programación:** **Probar la conexión**, luego **Enviar el plan al servidor**.
+3. Después de una lectura del servidor, **Descargar paquetes ahora**.
+   **Debe ver:** el paquete entra como una ejecución, con lo que leyó cada fuente, y los precios nuevos aparecen en la base. Si lo descarga otra vez, no entra dos veces.
+
+## 27. La app del celular (opcional)
+
+1. Si la compilación trae `ARKEN-PRECIOS-0.3.0-Android.apk` (necesita el secreto de la firma; vea el README), instálelo en un teléfono Android. En iPhone hay que firmarla antes.
+2. Ábrala, ingrese y recorra los módulos. Genere el PDF de la base (**08**) y pulse **Imprimir**.
+   **Debe ver:** el programa ajustado a la pantalla, sin desplazarse de lado, y el PDF en un visor con «Compartir». En **02 · Actualizar precios**, la tarjeta «Conectores de fuentes» dice que los conectores corren en la app de escritorio o en un servidor de recolección: el celular no lee sitios por su cuenta, pero sí usa el servidor y descarga sus paquetes si está configurado.
+
+## 28. Las claves no salen del equipo en la app (criterio 8)
+
+1. En la app de escritorio, **10 · Configuración › Investigador IA:** guarde una clave de API «cifrada en este equipo» (puede ser la de la sección 12), o un token en **Motor y servidor**.
+   **Debe ver:** el programa dice que queda cifrada por el sistema operativo y solo muestra sus últimos caracteres.
+2. **Administración › Respaldos › Descargar respaldo** y **Guardar copia…**; abra la copia `.html` con el Bloc de notas y busque `sk-ant`.
+   **Debe ver:** no aparece.
+3. Borre la clave al terminar.
+
 ## Pruebas automáticas
 
-En `precios/`, con Node 22 y Chrome: `npm ci --omit=optional` y luego `npm run prueba`; para el SDK, `npm run sdk:instalar` y `npm run sdk:comprobar`. Corren también en GitHub Actions (flujo «ARKEN PRECIOS») con cada cambio. Ninguna usa una clave real: la API de Claude se simula.
+En `precios/`, con Node 22 y Chrome: `npm ci --omit=optional` y luego `npm run prueba`; para el SDK, `npm run sdk:instalar` y `npm run sdk:comprobar`; para la app de escritorio, los dos comandos del README. Corren también en GitHub Actions (flujos «ARKEN PRECIOS» y «Compilar ARKEN PRECIOS») con cada cambio. Ninguna usa una clave real ni lee un sitio real: la API de Claude y los sitios se simulan.
 
 | Prueba | Resultado |
 |---|---|
@@ -158,20 +250,28 @@ En `precios/`, con Node 22 y Chrome: `npm ci --omit=optional` y luego `npm run p
 | `sdk:comprobar` | El SDK incrustado es idéntico al oficial rehecho desde versiones fijas. |
 | `prueba:unitarias` | 72 de 72 |
 | `prueba:investigador` | 125 de 125 en el núcleo y 59 de 59 de punta a punta en Chromium, con la API simulada |
+| `prueba:motor` | 155 de 155, con un servidor local y páginas guardadas con la forma de los sitios reales |
+| `prueba:recoleccion` | 92 de 92 |
+| `prueba:motor-navegador` | 63 de 63, el motor dentro del programa en Chromium |
+| `prueba:servidor` | 69 de 69, el servidor de verdad en un puerto local |
 | `prueba:ida-y-vuelta` | 29 de 29, con el `ARKEN_CONTROL.html` real |
-| `prueba:humo` | 37 de 37, en Chromium |
+| `prueba:humo` | 38 de 38, en Chromium |
+| `prueba:app` | 65 de 65, la capa de las apps en Chromium (navegador, escritorio y Android simulados) |
+| `prueba:escritorio` | 46 de 46, la app de Linux empacada, con Electron de verdad y un llavero de prueba |
+
+Las apps de Windows, macOS, Android e iOS se compilan en GitHub Actions, pero ninguna prueba las abre: no se han probado en un equipo ni en un teléfono de verdad.
 
 ## Estado de los criterios de aceptación (§18)
 
 | # | Criterio | Estado | Cómo se probó | Lo que no se probó |
 |---|---|---|---|---|
 | 1 | El Excel se importa en ARKEN sin editarlo | **Probado** | Ida y vuelta: el Excel generado se importa en el `ARKEN_CONTROL.html` real, en un proyecto «En blanco». 0 categorías inválidas, 0 precios en cero o no numéricos, 0 descripciones repetidas; los 331 insumos de la semilla que van en el archivo salen «Ya existe», los 3 nuevos se crean con su categoría, unidad y precio, y al sobrescribir solo cambia el precio. Luego, con la lista maestra que exporta ARKEN, los 334 renglones salen «Ya existe». | La importación en un proyecto real suyo con la «lista maestra única» activa. |
-| 2 | A lo sumo dos clics del precio a sus observaciones | **Probado** | Humo: un clic desde la Base y desde el comparador abre las observaciones con fecha, texto literal y enlace. | — |
-| 3 | Actualizar una categoría no toca las demás ni borra historia | **Probado** | Humo, dos veces: desde el Módulo 02 por la interfaz (solo los cementos; los concretos de una cotización siguen pendientes y sin cambio) y con la demostración cargada (ningún otro consolidado cambia, el precio nuevo de la varilla queda pendiente y no se pierde ninguna observación ni cálculo anterior). | — |
-| 4 | Sin conexión funciona todo menos actualizar | **Probado, con una condición** | Humo: con el programa abierto y sin red, se recorren los módulos, se registra, se recalcula y se genera el Excel para ARKEN sin ningún pedido a internet. Investigador: con el Investigador IA encendido y sin red, dice que no hay conexión con la API y la actualización recalcula con lo registrado. | Abrir el archivo por primera vez sin internet: las librerías de Excel y PDF vienen de cdnjs, como en ARKEN CONTROL, y entonces el Excel no está disponible y el PDF sale por la impresión del navegador. Las apps de la Fase 3 las traen incluidas. |
-| 5 | PDF e impresión en carta, con encabezado, pie y «Página x de y» | **Probado** | Humo: el PDF completo y el de una categoría se leen con pdf.js (tamaño carta, «ARKEN» y «Página x de y» en cada página); la impresión fija `@page` carta con la numeración, y el PDF que sale de la impresión del navegador cumple lo mismo. | La impresión en una impresora física. |
-| 6 | El tablero filtra por fechas, ciudades y categorías y responde en menos de 1 s con 50.000 observaciones | **Probado** | Unitarias: con 50.000 observaciones, construir los agregados y consultar toma décimas de segundo como mucho. Humo: demostración de más de 50.000 observaciones; tres consultas con los tres filtros a la vez y el cambio de categoría en pantalla, cada uno por debajo de 1 s. | En un computador lento. Se midió en el equipo de pruebas. |
-| 7 | Sistema visual de ARKEN en claro, oscuro y tres densidades; 360 px sin desplazamiento lateral | **Probado** | El CSS se copia del `ARKEN_CONTROL.html`. Humo: los 12 módulos y la ficha a 360 px en los dos temas y las tres densidades, sin desplazamiento lateral. | Que «se vea como ARKEN» es un juicio a ojo: se revisaron capturas, pero su revisión es la definitiva. |
-| 8 | Ningún texto externo sin escapar; ninguna clave en HTML, respaldos ni paquetes | **Probado** | Unitarias y humo: un proveedor y un texto con `<script>` e `<img onerror>` se pintan como texto, un enlace `javascript:` se descarta, y con una clave de API guardada ni el respaldo ni el paquete la llevan. El HTML del programa se verifica vacío en cada cambio. Investigador: el texto de una página con `<script>`, `<b>` e `<img onerror>` se ve escapado en la bandeja de hallazgos, en el catálogo y en las fuentes propuestas, sin ejecutarse; la clave queda cifrada en la base del navegador (AES-GCM, llave que no se exporta) y no aparece en el HTML, en localStorage ni sessionStorage, en el respaldo, en la copia ni en el registro técnico. | Que otro HTML abierto desde el disco en el mismo navegador no pueda usarla: no se puede impedir desde el programa, y el aviso lo dice (decisión 53). |
-| 9 | La IA no puede crear un precio que no esté literalmente en una página leída | **Probado con la API simulada; no probado con la API real** | Investigador, núcleo: un precio que no está en el texto literal, un texto literal que no está en la página, una página que no se leyó, otra moneda, números cortados, separadores y Markdown. De punta a punta, con respuestas en streaming de la forma real: de cinco precios, entra solo el que está escrito en la página y es el insumo; el inventado se descarta con el motivo, el de una página no leída espera a una persona con el enlace y los dudosos esperan revisión. Además, el registro rechaza toda captura de método «ia» cuyo precio no esté en su texto. | Una búsqueda con una clave real y la API de verdad (secciones 12 a 18 de esta guía): las pruebas automáticas no usan clave. |
+| 2 | A lo sumo dos clics del precio a sus observaciones | **Probado** | Humo: un clic desde la Base y desde el comparador abre las observaciones con fecha, texto literal y enlace. Motor en el programa: los precios que traen los conectores llegan a esa misma ficha con su fuente, su enlace, el texto leído y la huella de la página. | — |
+| 3 | Actualizar una categoría no toca las demás ni borra historia | **Probado** | Humo, dos veces: desde el Módulo 02 por la interfaz (solo los cementos; los concretos de una cotización siguen pendientes y sin cambio) y con la demostración cargada (ningún otro consolidado cambia, el precio nuevo de la varilla queda pendiente y no se pierde ninguna observación ni cálculo anterior). Motor en el programa: una segunda lectura igual de las fuentes no repite precios ni borra los anteriores. | — |
+| 4 | Sin conexión funciona todo menos actualizar | **Probado** | Humo: con el programa abierto y sin red, se recorren los módulos, se registra, se recalcula y se genera el Excel para ARKEN sin ningún pedido a internet. Investigador: sin red, dice que no hay conexión con la API y la actualización recalcula con lo registrado. App de escritorio empacada y capa de la app: el programa se sirve desde la app, con las librerías y el lector de PDF adentro, sin pedir nada a internet. | Abrir el **archivo HTML** por primera vez sin internet: sus librerías de Excel y PDF vienen de cdnjs, como en ARKEN CONTROL, y entonces el Excel no está disponible y el PDF sale por la impresión del navegador. Las apps no tienen esa condición, pero solo la de Linux se probó abierta. |
+| 5 | PDF e impresión en carta, con encabezado, pie y «Página x de y» | **Probado** | Humo: el PDF completo y el de una categoría se leen con pdf.js (tamaño carta, «ARKEN» y «Página x de y» en cada página); la impresión fija `@page` carta con la numeración, y el PDF que sale de la impresión del navegador cumple lo mismo. Capa de la app: en el celular (Android simulado), imprimir entrega el PDF del documento. | La impresión en una impresora física y desde un teléfono de verdad. |
+| 6 | El tablero filtra por fechas, ciudades y categorías y responde en menos de 1 s con 50.000 observaciones | **Probado** | Unitarias: con 50.000 observaciones, construir los agregados y consultar toma décimas de segundo como mucho. Humo: demostración de más de 50.000 observaciones; tres consultas con los tres filtros a la vez y el cambio de categoría en pantalla, cada uno por debajo de 1 s. Capa de la app: con la política de seguridad de las apps, el tablero sigue calculando en su Web Worker. | En un computador lento. Se midió en el equipo de pruebas. |
+| 7 | Sistema visual de ARKEN en claro, oscuro y tres densidades; 360 px sin desplazamiento lateral | **Probado** | El CSS se copia del `ARKEN_CONTROL.html`. Humo: los 12 módulos y la ficha de un precio a 360 px en los dos temas y las tres densidades, y además todas las demás pestañas (también las nuevas: Programación, Índices y Motor y servidor) y la ficha de cinco fuentes, sin desplazamiento lateral. | Que «se vea como ARKEN» es un juicio a ojo: se revisaron capturas, pero su revisión es la definitiva. Las apps en un teléfono de verdad. |
+| 8 | Ningún texto externo sin escapar; ninguna clave en HTML, respaldos ni paquetes | **Probado** | Unitarias y humo: un proveedor y un texto con `<script>` e `<img onerror>` se pintan como texto, un enlace `javascript:` se descarta, y con una clave de API guardada ni el respaldo ni el paquete la llevan. El HTML del programa se verifica vacío en cada cambio. Investigador: el texto de una página se ve escapado en la bandeja, el catálogo y las fuentes propuestas, y la clave no aparece en el HTML, en el almacenamiento del navegador, en el respaldo, en la copia ni en el registro técnico. Motor en el programa: el texto de las tiendas se ve escapado en la bandeja, y el token del servidor queda en la bóveda del equipo, no en la base ni en la página. Servidor: el plan se guarda sin nada con forma de clave. Capa de la app: la copia interna nunca lleva algo con forma de clave, y con la política de seguridad un atributo `on…` colado no se ejecuta. App de escritorio empacada: la clave queda cifrada por el llavero solo en `secretos.json`, y no está en la base, la página, el respaldo, la copia interna ni otro archivo de la app. | Que otro HTML abierto desde el disco en el mismo navegador no pueda usarla: no se puede impedir desde el programa, y el aviso lo dice (decisión 53). La bóveda de Windows y macOS: solo se probó la de Linux, con un llavero de prueba. |
+| 9 | Ni la IA ni un conector pueden crear un precio que no esté literalmente en una página leída | **Probado con la API y los sitios simulados; no probado con la API real ni con los sitios reales** | Investigador, núcleo: un precio que no está en el texto literal, un texto literal que no está en la página, una página que no se leyó, otra moneda, números cortados, separadores y Markdown. De punta a punta, con respuestas en streaming de la forma real: de cinco precios, entra solo el que está escrito en la página y es el insumo. Conectores: el programa vuelve a buscar cada precio en el texto leído; un motor alterado que cambia un precio (30.000 en vez de 33.333) no logra que entre, y un paquete del servidor con un precio cambiado no entra aunque se rehaga su hash. Además, el registro rechaza toda captura de método «ia» cuyo precio no esté en su texto. | Una búsqueda con una clave real y la API de verdad (secciones 12 a 18) y una lectura de los sitios reales (secciones 20 a 23): las pruebas automáticas no usan clave ni salen a internet. |
 | 10 | La calculadora laboral reproduce un ejemplo hecho a mano con los parámetros de 2026 | **Probado** | Unitarias: cada línea del desglose y los totales coinciden con la cuenta a mano ($ 2,939,493.152 al mes, $ 13,997.586 la hora, $ 97,983.105 el jornal). La pantalla da las mismas cifras. | La revisión del contador de la empresa. |

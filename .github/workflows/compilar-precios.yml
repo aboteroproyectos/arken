@@ -1,0 +1,234 @@
+name: Compilar ARKEN PRECIOS
+
+# Cada cambio de ARKEN PRECIOS (carpeta precios/) en main compila sus cuatro apps; los instaladores
+# quedan en la pestaña Actions (sección «Artifacts» de cada ejecución) y se descargan tal cual, sin
+# .zip. Una etiqueta precios-vX.Y.Z publica además una versión en «Releases» con los cuatro
+# instaladores. Las etiquetas vX.Y.Z siguen siendo de ARKEN CONTROL (compilar.yml).
+
+on:
+  push:
+    branches: [main]
+    # Los filtros de carpeta no aplican a las etiquetas: una etiqueta precios-v* siempre compila.
+    tags: ['precios-v*']
+    paths:
+      - 'precios/**'
+      - '.github/workflows/compilar-precios.yml'
+  pull_request:
+    paths:
+      - 'precios/**'
+      - '.github/workflows/compilar-precios.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: compilar-precios-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: precios
+
+jobs:
+  # ─── La capa de la app y la app de escritorio empacada, probadas en Linux ───
+  pruebas:
+    name: Pruebas de las apps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: precios/package-lock.json
+      # Sin las dependencias opcionales de pdf.js (canvas): la app solo lee el texto de los PDF.
+      - run: npm ci --omit=optional
+      - name: El programa no trae datos de la empresa
+        run: npm run verificar-sin-datos
+      - name: Capa de la app en Chromium (navegador, escritorio y Android simulados)
+        run: npm run prueba:app
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+      - name: Empaquetar la app de escritorio para Linux
+        run: npm run dist:linux
+      # La clave de la API y el token del servidor se cifran con el llavero del sistema operativo
+      # (safeStorage de Electron). En Linux eso exige un llavero desbloqueado: aquí uno de prueba.
+      - name: Prueba de la app de escritorio empaquetada (con llavero de prueba)
+        env:
+          ARKEN_PRECIOS_EXIGIR_LLAVERO: 1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb gnome-keyring dbus-daemon
+          xvfb-run -a dbus-run-session -- sh pruebas/con-llavero.sh npm run prueba:escritorio
+
+  android:
+    name: Android
+    needs: pruebas
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: precios/package-lock.json
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - name: Versión
+        id: version
+        run: echo "nombre=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Preparar la app
+        run: npm run preparar && npx cap sync android
+      # La misma clave de firma de ARKEN CONTROL (android/firma en la raíz del repositorio).
+      - name: Clave de firma
+        id: firma
+        env:
+          ARKEN_FIRMA_CLAVE: ${{ secrets.ARKEN_FIRMA_CLAVE }}
+        run: |
+          if [ -z "$ARKEN_FIRMA_CLAVE" ]; then
+            echo "::warning title=Falta la clave de firma::Sin el secreto ARKEN_FIRMA_CLAVE se compila Android para verificar, pero no se entrega el APK. Vea precios/README.md."
+            echo "hay=no" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in ../android/firma/arken.jks.enc -out "$RUNNER_TEMP/arken.jks" -pass env:ARKEN_FIRMA_CLAVE
+          echo "archivo=$RUNNER_TEMP/arken.jks" >> "$GITHUB_OUTPUT"
+          echo "hay=si" >> "$GITHUB_OUTPUT"
+      - name: Compilar el APK
+        working-directory: precios/android
+        env:
+          ARKEN_FIRMA_ARCHIVO: ${{ steps.firma.outputs.archivo }}
+          ARKEN_FIRMA_CLAVE: ${{ secrets.ARKEN_FIRMA_CLAVE }}
+          ARKEN_VERSION_CODE: ${{ github.run_number }}
+          ARKEN_VERSION_NAME: ${{ steps.version.outputs.nombre }}
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Nombrar el APK
+        if: steps.firma.outputs.hay == 'si'
+        run: |
+          mkdir -p salida
+          cp android/app/build/outputs/apk/release/app-release.apk "salida/ARKEN-PRECIOS-${{ steps.version.outputs.nombre }}-Android.apk"
+      - uses: actions/upload-artifact@v7
+        if: steps.firma.outputs.hay == 'si'
+        with:
+          archive: false
+          path: precios/salida/*.apk
+          if-no-files-found: error
+      - name: Resumen
+        if: steps.firma.outputs.hay != 'si'
+        run: |
+          {
+            echo "### Android compilado, pero sin APK para instalar"
+            echo "Falta el secreto **ARKEN_FIRMA_CLAVE**. Créelo en *Settings › Secrets and variables › Actions*"
+            echo "con la clave de firma (vea precios/README.md) y vuelva a ejecutar esta compilación."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  ios:
+    name: iOS (sin firma)
+    needs: pruebas
+    runs-on: macos-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: precios/package-lock.json
+      - run: npm ci
+      - name: Versión
+        id: version
+        run: echo "nombre=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Preparar la app
+        run: npm run preparar && npx cap sync ios
+      - name: Compilar
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/ios \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            MARKETING_VERSION=${{ steps.version.outputs.nombre }} CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            build
+      - name: Empaquetar (.ipa sin firma)
+        run: |
+          mkdir -p Payload salida
+          cp -R build/ios/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry "salida/ARKEN-PRECIOS-${{ steps.version.outputs.nombre }}-iOS-sin-firma.ipa" Payload
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: precios/salida/*.ipa
+          if-no-files-found: error
+
+  windows:
+    name: Windows
+    needs: pruebas
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: precios/package-lock.json
+      - run: npm ci
+      - name: Instalador
+        run: npm run dist:windows
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: precios/dist/*.exe
+          if-no-files-found: error
+
+  mac:
+    name: macOS
+    needs: pruebas
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: precios/package-lock.json
+      - run: npm ci
+      - name: Instalador (Apple Silicon e Intel)
+        run: npm run dist:mac
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: precios/dist/*.dmg
+          if-no-files-found: error
+
+  # ─── Publicación: solo con una etiqueta de versión (precios-vX.Y.Z) ───
+  publicar:
+    name: Publicar versión
+    if: startsWith(github.ref, 'refs/tags/precios-v')
+    needs: [android, ios, windows, mac]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: instaladores
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v3
+        with:
+          name: ARKEN PRECIOS ${{ github.ref_name }}
+          files: |
+            instaladores/**/*.apk
+            instaladores/**/*.exe
+            instaladores/**/*.dmg
+            instaladores/**/*.ipa
+          fail_on_unmatched_files: true
+          body: |
+            **Android:** ARKEN-PRECIOS-…-Android.apk · **Windows:** ARKEN-PRECIOS-…-Windows.exe · **macOS:** ARKEN-PRECIOS-…-macOS.dmg
+            **iOS:** ARKEN-PRECIOS-…-iOS-sin-firma.ipa (requiere firmarse para instalarse; vea precios/README.md).
