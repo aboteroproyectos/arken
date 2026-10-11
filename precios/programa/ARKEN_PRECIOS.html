@@ -3345,17 +3345,14 @@ const Investigador = (function(){
 
   /** Herramientas de una tarea. Las de búsqueda y lectura llevan la llamada
       directa (sin filtrado dinámico), para que el texto de cada página vuelva
-      en la respuesta y se pueda verificar el precio contra él. */
-  function herramientas(cfg0, ciudad, opciones){
+      en la respuesta y se pueda verificar el precio contra él. La búsqueda va
+      sin user_location: el buscador de la API no acepta Colombia y rechaza la
+      solicitud entera (400 «Country code CO is not supported»). La ciudad y
+      el país van en el mensaje de la tarea. */
+  function herramientas(cfg0, opciones){
     const cfg = configuracion(cfg0), p = perfil(cfg.modelo), o = opciones || {};
-    const c = ciudad || {};
-    const ubicacion = { type:'approximate' };
-    if (c.nombre) ubicacion.city = c.nombre;
-    if (c.departamento) ubicacion.region = c.departamento;
-    ubicacion.country = 'CO';
-    ubicacion.timezone = 'America/Bogota';
     const busqueda = Object.assign({ type:p.web === '2025' ? 'web_search_20250305' : 'web_search_20260209', name:'web_search', max_uses:cfg.busquedas },
-      filtroDominios(cfg, 'busqueda'), { user_location:ubicacion });
+      filtroDominios(cfg, 'busqueda'));
     const lectura = Object.assign({ type:p.web === '2025' ? 'web_fetch_20250910' : 'web_fetch_20260209', name:'web_fetch', max_uses:cfg.paginas },
       filtroDominios(cfg, 'lectura'), { max_content_tokens:cfg.tokensPagina });
     if (p.web === '2026'){ busqueda.allowed_callers = ['direct']; lectura.allowed_callers = ['direct']; }
@@ -3398,7 +3395,7 @@ const Investigador = (function(){
       model:cfg.modelo,
       max_tokens:p.maxTokens,
       system:[{ type:'text', text:SISTEMA, cache_control:{ type:'ephemeral' } }],
-      tools:herramientas(cfg, t.ciudad, o),
+      tools:herramientas(cfg, o),
       tool_choice:{ type:'auto' },
       cache_control:{ type:'ephemeral' },
       messages:[{ role:'user', content:mensaje(t, cfg) }]
@@ -7208,7 +7205,7 @@ const $ = (sel, raiz) => (raiz || document).querySelector(sel);
 const $$ = (sel, raiz) => Array.from((raiz || document).querySelectorAll(sel));
 const pausa = ms => new Promise(r => setTimeout(r, ms || 0));
 
-const VERSION_PROGRAMA = '4.0 · Fase 4';
+const VERSION_PROGRAMA = '4.0.1 · Fase 4';
 
 /** Riel numerado (§12). El nombre corto es el que cabe en el riel. */
 const MODULOS = [

@@ -23,7 +23,7 @@ import { ErrorMotor } from './errores.mjs';
 import { cacheEnMemoria } from './cache.mjs';
 import { permitido as permitidoPorRobots, segunRespuesta, MAXIMO_BYTES as MAXIMO_ROBOTS } from './robots.mjs';
 
-export const VERSION_AGENTE = '0.4.0';
+export const VERSION_AGENTE = '0.4.1';
 export const SITIO_AGENTE = 'https://github.com/aboteroproyectos/arken';
 
 const RE_CORREO = /^[^\s@<>()",;:]+@[^\s@<>()",;:]+\.[^\s@<>()",;:]{2,}$/;

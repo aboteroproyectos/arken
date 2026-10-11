@@ -1,5 +1,15 @@
 # ARKEN PRECIOS · Registro de cambios
 
+## 0.4.1 · Corrección del Investigador IA · 6 de octubre de 2026
+
+**Programa**
+
+- **El Investigador IA se detenía en su primera búsqueda.** La API de Claude rechazaba cada solicitud con «Country code CO is not supported»: la búsqueda pedía resultados de Colombia y el buscador de la API no acepta ese país. Ahora la búsqueda va sin ubicación, y la ciudad, su departamento y el país siguen en el mensaje de cada búsqueda (decisión 36). Una solicitud rechazada no gasta del tope del mes.
+
+**Pruebas**
+
+- `pruebas/investigador.mjs`: la búsqueda no lleva `user_location` con ningún modelo, y el mensaje lleva la ciudad con su departamento y el país.
+
 ## 0.4.0 · Fase 4, analítica completa · 6 de octubre de 2026
 
 El programa muestra cómo se mueven los precios y avisa cuando algo cambia: un tablero completo con el índice de costo de obra, canastas, pesos constantes y proyecciones rotuladas; alertas; un comparador de ciudades, fechas, cortes y fuentes, y el precio puesto en obra, también en el Excel para ARKEN. El catálogo llega a 1.052 insumos, ninguno con un precio inventado.
