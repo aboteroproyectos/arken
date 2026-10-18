@@ -1,0 +1,70 @@
+name: ARKEN ANALYTICA
+
+# Compilación y pruebas de ARKEN ANALYTICA (carpeta analytica/): el HTML de programa/ tiene que ser
+# exactamente el que sale de fuente/ con herramientas/construir.mjs; ningún archivo trae datos de la
+# empresa, claves de API, llaves privadas, paquetes, sobres ni respaldos; el núcleo de cálculo y
+# la criptografía; la ida y vuelta con el programa/ARKEN_CONTROL.html real de este repositorio; y
+# la prueba de humo en Chromium. Corren también cuando cambia ARKEN CONTROL, porque el contrato
+# del Excel vive allí. El HTML probado queda como artefacto de la ejecución.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'analytica/**'
+      - 'programa/ARKEN_CONTROL.html'
+      - 'recursos/logo-original.png'
+      - 'herramientas/verificar-sin-datos.mjs'
+      - '.github/workflows/compilar-analytica.yml'
+  pull_request:
+    paths:
+      - 'analytica/**'
+      - 'programa/ARKEN_CONTROL.html'
+      - 'recursos/logo-original.png'
+      - 'herramientas/verificar-sin-datos.mjs'
+      - '.github/workflows/compilar-analytica.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: analytica-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: Pruebas de ARKEN ANALYTICA
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytica
+    env:
+      CHROME_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: analytica/package-lock.json
+      # Sin las dependencias opcionales de pdf.js (canvas): las pruebas solo leen el texto de los PDF.
+      - run: npm ci --omit=optional
+      - name: Ningún archivo trae datos, claves, llaves privadas, paquetes, sobres ni respaldos
+        run: npm run verificar-sin-datos
+      - name: El HTML de programa/ es el que sale de fuente/
+        run: npm run comprobar
+      - name: Núcleo (presupuesto, NIT, festivos, Excel de ARKEN y PRECIOS, Anexo B, acuerdo, cronograma, revisión)
+        run: npm run prueba:unitarias
+      - name: Criptografía (huellas, contraseñas, llaves del proceso y su respaldo)
+        run: npm run prueba:cripto
+      - name: Ida y vuelta con ARKEN CONTROL real
+        run: npm run prueba:ida-y-vuelta
+      - name: Prueba de humo en Chromium (módulos, PDF, emisión, respaldos, temas y 360 px)
+        run: npm run prueba:humo
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ARKEN_ANALYTICA
+          path: analytica/programa/ARKEN_ANALYTICA.html
+          if-no-files-found: error
+

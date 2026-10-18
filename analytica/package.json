@@ -1,0 +1,27 @@
+{
+  "name": "arken-analytica",
+  "productName": "ARKEN ANALYTICA",
+  "version": "0.1.0",
+  "description": "ARKEN ANALYTICA · Evaluación de propuestas de obra, app hermana de ARKEN CONTROL y ARKEN PRECIOS.",
+  "private": true,
+  "type": "module",
+  "author": "ARKEN CONTROL",
+  "scripts": {
+    "construir": "node herramientas/construir.mjs",
+    "comprobar": "node herramientas/construir.mjs --comprobar",
+    "verificar-sin-datos": "node ../herramientas/verificar-sin-datos.mjs",
+    "prueba:unitarias": "node pruebas/unitarias.mjs",
+    "prueba:cripto": "node pruebas/cripto.mjs",
+    "prueba:ida-y-vuelta": "node pruebas/ida-y-vuelta.mjs",
+    "prueba:humo": "node pruebas/humo.mjs",
+    "prueba": "npm run verificar-sin-datos && npm run comprobar && npm run prueba:unitarias && npm run prueba:cripto && npm run prueba:ida-y-vuelta && npm run prueba:humo"
+  },
+  "devDependencies": {
+    "jspdf": "2.5.1",
+    "jspdf-autotable": "3.8.2",
+    "jszip": "3.10.1",
+    "pdfjs-dist": "3.11.174",
+    "playwright-core": "^1.63.0",
+    "xlsx": "0.18.5"
+  }
+}
