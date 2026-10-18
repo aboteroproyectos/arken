@@ -131,7 +131,7 @@ const App = (function(){
     $('#gate').style.display = '';
     const pl = Plg.incrustado();
     Plg.usar(pl);
-    Cripto.sha256(Plg.texto()).then(h => Verificacion.previa(pl, h)).then(v => { pantallaUsuario(pl, v); if (motivo) $('#gateErr').innerHTML = aviso(esc(motivo), 'info'); });
+    Cripto.sha256(Plg.texto()).then(h => Verificacion.previa(pl, h)).then(v => pantallaUsuario(pl, v)).then(() => { if (motivo) $('#gateErr').innerHTML = aviso(esc(motivo), 'info'); });
   }
 
   /* ── Inactividad: 20 minutos sin uso cierran la sesión ── */

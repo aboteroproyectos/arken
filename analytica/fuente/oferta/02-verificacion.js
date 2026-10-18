@@ -14,7 +14,7 @@ const Verificacion = (function(){
 
   function entradas(zip){
     const lista = [];
-    zip.forEach((ruta, f) => lista.push({ nombre:ruta, dir:f.dir, descomprimido:f._data && f._data.uncompressedSize, comprimido:f._data && f._data.compressedSize, f }));
+    zip.forEach((ruta, f) => lista.push({ nombre:f.unsafeOriginalName || ruta, dir:f.dir, descomprimido:f._data && f._data.uncompressedSize, comprimido:f._data && f._data.compressedSize, f }));
     return lista;
   }
 

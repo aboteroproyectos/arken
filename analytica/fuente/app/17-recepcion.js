@@ -26,7 +26,7 @@ const Recepcion = (function(){
 
   function entradas(zip){
     const L = [];
-    zip.forEach((ruta, f) => L.push({ nombre:ruta, dir:f.dir, descomprimido:f._data && f._data.uncompressedSize, comprimido:f._data && f._data.compressedSize, f }));
+    zip.forEach((ruta, f) => L.push({ nombre:f.unsafeOriginalName || ruta, dir:f.dir, descomprimido:f._data && f._data.uncompressedSize, comprimido:f._data && f._data.compressedSize, f }));
     return L;
   }
 

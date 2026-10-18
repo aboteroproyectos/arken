@@ -18,6 +18,7 @@ function sinProceso(num, titulo){
     UI.vacio('No hay un proceso abierto', 'Abra un proceso en el módulo 01 · Procesos, o cree uno nuevo.', boton('ir-01', 'Ir a Procesos', 'primary')) + '</div></div>';
 }
 function avisoCongelado(p){
+  if (p.adendaEnCurso) return '<div class="congelado">Adenda N.º ' + p.adendaEnCurso.numero + ' en preparación: está editando la versión ' + p.versionPliego + ' del pliego. La versión vigente para los invitados sigue siendo la ' + p.adendaEnCurso.versionAnterior + ' hasta que se emita (módulo 08).</div>';
   return Modelo.editable(p) ? '' : '<div class="congelado">El proceso fue emitido: la versión ' + p.versionPliego + ' del pliego está congelada y aquí solo se consulta. Los cambios se hacen con una adenda (módulo 08).</div>';
 }
 function etiquetaDemo(x){ return x && x.demo ? ' ' + UI.tag('DEMOSTRACIÓN', 'demo') : ''; }
@@ -45,11 +46,11 @@ Vistas['00'] = function(){
     '<div class="cover-hero"><div class="inner"><div class="eyebrow" style="color:#DCCFB4">' + esc(p.modalidad) + ' · ' + esc(p.tipoContrato) + '</div>' +
       '<h2>' + titulo + ' <b>' + esc(p.codigo) + '</b></h2><p>' + esc(p.objeto || 'Sin objeto definido.') + '</p><div class="cover-rule"></div></div></div>' +
     '<div class="nota-flujo" style="margin-top:var(--gap)">' + PASOS_FLUJO.map((x, i) => (i ? '<span class="fl">›</span>' : '') + '<span class="paso' + (i === paso ? ' fuerte' : '') + '">' + x + '</span>').join('') +
-      '<em>' + (Modelo.editable(p) ? (enRojo ? 'Faltan ' + enRojo + ' punto(s) de la revisión antes de emitir (módulo 07).' : 'La revisión está en verde: el proceso se puede emitir.') : 'Proceso emitido. Recepción y apertura de ofertas: Fase 2.') + '</em></div>' +
+      '<em>' + (Modelo.editable(p) ? (enRojo ? 'Faltan ' + enRojo + ' punto(s) de la revisión antes de emitir (módulo 07).' : 'La revisión está en verde: el proceso se puede emitir.') : (Recepcion.actas(p.id, 'apertura').length ? 'Ofertas abiertas: ' + Recepcion.ofertas(p.id).length + '. Evaluación: Fase 3.' : 'Proceso emitido: paquetes en el módulo 07, preguntas y adendas en el 08, recepción en el 09.')) + '</em></div>' +
     '<div class="grid g5">' +
       '<div class="stat accent"><div class="lab">Presupuesto base</div><div class="val">' + money(t.total) + '</div><div class="foot">Costo directo ' + money(t.costoDirecto) + '</div></div>' +
       '<div class="stat"><div class="lab">Invitados</div><div class="val">' + inv.length + '</div><div class="foot">' + firmados + ' acuerdo(s) firmado(s)</div></div>' +
-      '<div class="stat"><div class="lab">Ofertas recibidas</div><div class="val">0</div><div class="foot">Recepción en la Fase 2</div></div>' +
+      '<div class="stat"><div class="lab">Ofertas recibidas</div><div class="val">' + Recepcion.vigentes(p.id).length + '</div><div class="foot">' + (Recepcion.ofertas(p.id).length ? Recepcion.ofertas(p.id).length + ' abierta(s)' : 'Sobres vigentes, sin abrir') + '</div></div>' +
       '<div class="stat"><div class="lab">Alertas abiertas</div><div class="val">0</div><div class="foot">Crítica 0 · importante 0 · observación 0</div></div>' +
       '<div class="stat"><div class="lab">Revisión antes de emitir</div><div class="val">' + (rev.length - enRojo) + ' / ' + rev.length + '</div><div class="foot">' + (enRojo ? enRojo + ' en rojo' : 'Todo en verde') + '</div></div>' +
     '</div>' +

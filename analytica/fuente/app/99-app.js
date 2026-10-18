@@ -118,7 +118,7 @@ const App = (function(){
     $('#btnSalir').onclick = () => salir();
     $('#btnAdmin').onclick = () => ir('admin');
     $('#btnConfig').onclick = () => ir('config');
-    $('#btnCargarOfertas').onclick = () => UI.aviso('Cargar ofertas', '<p>La recepción de sobres de oferta (muchos a la vez, asignados por código de invitación, sin abrir nada antes del cierre) llega en la <b>Fase 2</b>.</p>');
+    $('#btnCargarOfertas').onclick = () => { if (!Modelo.activo()){ UI.toast('Abra un proceso primero', 'bad'); return; } Sesion.pestanas.rec = 'recepcion'; ir('09'); };
     $('#btnAlertas').onclick = () => UI.aviso('Bandeja de alertas', '<p>No hay alertas. Las alertas del análisis de ofertas (aritmética, desbalance, valor artificialmente bajo, documentos vencidos, posibles acuerdos) llegan en la <b>Fase 3</b>.</p>');
   }
   function pintarBarra(){
@@ -172,14 +172,19 @@ const App = (function(){
     }
     const oculto = ocultarPrecios();
     l.innerHTML = celda('Presupuesto base', oculto ? '—' : money(t.total), oculto ? 'Oculto hasta terminar la calificación' : 'Costo directo ' + money(t.costoDirecto)) +
-      celda('Invitados / ofertas', inv + ' / 0', 'Recepción en la Fase 2') +
-      celda('Oferta más baja', '—', 'Después de la apertura') +
+      celda('Invitados / ofertas', inv + ' / ' + Recepcion.vigentes(p.id).length, Recepcion.ofertas(p.id).length ? Recepcion.ofertas(p.id).length + ' abierta(s)' : 'Sobres vigentes') +
+      celda('Oferta más baja', masBaja(p), 'Recalculada, después de la apertura') +
       celda('Días al cierre', dias, sub) +
       '<div class="ledger-cell total grow"><div class="lab">Estado del proceso</div><div class="val">' + esc(p.estado) + (p.demo ? ' · DEMO' : '') + '</div></div>';
   }
 
+  function masBaja(p){
+    const L = Recepcion.ofertas(p.id).map(o => o.recalculo.totales.total).filter(v => v > 0);
+    return L.length ? money(Math.min.apply(null, L)) : '—';
+  }
+
   /* ── Riel ── */
-  const REQUIERE_PROCESO = ['00','02','04','05','06','07'];
+  const REQUIERE_PROCESO = ['00','02','04','05','06','07','08','09','10'];
   function pintarRail(){
     const p = Modelo.activo();
     $('#railList').innerHTML = MODULOS.map(m => {

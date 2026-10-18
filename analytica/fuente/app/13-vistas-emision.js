@@ -7,10 +7,10 @@ Vistas['07'] = function(){
   if (!p) return { html:sinProceso('07', 'Pliego, revisión y emisión') };
   const tab = UI.pestanaActiva('emi', 'revision');
   const rev = Modelo.revision(p), enRojo = rev.filter(x => !x.ok).length;
-  const cuerpo = tab === 'cronograma' ? vistaCronograma(p) : tab === 'pliego' ? vistaPliego(p) : tab === 'llaves' ? vistaLlaves(p) : vistaRevision(p, rev);
+  const cuerpo = tab === 'cronograma' ? vistaCronograma(p) : tab === 'pliego' ? vistaPliego(p) : tab === 'llaves' ? vistaLlaves(p) : tab === 'paquetes' ? vistaPaquetes(p) : vistaRevision(p, rev);
   const html = cabecera('07', 'Pliego, revisión y emisión', esc(p.codigo) + ' · ' + esc(p.estado) + etiquetaDemo(p) + ' · revisión ' + (rev.length - enRojo) + ' / ' + rev.length) + avisoCongelado(p) +
-    UI.pestanas('emi', [['revision','Revisión y emisión'],['cronograma','Cronograma'],['pliego','Pliego'],['llaves','Llaves del proceso']], 'revision') + cuerpo;
-  return { html, acciones:Object.assign(accionesCronograma(p), accionesPliego(p), accionesLlaves(p), accionesRevision(p, rev)) };
+    UI.pestanas('emi', [['revision','Revisión y emisión'],['cronograma','Cronograma'],['pliego','Pliego'],['llaves','Llaves del proceso'],['paquetes','Paquetes y envío']], 'revision') + cuerpo;
+  return { html, acciones:Object.assign(accionesCronograma(p), accionesPliego(p), accionesLlaves(p), accionesRevision(p, rev), accionesPaquetes(p)) };
 };
 
 /* ── Cronograma ── */
@@ -187,7 +187,8 @@ function vistaRevision(p, rev){
   if (!Modelo.editable(p)){
     const e = p.emitido || {};
     return '<div class="nota ok"><b>Proceso emitido</b> el ' + Util.fmtSello(e.fecha) + ' por ' + esc(e.usuario) + ', versión ' + e.version + ' del pliego. <span class="huella">Pliego SHA-256 ' + esc(e.huellaPliego) + '</span></div>' +
-      '<p>El presupuesto base y las condiciones quedaron congelados. Lo que sigue (paquetes por invitado, preguntas, adendas y recepción de ofertas) llega en la Fase 2.</p>';
+      '<p>El presupuesto base y las condiciones quedaron congelados. Ahora genere un paquete por invitado (pestaña «Paquetes y envío»); las preguntas y las adendas van en el módulo 08 y la recepción de ofertas en el 09.</p>' +
+      boton('ir-paquetes', 'Ir a Paquetes y envío', 'primary');
   }
   return '<div class="card"><div class="card-head"><h3>Revisión antes de emitir</h3>' + UI.tag(listo ? 'todo en verde' : rev.filter(x => !x.ok).length + ' en rojo', listo ? 'ok' : 'bad') + '</div><div class="card-body">' +
     grupos.map(g => '<div class="chk-grupo">' + esc(g) + '</div>' + rev.filter(x => x.grupo === g).map(x => itemChk(x.ok, esc(x.texto),
@@ -199,12 +200,13 @@ function vistaRevision(p, rev){
 }
 function accionesRevision(p, rev){
   return {
+    'ir-paquetes':() => { Sesion.pestanas.emi = 'paquetes'; App.render(); },
     'ir-modulo':b => { const clave = b.dataset.modulo === '07' ? 'emi' : b.dataset.modulo === '06' ? 'inv' : null; if (clave && b.dataset.pestanaIr) Sesion.pestanas[clave] = b.dataset.pestanaIr; App.ir(b.dataset.modulo); },
     'emitir':async () => {
       if (!Revision.listo(Modelo.revision(p))) throw new Error('Hay puntos de la revisión en rojo.');
       const ok = await UI.confirmar({ titulo:'Emitir el proceso ' + p.codigo, eyebrow:'Acción que no se puede deshacer', palabra:'EMITIR', textoAceptar:'Emitir', claseAceptar:'danger',
         cuerpo:'<p>Al emitir:</p><ul><li>El presupuesto base, las condiciones de la oferta y el pliego de la versión ' + p.versionPliego + ' quedan <b>congelados</b>: no se pueden editar.</li>' +
-          '<li>Cualquier cambio posterior se hace con una adenda numerada (módulo 08, Fase 2).</li><li>Queda registrado en la auditoría con la huella del pliego.</li></ul>' });
+          '<li>Cualquier cambio posterior se hace con una adenda numerada (módulo 08).</li><li>Queda registrado en la auditoría con la huella del pliego.</li></ul>' });
       if (!ok) return;
       await Modelo.emitir(p); UI.toast('Proceso ' + p.codigo + ' emitido', 'ok'); App.render();
     }

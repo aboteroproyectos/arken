@@ -3,8 +3,10 @@ name: ARKEN ANALYTICA
 # Compilación y pruebas de ARKEN ANALYTICA (carpeta analytica/): el HTML de programa/ tiene que ser
 # exactamente el que sale de fuente/ con herramientas/construir.mjs; ningún archivo trae datos de la
 # empresa, claves de API, llaves privadas, paquetes, sobres ni respaldos; el núcleo de cálculo y
-# la criptografía; la ida y vuelta con el programa/ARKEN_CONTROL.html real de este repositorio; y
-# la prueba de humo en Chromium. Corren también cuando cambia ARKEN CONTROL, porque el contrato
+# la criptografía; el núcleo de la Fase 2 (pliego sin precios, manifiesto, sobre, adendas, actas); los
+# sobres maliciosos contra la recepción real; la ida y vuelta con el programa/ARKEN_CONTROL.html real de
+# este repositorio; la prueba de humo del principal y la de ARKEN OFERTA, y la prueba de punta a punta
+# con cinco ofertas en Chromium. Corren también cuando cambia ARKEN CONTROL, porque el contrato
 # del Excel vive allí. El HTML probado queda como artefacto de la ejecución.
 
 on:
@@ -56,12 +58,20 @@ jobs:
         run: npm run comprobar
       - name: Núcleo (presupuesto, NIT, festivos, Excel de ARKEN y PRECIOS, Anexo B, acuerdo, cronograma, revisión)
         run: npm run prueba:unitarias
-      - name: Criptografía (huellas, contraseñas, llaves del proceso y su respaldo)
+      - name: Criptografía (huellas, contraseñas, llaves del proceso, su respaldo y el sobre cerrado)
         run: npm run prueba:cripto
+      - name: Núcleo de la Fase 2 (pliego sin precios, manifiesto, ZIP y PDF maliciosos, cabecera, recálculo, adendas, actas)
+        run: npm run prueba:nucleo-fase-2
+      - name: Sobres maliciosos contra la recepción y la apertura
+        run: npm run prueba:sobres-maliciosos
       - name: Ida y vuelta con ARKEN CONTROL real
         run: npm run prueba:ida-y-vuelta
       - name: Prueba de humo en Chromium (módulos, PDF, emisión, respaldos, temas y 360 px)
         run: npm run prueba:humo
+      - name: Prueba de humo de ARKEN OFERTA (autenticidad, módulos, temas, 360 px, borrador, sesión, cierre)
+        run: npm run prueba:oferta
+      - name: Punta a punta (paquetes, confidencialidad, cinco ofertas, preguntas, adenda, recepción, cierre y apertura)
+        run: npm run prueba:punta-a-punta
       - uses: actions/upload-artifact@v7
         with:
           name: ARKEN_ANALYTICA

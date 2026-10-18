@@ -126,6 +126,40 @@ export async function cerrarModales(pagina) {
   await pagina.evaluate(() => document.querySelectorAll('#modales .overlay').forEach((o) => o.remove()));
 }
 
+/** Un proceso de demostración emitido, listo para la Fase 2: usuarios abogada, comite1 y comite2
+    (contraseña «clave-<usuario>-2026»), un documento, el acuerdo aprobado, llaves con respaldo y el pliego. */
+export async function prepararEmitido(pagina, FRASE) {
+  return pagina.evaluate(async ({ FRASE }) => {
+  const yo = Sesion.usuario;
+  for (const [usuario, nombre, roles] of [['abogada', 'Abogada de prueba', ['juridico']], ['comite1', 'Comité uno', ['comite']], ['comite2', 'Comité dos', ['comite']]]) {
+    await Usuarios.guardar({ usuario, nombre, cargo: 'Prueba', roles }, 'clave-' + usuario + '-2026');
+  }
+  const p = await Modelo.cargarDemo();
+  App.abrirProceso(p.id, '07');
+  // Un documento del proceso: un PDF de planos.
+  const doc = new window.jspdf.jsPDF(); doc.text('Planos arquitectónicos · DEMOSTRACIÓN', 20, 20);
+  const f = new File([doc.output('blob')], 'Planos_arquitectonicos.pdf', { type: 'application/pdf' });
+  const r = await Archivos.guardar(f);
+  await Modelo.guardarDocumento({ id: Util.uid('dp'), procesoId: p.id, demo: true, nombre: f.name, clase: 'Planos', disciplina: 'Arquitectura', descripcion: 'Planos de la demostración',
+    sha256: r.sha256, peso: f.size, version: 1, vigente: true }, 'prueba');
+  // El abogado aprueba el acuerdo.
+  Sesion.usuario = S.usuarios.find((u) => u.usuario === 'abogada');
+  try { await Modelo.aprobarConfidencialidad(p, { nombre: 'Abogada de prueba', tarjetaProfesional: '000000 del C. S. de la J.', fecha: Util.hoyISO() }); }
+  finally { Sesion.usuario = yo; }
+  await Modelo.crearLlaves(p, FRASE);
+  await Modelo.marcarRespaldoLlaves(p, 'descargado'); await Modelo.marcarRespaldoLlaves(p, 'confirmado');
+  await Documentos.pdfPliego(p);
+  p.pliego.revisado = true; await Modelo.guardarProceso(p, 'revisado');
+  const rojo = Modelo.revision(p).filter((x) => !x.ok).map((x) => x.texto);
+  if (!rojo.length) await Modelo.emitir(p);
+  const pres = Modelo.presupuesto(p.id), t = Calculo.totales(pres);
+  return { id: p.id, codigo: p.codigo, rojo, estado: p.estado, envios: p.confidencialidad.envios,
+    precios: pres.insumos.map((i) => Util.money3(i.precio)).concat([t.total, t.costoDirecto, t.aiu].map(Util.money)),
+    preciosCrudos: pres.insumos.map((i) => i.precio).filter((x) => x >= 1000).map(String),
+    invitados: Modelo.invitados(p.id).map((i) => ({ id: i.id, razonSocial: i.razonSocial, codigo: i.codigoInvitacion })) };
+  }, { FRASE });
+}
+
 /* ── ARKEN CONTROL ── */
 export async function abrirArken(pagina, url) {
   await pagina.goto(url);

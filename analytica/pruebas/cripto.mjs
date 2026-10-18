@@ -5,6 +5,7 @@
 //   · firma ECDSA P-384: verifica, y un byte alterado en el texto o en la firma se detecta
 //   · respaldo de llaves: no trae nada en claro que abra una oferta y se puede restaurar
 //   · el ECDH de la llave de cifrado deriva el mismo secreto en los dos lados (base del sobre de la Fase 2)
+//   · sobre cerrado: solo lo abre la llave del proceso; un byte cambiado en el contenido o en la llave envuelta se detecta
 //   · requisitos de la frase y huellas SHA-256 frente a Node
 //
 // Para que corra rápido, las llaves de prueba usan 1.000 iteraciones; el programa usa 600.000
@@ -67,6 +68,27 @@ const publicaProceso = await subtle.importKey('jwk', r.publicaCifrado, { name: '
 const ladoOferta = Buffer.from(await subtle.deriveBits({ name: 'ECDH', public: publicaProceso }, efimera.privateKey, 384)).toString('hex');
 const ladoPrincipal = Buffer.from(await subtle.deriveBits({ name: 'ECDH', public: efimera.publicKey }, llaves.cifrado, 384)).toString('hex');
 m.ok(ladoOferta === ladoPrincipal, 'El secreto que deriva el proponente con la pública es el mismo que deriva el principal con la privada');
+
+m.seccion('Sobre cerrado (§14)');
+const contenido = new TextEncoder().encode(JSON.stringify({ formato: 'ARKEN-OFERTA', total: 123456789 }));
+const sobre = await Cripto.cifrarSobre(r.publicaCifrado, contenido);
+m.ok(!Buffer.from(sobre.cifrado).toString('latin1').includes('123456789') && sobre.envuelta.formato === 'ARKEN-LLAVE-ENVUELTA', 'El contenido cifrado no deja ver nada y la llave viaja envuelta (ECDH efímero + HKDF + AES-GCM)');
+const abierto = await Cripto.abrirSobre(llaves.cifrado, sobre.envuelta, sobre.cifrado);
+m.ok(Buffer.from(abierto).equals(Buffer.from(contenido)), 'La privada del proceso abre el sobre y devuelve el contenido exacto');
+const ajenas = await Cripto.abrirLlaves(otro, 'otra frase del comité aquí');
+let e3 = '';
+try { await Cripto.abrirSobre(ajenas.cifrado, sobre.envuelta, sobre.cifrado); } catch (e) { e3 = e.message; }
+m.ok(/no corresponde a este proceso/.test(e3), 'La llave de otro proceso no abre el sobre');
+const cambiado = Uint8Array.from(sobre.cifrado); cambiado[3] ^= 1;
+let e4 = '';
+try { await Cripto.abrirSobre(llaves.cifrado, sobre.envuelta, cambiado); } catch (e) { e4 = e.message; }
+m.ok(/fue alterado/.test(e4), 'Un byte cambiado en el contenido cifrado se detecta');
+const env2 = JSON.parse(JSON.stringify(sobre.envuelta)); const ll2 = Buffer.from(env2.llave, 'base64'); ll2[0] ^= 1; env2.llave = ll2.toString('base64');
+let e5 = '';
+try { await Cripto.abrirSobre(llaves.cifrado, env2, sobre.cifrado); } catch (e) { e5 = e.message; }
+m.ok(e5 !== '', 'Un byte cambiado en la llave envuelta se detecta');
+const sobre2 = await Cripto.cifrarSobre(r.publicaCifrado, contenido);
+m.ok(Buffer.from(sobre2.cifrado).toString('hex') !== Buffer.from(sobre.cifrado).toString('hex'), 'Dos sobres del mismo contenido no se parecen (llave e IV nuevos cada vez)');
 
 m.seccion('Respaldo de llaves');
 const texto = Cripto.respaldoLlaves(r);

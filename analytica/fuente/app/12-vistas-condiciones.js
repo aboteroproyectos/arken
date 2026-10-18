@@ -301,12 +301,12 @@ function vistaInvitados(p){
       '<td class="num">' + esc(i.codigoInvitacion) + '</td><td>' + UI.tag(i.estado, i.estado === 'invitado' ? 'info' : i.estado === 'retirado' ? 'bad' : '') + '<div class="small muted">' + (i.envios||[]).length + ' envío(s)</div></td>' +
       '<td>' + UI.tag(ac[0], ac[1]) + ((i.confidencialidad||{}).firmante ? '<div class="small muted">' + esc(i.confidencialidad.firmante) + '</div>' : '') + '</td><td class="act">' +
       (ed && i.estado !== 'retirado' ? boton('editar-inv', 'Editar', 'xs', ' data-id="' + i.id + '"') + ' ' + boton('envio-inv', 'Registrar envío', 'xs', ' data-id="' + i.id + '"') + ' ' + boton('acuerdo-inv', 'Acuerdo firmado', 'xs', ' data-id="' + i.id + '"') + ' ' +
-        boton('pdf-acuerdo-inv', 'PDF del acuerdo', 'xs', ' data-id="' + i.id + '"') + ' ' + boton('paquete-inv', 'Generar paquete', 'xs ghost', ' data-id="' + i.id + '" title="Fase 2"') + ' ' + boton('retirar-inv', 'Retirar', 'xs ghost', ' data-id="' + i.id + '"') : boton('historial-inv', 'Historial', 'xs', ' data-id="' + i.id + '"')) + '</td></tr>';
+        boton('pdf-acuerdo-inv', 'PDF del acuerdo', 'xs', ' data-id="' + i.id + '"') + ' ' + (p.emitido ? boton('paquete-inv', 'Generar paquete', 'xs ghost', ' data-id="' + i.id + '"') : '') + ' ' + boton('retirar-inv', 'Retirar', 'xs ghost', ' data-id="' + i.id + '"') : boton('historial-inv', 'Historial', 'xs', ' data-id="' + i.id + '"')) + '</td></tr>';
   }).join('');
   return '<div class="card"><div class="card-head"><h3>' + lista.filter(i => i.estado !== 'retirado').length + ' invitado(s)</h3>' + (ed ? boton('nuevo-inv', '+ Invitado', 'sm primary') : '') + '</div><div class="card-body flush">' +
     (filas ? '<div class="tw scroll"><table class="t"><thead><tr><th>Razón social</th><th>NIT</th><th>Contacto</th><th>Código de invitación</th><th>Estado</th><th>Acuerdo</th><th></th></tr></thead><tbody>' + filas + '</tbody></table></div>'
       : UI.vacio('Aún no hay invitados', 'Registre las empresas que va a invitar. El NIT se verifica con el dígito de verificación de la DIAN.', ed ? boton('nuevo-inv', '+ Invitado', 'primary') : '')) + '</div></div>' +
-    '<p class="small muted">El código de invitación identifica a cada proponente: su sobre de oferta llegará firmado con él y se asignará solo a su carpeta. El paquete de invitación y ARKEN OFERTA llegan en la Fase 2.</p>';
+    '<p class="small muted">El código de invitación identifica a cada proponente: su sobre de oferta llegará firmado con él y se asignará solo a su carpeta. El paquete de invitación, con ARKEN OFERTA adentro, se genera después de emitir (módulo 07 › Paquetes y envío).</p>';
 }
 const CAMPOS_INVITADO = (i) => [
   { k:'razonSocial', lab:'Razón social', val:i.razonSocial, c2:true },
@@ -373,7 +373,7 @@ function accionesInvitados(p){
       await Modelo.guardarInvitado(i, 'acuerdo firmado por ' + v.firmante + (archivo.sha256 ? ' · ' + archivo.sha256 : '') + (v.facultades ? ' · facultades verificadas' : '')); App.render();
     },
     'pdf-acuerdo-inv':b => Documentos.pdfConfidencialidad(p, buscar(b.dataset.id)),
-    'paquete-inv':() => UI.aviso('Paquete de invitación', '<p>La generación del paquete por invitado (el pliego, los documentos vigentes, el formulario de cantidades sin precios y ARKEN OFERTA, todo firmado con la llave del proceso) llega en la <b>Fase 2</b>.</p><p>En esta fase el proceso ya se puede preparar, revisar y emitir.</p>'),
+    'paquete-inv':async b => { UI.toast('Armando el paquete…'); const r = await Paquetes.generar(p, buscar(b.dataset.id)); UI.descargar(r.nombre, r.blob); UI.toast('Paquete ' + r.nombre + ' descargado', 'ok'); App.render(); },
     'retirar-inv':async b => {
       const i = buscar(b.dataset.id);
       const v = await UI.pedir({ titulo:'Retirar a ' + i.razonSocial, ancho:'', campos:[{ k:'motivo', lab:'Motivo', c2:true }], textoAceptar:'Retirar',

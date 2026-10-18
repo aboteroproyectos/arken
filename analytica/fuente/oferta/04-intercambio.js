@@ -104,7 +104,7 @@ const Intercambio = (function(){
     exigirLibrerias();
     let z;
     try { z = await JSZip.loadAsync(file); } catch(e){ throw new Error('El archivo no es un ZIP legible.'); }
-    const es = []; z.forEach((ruta, f) => es.push({ nombre:ruta, dir:f.dir, descomprimido:f._data && f._data.uncompressedSize, comprimido:f._data && f._data.compressedSize }));
+    const es = []; z.forEach((ruta, f) => es.push({ nombre:f.unsafeOriginalName || ruta, dir:f.dir, descomprimido:f._data && f._data.uncompressedSize, comprimido:f._data && f._data.compressedSize }));
     const malo = Sobre.revisarZip(es);
     if (malo) throw new Error(malo);
     const j = z.file('borrador.json');
