@@ -18,7 +18,7 @@ function sinProceso(num, titulo){
     UI.vacio('No hay un proceso abierto', 'Abra un proceso en el módulo 01 · Procesos, o cree uno nuevo.', boton('ir-01', 'Ir a Procesos', 'primary')) + '</div></div>';
 }
 function avisoCongelado(p){
-  return Modelo.editable(p) ? '' : '<div class="congelado">El proceso fue emitido: la versión ' + p.versionPliego + ' del pliego está congelada y aquí solo se consulta. Los cambios se hacen con una adenda (módulo 08, Fase 2).</div>';
+  return Modelo.editable(p) ? '' : '<div class="congelado">El proceso fue emitido: la versión ' + p.versionPliego + ' del pliego está congelada y aquí solo se consulta. Los cambios se hacen con una adenda (módulo 08).</div>';
 }
 function etiquetaDemo(x){ return x && x.demo ? ' ' + UI.tag('DEMOSTRACIÓN', 'demo') : ''; }
 const PASOS_FLUJO = ['Presupuesto','Condiciones','Documentos','Emisión','Ofertas','Apertura','Evaluación','Concepto','Informe'];

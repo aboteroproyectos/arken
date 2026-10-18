@@ -27,6 +27,10 @@ const Roles = (function(){
     crearLlaves:['administrador','director','comite'],
     generarPliego:['administrador','director'],
     emitir:['administrador','director'],
+    gestionarPreguntas:['administrador','director'],
+    emitirAdenda:['administrador','director'],
+    recibirOfertas:['administrador','director','comite'],
+    abrirOfertas:['administrador','director','comite'],
     demostracion:['administrador','director'],
     exportar:['administrador','director','tecnico','juridicoEval','financiero','comite','juridico','consulta'],
     respaldar:['administrador','director']
@@ -43,7 +47,7 @@ const Roles = (function(){
   return { LISTA, ACCIONES, nombre, puede, quienPuede };
 })();
 
-const Sesion = { usuario:null, procesoActivo:null, modulo:'01', pestanas:{} };
+const Sesion = { usuario:null, procesoActivo:null, modulo:'01', pestanas:{}, llaves:{} };
 
 const Permisos = (function(){
   function puede(accion){ return Roles.puede(Sesion.usuario, accion); }

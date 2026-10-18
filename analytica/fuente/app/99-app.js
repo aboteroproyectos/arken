@@ -87,7 +87,7 @@ const App = (function(){
   }
   function salir(mensaje){
     if (Sesion.usuario) Auditoria.registrar('salir', 'sesión', Sesion.usuario.usuario + (mensaje ? ' · ' + mensaje : ''));
-    Sesion.usuario = null; Sesion.pestanas = {};
+    Sesion.usuario = null; Sesion.pestanas = {}; Sesion.llaves = {};
     Inactividad.detener();
     $('#modales').innerHTML = '';
     ['#topbar', '#ledger', '#shell'].forEach(s => $(s).style.display = 'none');

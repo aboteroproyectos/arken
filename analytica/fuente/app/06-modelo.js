@@ -13,9 +13,12 @@ const Modelo = (function(){
   function proceso(id){ return (S.procesos||[]).find(p => p.id === id) || null; }
   function activo(){ return proceso(Sesion.procesoActivo); }
   function procesos(conArchivados){ return (S.procesos||[]).filter(p => conArchivados || !p.archivado).sort((a, b) => (a.creado < b.creado ? 1 : -1)); }
-  function editable(p){ return !!p && (p.estado === 'borrador' || p.estado === 'en revisión'); }
+  /** Se edita en preparación y, después de emitir, solo mientras se prepara una adenda (versión n+1). */
+  function editable(p){ return !!p && (p.estado === 'borrador' || p.estado === 'en revisión' || !!p.adendaEnCurso); }
+  /** La versión del pliego que conocen los invitados: la emitida, aunque haya una adenda en preparación. */
+  function versionVigente(p){ return p && p.emitido ? p.emitido.version : (p ? p.versionPliego : 1); }
   function exigirEditable(p){
-    if (!editable(p)) throw new Error('El proceso ' + (p ? p.codigo : '') + ' ya fue emitido: su versión ' + (p ? p.versionPliego : '') + ' está congelada. Los cambios se hacen con una adenda (Fase 2).');
+    if (!editable(p)) throw new Error('El proceso ' + (p ? p.codigo : '') + ' ya fue emitido: su versión ' + (p ? p.versionPliego : '') + ' está congelada. Los cambios se hacen con una adenda (módulo 08).');
   }
 
   function procesoNuevo(d){
@@ -101,6 +104,7 @@ const Modelo = (function(){
   /* ── Condiciones ── */
   function registroRequisitos(procesoId){ const p = proceso(procesoId); return (S.requisitos||[]).find(x => x.procesoId === procesoId && x.version === (p ? p.versionPliego : 1)) || null; }
   function requisitos(procesoId){ const r = registroRequisitos(procesoId); return r ? r.lista : []; }
+  function requisitosVersion(procesoId, version){ const r = (S.requisitos||[]).find(x => x.procesoId === procesoId && x.version === version); return r ? r.lista : []; }
   async function guardarRequisitos(procesoId, lista, detalle){
     Permisos.exigir('editarCondiciones');
     exigirEditable(proceso(procesoId));
@@ -286,11 +290,13 @@ const Modelo = (function(){
   async function borrarDemo(){
     Permisos.exigir('demostracion');
     const ids = new Set((S.procesos||[]).filter(p => p.demo).map(p => p.id));
-    for (const n of ['presupuestosBase','requisitos','invitados','documentosProceso','llaves']){
+    for (const n of ['presupuestosBase','requisitos','invitados','documentosProceso','llaves','preguntas','adendas','sobres','ofertas','documentosOferta','actas']){
       for (const r of (S[n]||[]).filter(x => ids.has(x.procesoId) || x.demo)) await Almacen.borrar(n, r.id);
     }
     for (const id of ids) await Almacen.borrar('procesos', id);
-    const usados = new Set((S.documentosProceso||[]).map(d => d.sha256));
+    const usados = new Set((S.documentosProceso||[]).map(d => d.sha256).concat((S.documentosOferta||[]).map(d => d.sha256), (S.sobres||[]).map(s => s.sha256),
+      (S.actas||[]).flatMap(a => [a.sha256Pdf, a.sha256Json]), (S.adendas||[]).flatMap(a => [a.sha256Pdf, a.sha256Json]),
+      (S.procesos||[]).map(p => p.pliego && p.pliego.generado && p.pliego.generado.sha256), (S.invitados||[]).map(i => (i.confidencialidad||{}).sha256)).filter(Boolean));
     for (const a of await Almacen.listaArchivos()) if (!usados.has(a.sha256)) await Almacen.borrarArchivo(a.sha256);
     if (S.empresa.demo) await Almacen.guardarEmpresa({});
     if (ids.has(Sesion.procesoActivo)) Sesion.procesoActivo = null;
@@ -298,7 +304,7 @@ const Modelo = (function(){
   }
 
   return { ESTADOS, CLASES_DOC, DISCIPLINAS, proceso, activo, procesos, editable, exigirEditable, crearProceso, guardarProceso,
-    duplicar, archivar, presupuesto, presupuestoVacio, guardarPresupuesto, requisitos, guardarRequisitos, documentos, guardarDocumento, quitarDocumento, invitados,
+    duplicar, archivar, presupuesto, presupuestoVacio, guardarPresupuesto, requisitos, requisitosVersion, versionVigente, guardarRequisitos, documentos, guardarDocumento, quitarDocumento, invitados,
     guardarInvitado, retirarInvitado, codigoUnico, smmlvVigente, contextoConfidencialidad, estadoConfidencialidad, guardarConfidencialidad,
     aprobarConfidencialidad, llaves, crearLlaves, marcarRespaldoLlaves, contextoPliego, pliegoVigente, revision, emitir,
     guardarInsumoBase, hayDemo, cargarDemo, borrarDemo };
