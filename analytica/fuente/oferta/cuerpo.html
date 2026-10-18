@@ -1,0 +1,59 @@
+<!-- ══════════════════ ENTRADA: verificación del paquete, usuario local y acuerdo ══════════════════ -->
+<div class="gate" id="gate">
+  <div class="gate-card ancha">
+    <div class="gate-top">
+      <img src="{{LOGO}}" alt="ARKEN">
+      <div class="nm">ARKEN</div>
+      <div class="sb">Oferta · Programa del proponente</div>
+    </div>
+    <div class="gate-body" id="gateCuerpo">
+      <div class="muted small">Cargando…</div>
+    </div>
+    <div class="gate-foot"><span class="gate-copy">© <span id="gAnio"></span> ARKEN OFERTA — TODOS LOS DERECHOS RESERVADOS</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════ BARRA SUPERIOR ══════════════════ -->
+<header class="topbar" id="topbar" style="display:none">
+  <div class="brand">
+    <img class="brand-mark" src="{{LOGO}}" alt="ARKEN">
+    <div class="brand-txt">
+      <div class="brand-name">ARKEN</div>
+      <div class="brand-sub">Oferta</div>
+    </div>
+  </div>
+  <div class="topbar-div"></div>
+  <div class="topbar-proj">
+    <div class="lab">Proceso · Proponente</div>
+    <div class="val" id="tbProceso">—</div>
+  </div>
+  <div class="topbar-actions">
+    <span class="saved" id="tbGuardado"><i></i><span>Guardado</span></span>
+    <button class="btn sm ghost tb" id="btnBorradorArchivo" type="button">Guardar borrador en archivo</button>
+    <button class="btn sm ghost tb" id="btnTema" type="button">Tema</button>
+    <button class="btn sm ghost tb" id="btnSalir" type="button" title="Cerrar sesión">Salir</button>
+  </div>
+</header>
+
+<!-- ══════════════════ CINTA DE TOTALES ══════════════════ -->
+<div class="ledger" id="ledger" style="display:none"></div>
+
+<!-- ══════════════════ ESTRUCTURA ══════════════════ -->
+<div class="shell" id="shell" style="display:none">
+  <nav class="rail" id="rail" aria-label="Módulos">
+    <div class="rail-head"><div class="eyebrow">Módulos</div></div>
+    <div class="rail-list" id="railList"></div>
+    <div class="rail-foot">
+      <div class="muted small" id="railUsuario"></div>
+    </div>
+  </nav>
+  <main class="stage" id="stage"></main>
+</div>
+
+<div id="cintaDemo" class="cinta-demo hide" role="status">DEMOSTRACIÓN · Proceso ficticio · Ninguna oferta de este paquete es real</div>
+<div id="modales"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<!-- El pliego de este invitado. ARKEN ANALYTICA lo escribe aquí al generar el
+     paquete; en el repositorio queda en null (herramientas/verificar-sin-datos.mjs). -->
+<script id="arken-pliego" type="application/json">null</script>
