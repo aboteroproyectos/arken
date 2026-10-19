@@ -201,10 +201,25 @@ Vistas['09'] = function(){
   if (!p) return { html:sinProceso('09', 'Recepción y apertura') };
   const tab = UI.pestanaActiva('rec', 'recepcion');
   const ap = Recepcion.actas(p.id, 'apertura')[0];
-  const html = cabecera('09', 'Recepción y apertura', esc(p.codigo) + ' · ' + esc(p.estado) + etiquetaDemo(p), Permisos.puede('recibirOfertas') && p.emitido && !ap ? boton('cargar-sobres', 'Cargar sobres', 'primary') : '') +
+  /* En la demostración: cinco sobres cerrados de proponentes ficticios y el cierre adelantado, para seguir sin esperar. */
+  const demo = p.demo && p.emitido && !ap && Permisos.puede('demostracion') && !Recepcion.cerrado(p);
+  const html = cabecera('09', 'Recepción y apertura', esc(p.codigo) + ' · ' + esc(p.estado) + etiquetaDemo(p),
+      (demo && !Recepcion.vigentes(p.id).length ? boton('demo-ofertas', 'Ofertas de demostración', 'sm') : '') + (demo && Recepcion.vigentes(p.id).length ? boton('demo-cierre', 'Adelantar el cierre (demostración)', 'sm') : '') +
+      (Permisos.puede('recibirOfertas') && p.emitido && !ap ? boton('cargar-sobres', 'Cargar sobres', 'primary') : '')) +
     UI.pestanas('rec', [['recepcion','Recepción'],['apertura','Cierre y apertura'],['ofertas','Ofertas abiertas']], 'recepcion') +
     (tab === 'apertura' ? vistaCierre(p) : tab === 'ofertas' ? vistaOfertas(p) : vistaRecepcion(p));
-  return { html, acciones:accionesRecepcion(p), alPintar:() => conectarZona(p) };
+  return { html, acciones:Object.assign(accionesRecepcion(p), {
+    'demo-ofertas':async () => {
+      if (!(await UI.confirmar({ titulo:'Ofertas de demostración', mensaje:'Se generan cinco sobres cerrados de proponentes ficticios (cada uno con un rasgo que el análisis debe encontrar: desbalance, valor bajo, documento vencido, el mismo profesional en dos ofertas y aritmética errada) y se reciben como cualquier sobre. Todo queda marcado como demostración y se borra con «Borrar la demostración».', textoAceptar:'Generar y recibir' }))) return;
+      UI.toast('Generando los sobres de demostración…');
+      const r = await DemoEvaluacion.recibirOfertas(p);
+      UI.toast(r.filter(x => x.estado === 'recibido sellado').length + ' sobre(s) recibido(s)', 'ok'); App.render();
+    },
+    'demo-cierre':async () => {
+      if (!(await UI.confirmar({ titulo:'Adelantar el cierre', mensaje:'Solo en la demostración: el cierre pasa a este momento, para generar el acta de cierre y abrir las ofertas sin esperar. Queda en la auditoría.', textoAceptar:'Adelantar' }))) return;
+      await DemoEvaluacion.adelantarCierre(p); Sesion.pestanas.rec = 'apertura'; App.render();
+    }
+  }), alPintar:() => conectarZona(p) };
 };
 const ESTADO_SOBRE = { 'recibido sellado':'ok', 'recibido':'ok', reemplazado:'', rechazado:'bad', abierto:'info', 'no se pudo abrir':'bad' };
 function vistaRecepcion(p){
@@ -268,7 +283,7 @@ function vistaOfertas(p){
   }).join('');
   return '<div class="card"><div class="card-head"><h3>' + L.length + ' oferta(s) abierta(s)</h3></div><div class="card-body flush"><div class="tw scroll"><table class="t"><thead><tr><th>Proponente</th><th class="n">Valor declarado</th><th class="n">Valor recalculado</th><th class="n">Precios distintos</th><th class="n">Documentos</th><th>Novedades</th><th></th></tr></thead><tbody>' + filas + '</tbody></table></div></div></div>' +
     (ap.rechazados.length ? '<div class="nota bad"><b>Sobres que no se pudieron abrir:</b><ul>' + ap.rechazados.map(r => '<li>' + esc(r.proponente) + ' · ' + esc(r.archivo) + ': ' + esc(r.motivo) + '</li>').join('') + '</ul></div>' : '') +
-    '<p class="small muted">El valor recalculado se obtiene con las cantidades del pliego y los APU de cada oferta. La verificación, el análisis y la evaluación llegan en la Fase 3; los documentos de cada proponente están en el módulo 10.</p>';
+    '<p class="small muted">El valor recalculado se obtiene con las cantidades del pliego y los APU de cada oferta. Los documentos de cada proponente están en el módulo 10; la verificación, en el 11; el análisis presupuestal, en el 12; el técnico, legal y financiero, en el 13; y los puntajes, en el 14.</p>';
 }
 /** La zona para soltar sobres. */
 function conectarZona(p){
@@ -359,7 +374,7 @@ const TextoPdf = (function(){
   async function ver(doc, pagina, termino){
     const b = await Almacen.leerArchivo(doc.sha256);
     if (!b) throw new Error('El archivo no está en este equipo.');
-    const m = UI.modal({ titulo:doc.nombre, eyebrow:'Página ' + pagina + ' · «' + termino + '»', ancho:'xwide', cuerpo:'<div class="visor" id="visorB"></div>',
+    const m = UI.modal({ titulo:doc.nombre, eyebrow:'Página ' + pagina + (termino ? ' · «' + termino + '»' : ''), ancho:'xwide', cuerpo:'<div class="visor" id="visorB"></div>',
       botones:[{ texto:'Descargar', accion:() => Archivos.descargar(doc.sha256, doc.nombre) }, { texto:'Cerrar', clase:'primary' }] });
     const pdf = await window.pdfjsLib.getDocument({ data:new Uint8Array(await b.arrayBuffer()), isEvalSupported:false, enableXfa:false }).promise;
     const page = await pdf.getPage(pagina);
@@ -369,6 +384,7 @@ const TextoPdf = (function(){
     const ctx = c.getContext('2d');
     await page.render({ canvasContext:ctx, viewport:vp }).promise;
     const q = Util.normaliza(termino);
+    if (!q) return;
     ctx.fillStyle = 'rgba(169,139,84,.38)';
     (await page.getTextContent()).items.filter(x => Util.normaliza(x.str).indexOf(q) >= 0).forEach(x => {
       const t = window.pdfjsLib.Util.transform(vp.transform, x.transform);
@@ -404,7 +420,7 @@ Vistas['10'] = function(){
         : UI.vacio('Sin documentos', 'La oferta no trajo adjuntos.')) +
     '</div></div>' +
     (o.novedades.length ? '<div class="nota warn"><b>Novedades de la apertura:</b><ul>' + o.novedades.map(n => '<li>' + esc(n) + '</li>').join('') + '</ul></div>' : '') +
-    '<p class="small muted">La vigencia se compara con la fecha de cierre. La verificación de cada requisito, con su evaluador, llega en la Fase 3.</p>';
+    '<p class="small muted">La vigencia se compara con la fecha de cierre. Cada requisito se verifica con su evaluador en los módulos 11 y 13.</p>';
   const buscarDoc = id => docs.find(d => d.id === id);
   let ultimo = '';
   return { html, alPintar:() => {

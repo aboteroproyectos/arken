@@ -1,6 +1,6 @@
-/* ─────────────── Módulos 11 a 16: fases siguientes ───────────────
-   Están en el riel desde ya, atenuados, para que el ciclo completo se vea;
-   cada uno dice qué hará y en qué fase llega. */
+/* ─────────────── Riel ───────────────
+   Los módulos 15 y 16 están desde ya, atenuados, para que el ciclo completo
+   se vea; cada uno dice qué hará y en qué fase llega. */
 const MODULOS = [
   { id:'00', nombre:'Tablero del proceso' }, { id:'01', nombre:'Procesos' }, { id:'02', nombre:'Presupuesto base' },
   { id:'03', nombre:'Base de precios' }, { id:'04', nombre:'Condiciones de la oferta' }, { id:'05', nombre:'Documentos del proceso' },
@@ -8,10 +8,10 @@ const MODULOS = [
   { id:'08', nombre:'Preguntas y adendas', texto:'Preguntas de los invitados con su respuesta publicada a todos, y adendas numeradas y firmadas que crean una versión nueva del pliego.' },
   { id:'09', nombre:'Recepción y apertura', texto:'Carga de muchos sobres a la vez, asignación por código de invitación, cierre y apertura con acta, sin abrir nada antes de la hora de cierre.' },
   { id:'10', nombre:'Documentos de proponentes', texto:'Una carpeta por proponente, cuyo nombre empieza por su razón social, con cada documento contra el requisito que responde.' },
-  { id:'11', nombre:'Verificación y subsanaciones', fase:3, texto:'Verificación de cada requisito habilitante por su evaluador, solicitudes de subsanación con plazo y su respuesta.' },
-  { id:'12', nombre:'Análisis presupuestal', fase:3, texto:'Aritmética, capítulos, subcapítulos, actividades, insumos, AIU, desbalance y APU, oferta por oferta contra el presupuesto base.' },
-  { id:'13', nombre:'Análisis técnico, legal y financiero', fase:3, texto:'Requisito por proponente, con su estado y la evidencia: jurídico, financiero, experiencia, personal, equipos, sistemas de gestión y programación.' },
-  { id:'14', nombre:'Evaluación y puntajes', fase:3, texto:'Puntaje de cada requisito ponderable con la regla del pliego, el método económico, el desempate y el orden de elegibilidad.' },
+  { id:'11', nombre:'Verificación y subsanaciones', texto:'Verificación de cada requisito habilitante por su evaluador, solicitudes de subsanación con plazo y su respuesta.' },
+  { id:'12', nombre:'Análisis presupuestal', texto:'Aritmética, capítulos, subcapítulos, actividades, insumos, AIU, desbalance y APU, oferta por oferta contra el presupuesto base.' },
+  { id:'13', nombre:'Análisis técnico, legal y financiero', texto:'Requisito por proponente, con su estado y la evidencia: jurídico, financiero, experiencia, personal, equipos, sistemas de gestión y programación.' },
+  { id:'14', nombre:'Evaluación y puntajes', texto:'Puntaje de cada requisito ponderable con la regla del pliego, el método económico, el desempate y el orden de elegibilidad.' },
   { id:'15', nombre:'Comparativo y cuadro gerencial', fase:4, texto:'El comparativo de todas las ofertas y el cuadro gerencial, con las quince gráficas.' },
   { id:'16', nombre:'Concepto e informe', fase:4, texto:'El concepto de adjudicación para el comité y el informe en PDF y Excel con su lista de casillas.' },
   { id:'17', nombre:'Ayuda' }

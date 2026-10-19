@@ -62,6 +62,8 @@ jobs:
         run: npm run prueba:cripto
       - name: Núcleo de la Fase 2 (pliego sin precios, manifiesto, ZIP y PDF maliciosos, cabecera, recálculo, adendas, actas)
         run: npm run prueba:nucleo-fase-2
+      - name: Núcleo de la Fase 3 (estadística, recálculo, desbalance, AIU, APU, indicadores, métodos económicos, desempate, alertas)
+        run: npm run prueba:nucleo-fase-3
       - name: Sobres maliciosos contra la recepción y la apertura
         run: npm run prueba:sobres-maliciosos
       - name: Ida y vuelta con ARKEN CONTROL real
@@ -72,6 +74,8 @@ jobs:
         run: npm run prueba:oferta
       - name: Punta a punta (paquetes, confidencialidad, cinco ofertas, preguntas, adenda, recepción, cierre y apertura)
         run: npm run prueba:punta-a-punta
+      - name: Punta a punta de la Fase 3 (cinco ofertas de demostración, bandeja de alertas, verificación, subsanación y orden de elegibilidad)
+        run: npm run prueba:punta-a-punta-fase-3
       - uses: actions/upload-artifact@v7
         with:
           name: ARKEN_ANALYTICA

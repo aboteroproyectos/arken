@@ -290,13 +290,13 @@ const Modelo = (function(){
   async function borrarDemo(){
     Permisos.exigir('demostracion');
     const ids = new Set((S.procesos||[]).filter(p => p.demo).map(p => p.id));
-    for (const n of ['presupuestosBase','requisitos','invitados','documentosProceso','llaves','preguntas','adendas','sobres','ofertas','documentosOferta','actas']){
+    for (const n of ['presupuestosBase','requisitos','invitados','documentosProceso','llaves','preguntas','adendas','sobres','ofertas','documentosOferta','actas','evaluaciones','subsanaciones','alertas']){
       for (const r of (S[n]||[]).filter(x => ids.has(x.procesoId) || x.demo)) await Almacen.borrar(n, r.id);
     }
     for (const id of ids) await Almacen.borrar('procesos', id);
     const usados = new Set((S.documentosProceso||[]).map(d => d.sha256).concat((S.documentosOferta||[]).map(d => d.sha256), (S.sobres||[]).map(s => s.sha256),
       (S.actas||[]).flatMap(a => [a.sha256Pdf, a.sha256Json]), (S.adendas||[]).flatMap(a => [a.sha256Pdf, a.sha256Json]),
-      (S.procesos||[]).map(p => p.pliego && p.pliego.generado && p.pliego.generado.sha256), (S.invitados||[]).map(i => (i.confidencialidad||{}).sha256)).filter(Boolean));
+      (S.procesos||[]).map(p => p.pliego && p.pliego.generado && p.pliego.generado.sha256), (S.invitados||[]).map(i => (i.confidencialidad||{}).sha256), (S.subsanaciones||[]).map(x => x.sha256Pdf)).filter(Boolean));
     for (const a of await Almacen.listaArchivos()) if (!usados.has(a.sha256)) await Almacen.borrarArchivo(a.sha256);
     if (S.empresa.demo) await Almacen.guardarEmpresa({});
     if (ids.has(Sesion.procesoActivo)) Sesion.procesoActivo = null;

@@ -32,7 +32,10 @@ Vistas['02'] = function(){
 };
 function ocultarPrecios(){
   const u = Sesion.usuario;
-  return !!(S.config.ocultarPreciosATecnicos && u && (u.roles||[]).indexOf('tecnico') >= 0 && !(u.roles||[]).some(r => r === 'administrador' || r === 'director'));
+  if (!(S.config.ocultarPreciosATecnicos && u && (u.roles||[]).indexOf('tecnico') >= 0 && !(u.roles||[]).some(r => r === 'administrador' || r === 'director'))) return false;
+  /* Hasta terminar la calificación técnica del proceso abierto (§23). */
+  const p = Modelo.activo();
+  return !(p && Evaluacion.hayOfertas(p) && Evaluacion.tecnicaTerminada(p));
 }
 
 function arbol(p, pres, ed){
