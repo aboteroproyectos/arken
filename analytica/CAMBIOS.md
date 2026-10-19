@@ -1,5 +1,35 @@
 # ARKEN ANALYTICA · Registro de cambios
 
+## 0.5.0 · Sin internet (19 de octubre de 2026)
+
+ARKEN ANALYTICA ya no se conecta a ningún servicio. El asistente de IA de la 0.4, que usaba la API de Anthropic y su clave, sale del programa, y la lectura de documentos la hace ahora el programa solo, sin costo.
+
+### Lector de documentos (módulo 11)
+
+- En la verificación de un requisito con un PDF, **Leer el documento** busca en el texto del PDF los datos del requisito: fechas de expedición y de vigencia, NIT, representante legal, objeto social y facultades, valor asegurado, contratante, objeto, valor, fechas, área y participación de un contrato, matrícula profesional e indicadores financieros (activo y pasivo corriente y total, patrimonio, utilidad operacional, gastos de intereses).
+- Cada dato sale con el fragmento del documento donde está y su página, y hasta tres coincidencias para elegir. Las fechas y las cifras se muestran también convertidas (por ejemplo, «(120.500.000)» es −120.500.000).
+- **Otro dato:** escriba la palabra que lo antecede en el documento («número de póliza») y el lector trae lo que le sigue.
+- **Usar como evidencia** llena el documento, la página y el texto literal de la verificación. El «¿Cumple?» lo sigue decidiendo el evaluador.
+- No lee PDF escaneados como imagen: no tienen texto. En ese caso lo dice y el dato se escribe a mano.
+
+### Concepto
+
+- El borrador del concepto lo sigue armando el programa a partir de la evaluación (resumen, recomendación, condiciones y riesgos), y el comité lo edita. La pestaña «Asistente de IA» del módulo 16 desaparece.
+
+### Seguridad
+
+- La política de seguridad del programa y de las apps ya no deja salir a internet, y la app de escritorio bloquea toda conexión fuera de ella.
+- El SDK de Anthropic sale del programa, que pesa unos 240 KB menos.
+- Al entrar, el programa borra la clave de API que se hubiera guardado con la 0.4, y la app de escritorio borra su bóveda (`secretos.json`).
+
+### Pruebas
+
+- **`pruebas/lector.mjs` (30), nueva:** cada dato del lector con su fragmento y su página, los estados financieros de dos columnas, «total pasivo y patrimonio» que no se toma como patrimonio, cifras negativas entre paréntesis, fechas de las formas usuales, un PDF sin texto y que el lector no hace ninguna conexión.
+- **`pruebas/punta-a-punta-fase-4.mjs` (48):** el lector sobre el PDF de un proponente, en Chromium, sin ninguna petición fuera del equipo.
+- Los documentos de las ofertas de demostración traen ahora la fecha de expedición y la vigencia en letras, para que el lector tenga qué leer.
+- Las pruebas de punta a punta comprueban cada campo antes de abrir los sobres. A veces el foco que el formulario pone en su primer campo caía en medio de un llenado, y la contraseña del segundo miembro del comité quedaba vacía, así que la apertura no seguía.
+- Resultado: 596 de 596 comprobaciones.
+
 ## 0.4.0 · Fase 4 · Decisión, informe y apps (19 de octubre de 2026)
 
 Con esta entrega, la evaluación termina en un concepto firmado por el comité y un informe en PDF y Excel. El presupuesto adjudicado pasa a ARKEN CONTROL, y el programa llega como app de escritorio y como app de consulta para el celular.

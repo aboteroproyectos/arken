@@ -28,7 +28,7 @@ export function nucleo() {
   const leerCarpeta = (c) => { const carpeta = join(ANALYTICA, 'fuente', c); return readdirSync(carpeta).filter((n) => n.endsWith('.js')).sort().map((n) => readFileSync(join(carpeta, n), 'utf8')).join('\n'); };
   const codigo = leerCarpeta('nucleo') + '\n' + leerCarpeta('evaluacion');
   const ctx = vm.createContext({ crypto: webcrypto, Intl, console, XLSX, TextEncoder, TextDecoder, btoa, atob, URL });
-  vm.runInContext(codigo + '\n;this.N = { Util, Calculo, Nit, Festivos, ExcelArken, ExcelPrecios, Parametros, PlantillaCondiciones, Confidencialidad, Cronograma, Revision, Cripto, Pliego, Demo, Paquete, Sobre, Adendas, Actas, Estadistica, Presupuestal, Tecnico, Puntaje, Alertas, Motor, DemoOfertas, Comparativo, Graficas, Concepto, Informe, AsistenteIA };', ctx);
+  vm.runInContext(codigo + '\n;this.N = { Util, Calculo, Nit, Festivos, ExcelArken, ExcelPrecios, Parametros, PlantillaCondiciones, Confidencialidad, Cronograma, Revision, Cripto, Pliego, Demo, Paquete, Sobre, Adendas, Actas, Estadistica, Presupuestal, Tecnico, Puntaje, Alertas, Motor, DemoOfertas, Comparativo, Graficas, Concepto, Informe, LectorLocal };', ctx);
   return ctx.N;
 }
 
@@ -119,6 +119,18 @@ export async function pestana(pagina, id) {
   await pagina.waitForSelector(`#stage [data-pestana][data-id="${id}"].active`);
 }
 /** Botón del modal visible con ese texto exacto. */
+/** Llena los campos de un formulario y comprueba que cada valor quedó: el modal pone el foco en su
+    primer campo 40 ms después de abrir, y si eso cae en medio de un fill, el texto va a otro campo. */
+export async function llenar(pagina, valores) {
+  for (let intento = 0; intento < 5; intento++) {
+    for (const [sel, v] of Object.entries(valores)) if ((await pagina.inputValue(sel)) !== v) await pagina.fill(sel, v);
+    let bien = true;
+    for (const [sel, v] of Object.entries(valores)) if ((await pagina.inputValue(sel)) !== v) bien = false;
+    if (bien) return;
+    await pagina.waitForTimeout(100);
+  }
+  throw new Error('No se pudo llenar el formulario: ' + Object.keys(valores).join(', '));
+}
 export async function botonModal(pagina, texto) {
   await pagina.locator('#modales .overlay').last().locator('.modal-foot button', { hasText: texto }).click();
 }

@@ -1,4 +1,4 @@
-// ARKEN ANALYTICA · pruebas del núcleo de la Fase 4 (§19, §20, §21, §18.13), en Node, sobre el
+// ARKEN ANALYTICA · pruebas del núcleo de la Fase 4 (§19, §20, §21), en Node, sobre el
 // proceso de demostración evaluado de punta a punta (pruebas/escenario-evaluacion.mjs):
 //
 //   · cuadro comparativo: cada nivel suma lo mismo que Calculo, la mediana y las desviaciones
@@ -7,8 +7,6 @@
 //   · concepto: recomienda al primero del orden; los textos del comité reemplazan los generados
 //   · informe: las 23 secciones, un requisito creado por el usuario entra con la suya y en el Excel
 //     (§27.10); marca de agua mientras no esté firmado
-//   · asistente de IA: la lectura se descarta si el texto literal no está en el documento; la
-//     redacción, si trae cifras o proponentes que no están en la evaluación; costo y tope
 //   · presupuesto adjudicado: el libro para ARKEN CONTROL da el mismo costo directo de la oferta,
 //     aunque la oferta repita códigos de APU o descripciones de insumo con otro precio
 //
@@ -18,7 +16,7 @@ import { nucleo, marcador } from './comun.mjs';
 import { escenario } from './escenario-evaluacion.mjs';
 
 const N = nucleo();
-const { Util, Calculo, PlantillaCondiciones, Comparativo, Graficas, Concepto, Informe, ExcelArken, AsistenteIA } = N;
+const { Util, Calculo, PlantillaCondiciones, Comparativo, Graficas, Concepto, Informe, ExcelArken } = N;
 const m = marcador('Núcleo de la Fase 4');
 const cerca = (a, b, tol = 0.01) => a !== null && a !== undefined && Math.abs(a - b) <= tol;
 
@@ -94,36 +92,6 @@ m.ok(A2.secciones[0] === 'anexos' && !A2.secciones.includes('apu') && !A2.marcaA
 const norm = Informe.normalizar(R, { secciones: [{ id: 'totales', marcada: false }, { id: 'ya-no-existe' }] });
 m.ok(norm[0].id === 'totales' && !norm[0].marcada && norm.length === sec.length, 'Una configuración guardada se pone al día: las secciones nuevas entran, las que no existen salen');
 m.ok(/^ARKEN_ANALYTICA_DEMO-2026-001_Informe_20261116\.xlsx$/.test(Informe.nombreArchivo('DEMO-2026-001', '2026-11-16', 'xlsx')), 'Nombre del archivo del informe');
-
-/* ── Asistente de IA ── */
-m.seccion('Asistente de IA');
-const paginas = ['Póliza de seriedad DEMO. Valor asegurado: $ 52.400.000. Vigente hasta el 30 de marzo de 2027.', 'Página dos del documento.'];
-const L = AsistenteIA.validarLectura([
-  { campo: 'valor_asegurado', valor: '52400000', texto_literal: 'Valor asegurado: $ 52.400.000', pagina: 1 },
-  { campo: 'vigencia_hasta', valor: '30 de marzo de 2027', texto_literal: 'Vigente hasta el 30 de marzo de 2027', pagina: 2 },
-  { campo: 'valor_asegurado', valor: '99000000', texto_literal: 'Valor asegurado: $ 99.000.000', pagina: 1 },
-  { campo: 'valor_asegurado', valor: '61000000', texto_literal: 'Valor asegurado: $ 52.400.000', pagina: 1 },
-  { campo: 'inventado', valor: 'x', texto_literal: 'Póliza de seriedad', pagina: 1 },
-], paginas);
-m.ok(L[0].aceptado && L[0].pagina === 1, 'Un dato con su texto literal en la página se acepta');
-m.ok(L[1].aceptado && L[1].pagina === 1 && /página 1/.test(L[1].motivo), 'Si la IA dice otra página, se corrige a la del texto');
-m.ok(!L[2].aceptado && /no está en el documento/.test(L[2].motivo), 'Un texto literal que no está en el documento se descarta');
-m.ok(!L[3].aceptado && /no está dentro del texto literal/.test(L[3].motivo), 'Un valor que no está dentro del texto literal se descarta');
-m.ok(!L[4].aceptado, 'Un campo desconocido se descarta');
-const sol = AsistenteIA.solicitudLectura({ modelo: 'claude-opus-5-5' }, { nombre: 'poliza.pdf', base64: 'JVBERi0=', paginas: 1 }, ['valor_asegurado'], '');
-m.ok(sol.model === 'claude-opus-5-5' && sol.tools[0].name === 'registrar_dato' && JSON.stringify(sol.messages).includes('"type":"document"'), 'La lectura manda el documento y una herramienta estricta para cada dato');
-m.ok(!/sk-ant-/.test(JSON.stringify(sol)), 'La solicitud no lleva la clave de API');
-const H = AsistenteIA.hechos(g, []);
-const V = AsistenteIA.validarRedaccion({ resumen: 'Se evaluaron 5 ofertas.', recomendacion: 'Adjudicar a ' + g.orden[0].nombre + ' con ' + Math.round(g.orden[0].total) + ' puntos.',
-  condiciones: ['Firmar en 15 días, con una garantía de 123456789 pesos.'], riesgos: [{ proponente: g.orden[0].nombre, riesgos: ['Sin riesgos nuevos.'] }, { proponente: 'Constructora Fantasma DEMO', riesgos: ['x'] }] }, H);
-const parte = (c) => V.partes.find((p) => p.clave === c);
-m.ok(parte('resumen').aceptable && parte('recomendacion').aceptable, 'Una redacción con cifras de la evaluación se puede aceptar');
-m.ok(!parte('condiciones').aceptable && /123456789/.test(parte('condiciones').motivo), 'Una cifra que no está en la evaluación impide aceptar esa parte');
-m.ok(V.partes.some((p) => p.clave === 'riesgos' && /Fantasma/.test(p.nombre) && !p.aceptable), 'Un proponente que no está en el orden se rechaza');
-m.ok(cerca(AsistenteIA.costo({ input_tokens: 1e6, output_tokens: 1e6 }, 'claude-opus-5-5'), 24, 1e-9), 'Costo: un millón de tokens de entrada y uno de salida en Opus 5.5 = US$ 24');
-m.ok(AsistenteIA.gastoMes([{ fecha: '2026-11-02', usd: 3 }, { fecha: '2026-10-30', usd: 9 }], '2026-11-20') === 3, 'El gasto del mes solo cuenta el mes en curso');
-m.ok(/se pasaría el tope/.test(AsistenteIA.impedimento({ topeMensualUsd: 10 }, 9.5, 1)) && !AsistenteIA.impedimento({ topeMensualUsd: 10 }, 2, 1) && /cero/.test(AsistenteIA.impedimento({ topeMensualUsd: 0 }, 0, 0)),
-  'El tope del mes impide una llamada que lo pasaría');
 
 /* ── Presupuesto adjudicado para ARKEN CONTROL ── */
 m.seccion('Presupuesto adjudicado');

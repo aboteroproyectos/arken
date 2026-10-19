@@ -30,7 +30,7 @@ Los datos se guardan en ese navegador, en ese equipo, y no se sincronizan solos.
 
 ### Las apps
 
-- **Computador (recomendada para la empresa):** Windows, macOS y Linux. Es el mismo programa en una ventana propia, con la clave del asistente de IA en la bóveda del sistema operativo y una copia de los datos por día (los últimos 10). Los instaladores salen de GitHub Actions (`compilar-apps-analytica.yml`, sección «Artifacts») y, con una etiqueta `analytica-vX.Y.Z`, en «Releases».
+- **Computador (recomendada para la empresa):** Windows, macOS y Linux. Es el mismo programa en una ventana propia, sin ninguna conexión a internet y con una copia de los datos por día (los últimos 10). Los instaladores salen de GitHub Actions (`compilar-apps-analytica.yml`, sección «Artifacts») y, con una etiqueta `analytica-vX.Y.Z`, en «Releases».
 - **Celular y tableta, solo consulta:** Android e iOS. Muestran el tablero, los procesos, el comparativo, el informe y la ayuda. Los datos llegan restaurando un respaldo hecho en el computador (Administración › Respaldos).
 - **Firma de Android:** el APK se firma con la misma clave de ARKEN CONTROL, en el secreto `ARKEN_FIRMA_CLAVE` del repositorio (*Settings › Secrets and variables › Actions*). Sin él, Android se compila para verificar pero no se entrega el APK, y las versiones se publican sin Android. El `.ipa` de iOS sale sin firma: para instalarlo hay que firmarlo con una cuenta de Apple Developer. Para llevarlos a otro equipo o guardarlos aparte use **Administración › Respaldos**.
 
@@ -41,9 +41,8 @@ El archivo del repositorio está siempre vacío de datos. **No suba al repositor
 - **Código fuente:**
   - `fuente/nucleo/`: cálculo, Excel, NIT, festivos, condiciones, acuerdo, cronograma, revisión, criptografía, pliego y demostración. No toca la pantalla.
   - `fuente/evaluacion/`: estadística, análisis presupuestal, técnico y financiero, puntajes, alertas, el motor que lo junta y las ofertas de demostración. No toca la pantalla y no va en ARKEN OFERTA.
-  - `fuente/evaluacion/` también trae el comparativo, las gráficas, el concepto, el informe y la parte pura del asistente de IA (lo que se le pide y cómo se valida lo que responde).
-  - `fuente/app/`: almacén, sesión, interfaz, PDF, paquetes, preguntas y adendas, recepción y apertura, evaluación, bandeja de alertas, decisión, asistente y las vistas de cada módulo.
-  - `fuente/sdk/anthropic-sdk.js`: el SDK oficial de Anthropic, armado con `npm run sdk:instalar && npm run sdk:armar`; `npm run sdk:comprobar` falla si cambió.
+  - `fuente/evaluacion/` también trae el comparativo, las gráficas, el concepto, el informe y el lector de documentos, que busca los datos en el texto de los PDF sin internet.
+  - `fuente/app/`: almacén, sesión, interfaz, PDF, paquetes, preguntas y adendas, recepción y apertura, evaluación, bandeja de alertas, decisión, lector de documentos y las vistas de cada módulo.
   - `app/`, `electron/` y `capacitor.config.json`: las apps. `npm run preparar` arma `www/` (el programa con la capa de la app); `npm run escritorio` la abre en Electron; `npm run dist:windows`, `dist:mac` y `dist:linux` hacen los instaladores.
   - `fuente/oferta/`: ARKEN OFERTA (verificación del paquete, borrador, intercambio de archivos y sus dieciséis módulos). Se arma con el mismo núcleo y viaja comprimido dentro del principal.
   - `fuente/estilos.css` y `fuente/cuerpo.html`.

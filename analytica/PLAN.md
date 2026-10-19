@@ -7,8 +7,8 @@
 - **Patrón ARKEN.** Módulos con nombre propio (`const Calculo = (function(){ … })();`). El núcleo corre igual en el navegador y en Node (`node:vm`), que es como lo prueban las pruebas unitarias.
 - **Pesado fuera del hilo de la pantalla.** Las huellas SHA-256 de archivos se calculan en un Web Worker. El análisis de la Fase 3 (`Motor.analizar`) es una función pura sobre los datos del proceso; corre en el hilo de la pantalla con caché y se puede llevar a un Worker sin cambiarla (decisión 82).
 - **Decisión (Fase 4).** `Comparativo`, `Graficas`, `Concepto` e `Informe` son funciones puras sobre el resultado de `Motor.analizar`; la pantalla (`Decision`, vistas 15 y 16) solo guarda, firma y exporta. Las gráficas son SVG del programa.
-- **Asistente de IA.** `AsistenteIA` (puro) arma cada solicitud y valida cada respuesta; `ClienteIA` llama con el SDK oficial incrustado; la clave vive en una bóveda (`secretos`), fuera de los respaldos.
-- **Escritorio y móvil.** El mismo HTML, con una capa (`app/arken-app.js`) y una política de seguridad por huellas (`herramientas/preparar-web.mjs`). Electron sirve `www/` desde `app://analytica` con la bóveda del sistema operativo y copias diarias; Capacitor la empaqueta para Android e iOS en modo solo consulta. Pendiente: leer por trozos los documentos muy grandes en la app de escritorio (decisión 127).
+- **Lector de documentos (0.5).** `LectorLocal` (puro) busca en el texto de un PDF los datos de cada requisito por sus etiquetas usuales y devuelve cada uno con su fragmento y su página; `Lector` lo lleva a la verificación. Nada sale a internet: la 0.5 quitó el asistente de IA de la 0.4 (decisión 129).
+- **Escritorio y móvil.** El mismo HTML, con una capa (`app/arken-app.js`) y una política de seguridad por huellas (`herramientas/preparar-web.mjs`). Electron sirve `www/` desde `app://analytica`, sin red, con copias diarias; Capacitor la empaqueta para Android e iOS en modo solo consulta. Pendiente: leer por trozos los documentos muy grandes en la app de escritorio (decisión 127).
 
 ## Estructura de archivos
 
@@ -20,17 +20,16 @@ analytica/
                                      PlantillaCondiciones, Confidencialidad, Revision, Cripto, Demo
   fuente/nucleo/8x-*.js           ← Paquete, Sobre, Adendas, Actas (Fase 2)
   fuente/evaluacion/*.js          ← Estadistica, Presupuestal, Tecnico, Puntaje, Alertas, Motor, DemoOfertas (Fase 3),
-                                     Comparativo, Graficas, Concepto, Informe, AsistenteIA (Fase 4); solo en el principal
-  fuente/sdk/anthropic-sdk.js     ← SDK oficial de Anthropic (generado por herramientas/armar-sdk.mjs)
+                                     Comparativo, Graficas, Concepto, Informe (Fase 4), LectorLocal (0.5); solo en el principal
   app/ · electron/ · capacitor.config.json  ← apps (Fase 4); www/ y dist/ se generan y no se suben
   fuente/app/*.js                 ← Almacen (IndexedDB), Sesion y Permisos, UI, Pdf, Documentos,
                                      Respaldo, Paquetes, Consultas, Recepcion, Evaluacion, Bandeja, Decision,
-                                     Asistente, Vistas, App
+                                     Lector, Vistas, App
   fuente/oferta/*                 ← ARKEN OFERTA: cuerpo, estilos, almacén, verificación, borrador,
                                      intercambio, vistas y App
-  herramientas/construir.mjs · armar-sdk.mjs · preparar-web.mjs
+  herramientas/construir.mjs · preparar-web.mjs
   pruebas/ unitarias · cripto · nucleo-fase-2 · sobres-maliciosos · ida-y-vuelta (con el ARKEN_CONTROL.html real)
-           · nucleo-fase-3 · nucleo-fase-4 · humo · oferta · punta-a-punta · punta-a-punta-fase-3
+           · nucleo-fase-3 · nucleo-fase-4 · lector · humo · oferta · punta-a-punta · punta-a-punta-fase-3
            · punta-a-punta-fase-4 · app
   PLAN · DECISIONES · CAMBIOS · GUIA_DE_PRUEBA · README
 ```

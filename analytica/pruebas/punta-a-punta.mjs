@@ -21,8 +21,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import {
-  RUTA_ANALYTICA, servidor, navegador, contexto, vigilarErrores, abrirAnalytica, ingresar, irA, pestana, botonModal, marcador, XLSX, prepararEmitido,
-} from './comun.mjs';
+  RUTA_ANALYTICA, servidor, navegador, contexto, vigilarErrores, abrirAnalytica, ingresar, irA, pestana, botonModal, marcador, XLSX, prepararEmitido, llenar } from './comun.mjs';
 
 const require = createRequire(import.meta.url);
 const JSZip = require('jszip');
@@ -419,7 +418,7 @@ const tAc = await textoPdf(ac.ruta);
 m.ok(/ACTA DE CIERRE/.test(tAc) && /quedan 5 sobre\(s\) vigente\(s\)/.test(tAc), `${ac.nombre}: la lista de sobres con su huella y cinco vigentes, sin abrir`);
 async function intentarApertura(u1, c1, u2, c2) {
   await pp.click('#stage [data-accion="abrir-ofertas"]');
-  await pp.fill('#pd_frase', FRASE); await pp.fill('#pd_u1', u1); await pp.fill('#pd_c1', c1); await pp.fill('#pd_u2', u2); await pp.fill('#pd_c2', c2);
+  await llenar(pp, { '#pd_frase': FRASE, '#pd_u1': u1, '#pd_c1': c1, '#pd_u2': u2, '#pd_c2': c2 });
   await botonModal(pp, 'Abrir los 5 sobre(s)');
 }
 await intentarApertura('comite1', 'clave-comite1-2026', 'comite1', 'clave-comite1-2026');

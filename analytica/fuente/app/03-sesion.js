@@ -42,8 +42,6 @@ const Roles = (function(){
     redactarConcepto:['administrador','director','comite'],
     generarInforme:['administrador','director','comite'],
     exportarAdjudicado:['administrador','director'],
-    usarAsistente:['administrador','director','tecnico','juridicoEval','financiero','comite'],
-    configurarAsistente:['administrador'],
     exportar:['administrador','director','tecnico','juridicoEval','financiero','comite','juridico','consulta'],
     respaldar:['administrador','director']
   };

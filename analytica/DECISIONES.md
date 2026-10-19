@@ -208,3 +208,14 @@ Decisiones tomadas donde el documento maestro deja lugar a criterio. Numeradas y
 126. **Los proyectos de Android e iOS se generan en GitHub Actions** con Capacitor, no viven en el repositorio. El APK se firma con la misma clave de ARKEN CONTROL (secreto `ARKEN_FIRMA_CLAVE`). El de iOS sale sin firma.
 127. **Pendiente: archivos muy grandes en la app de escritorio.** §6 pide leer en trozos los documentos de varios cientos de MB. La app usa el mismo almacenamiento del navegador que el HTML; no se probó con documentos de ese tamaño.
 128. **Los módulos 15 y 16 dejan de estar atenuados.** Ningún módulo queda atenuado.
+
+## Versión 0.5: sin internet
+
+129. **El programa no se conecta a ningún servicio.** La empresa no quiere depender de un servicio de pago, así que el asistente de IA de la 0.4 sale del programa y las decisiones 112 a 121 quedan sin efecto. La política de seguridad del HTML y de las apps no deja salir a internet, y la app de escritorio cancela toda petición fuera de `app://analytica` (reemplaza lo que decía la decisión 122 sobre `api.anthropic.com`).
+130. **La lectura de documentos la hace el programa**, buscando las etiquetas usuales de cada dato en el texto del PDF («valor asegurado», «total activos», «representante legal»…), sin importar mayúsculas ni tildes, y tomando el primer valor del tipo esperado que viene después, en la misma línea o en la siguiente. Prefiere la etiqueta más precisa y el valor más cercano, y entrega hasta tres coincidencias por dato.
+131. **Todo lo que propone el lector está en el documento**, porque sale de él: cada dato trae su fragmento literal y su página. Solo propone: llena la evidencia cuando el evaluador lo pide y nunca escribe un «cumple» ni un puntaje.
+132. **Las fechas se leen con el día antes que el mes** (01/10/2026 es el 1 de octubre), como se escriben en Colombia, y las cifras con punto de miles y coma decimal; también se aceptan con coma de miles. Una cifra entre paréntesis es negativa, como en los estados financieros.
+133. **En un estado financiero de varias columnas se toma la primera cifra de la fila**, que suele ser el año más reciente. «Total activo no corriente» no cuenta como activo total, ni «total pasivo y patrimonio» como patrimonio.
+134. **Sin OCR.** Un PDF escaneado como imagen no tiene texto: el lector lo dice y el dato se escribe a mano. Leer imágenes exigiría incrustar un motor de OCR de varios MB por idioma.
+135. **El borrador del concepto ya lo arma el programa** (decisión 102 y siguientes), así que no hace falta un redactor aparte.
+136. **Los almacenes `lecturasIA` y `usoIA` se conservan** con su nombre, para que un respaldo de la 0.4 se restaure igual; las lecturas nuevas se guardan en `lecturasIA` con `modelo: 'lector'`. El almacén `secretos` se vacía al entrar.

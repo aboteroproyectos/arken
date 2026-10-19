@@ -40,11 +40,10 @@ const LIBRERIAS = [
 ];
 
 /* Content Security Policy (§24): scripts y estilos solo los del propio archivo; workers
-   e imágenes desde blob: o data:. Lo único que puede salir a la red es el asistente de IA
-   opcional (§18.13), y solo hacia la API de Anthropic. */
+   e imágenes desde blob: o data:. Nada sale a la red. */
 const CSP = [
   "default-src 'none'", "script-src 'unsafe-inline' blob:", "style-src 'unsafe-inline'", "img-src data: blob:",
-  "font-src data:", "worker-src blob:", "connect-src blob: data: https://api.anthropic.com", "object-src 'none'", "base-uri 'none'", "form-action 'none'"
+  "font-src data:", "worker-src blob:", "connect-src blob: data:", "object-src 'none'", "base-uri 'none'", "form-action 'none'"
 ].join('; ');
 
 function leer(ruta) { return readFileSync(ruta, 'utf8'); }
@@ -142,9 +141,6 @@ ${css}
 <body>
 ${cuerpo.replaceAll('{{LOGO}}', logo)}
 ${LIBRERIAS.map(libreria).join('\n')}
-<script id="arken-analytica-sdk">
-${seguro(leer(join(FUENTE, 'sdk', 'anthropic-sdk.js')).trim())}
-</script>
 <script id="pdfjs-worker" type="text/plain">${worker}</script>
 <script id="plantilla-oferta" type="text/plain">${oferta}</script>
 <script>

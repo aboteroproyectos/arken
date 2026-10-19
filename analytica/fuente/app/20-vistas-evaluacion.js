@@ -84,7 +84,7 @@ function abrirVerificacion(p, R, ofertaId, codigo){
     (filas.length && cols.length ? '<div class="tw scroll"><table class="t"><thead><tr>' + cols.map(c => '<th>' + esc(c.titulo) + '</th>').join('') + '</tr></thead><tbody>' +
       filas.slice(0, 40).map(f => '<tr>' + cols.map(c => '<td class="small">' + esc(c.tipo === 'moneda' && f[c.clave] !== undefined ? money(f[c.clave]) : f[c.clave] === undefined ? '' : f[c.clave]) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>' : '') +
     (docs.length ? '<div class="small" style="margin:8px 0"><b>Documentos:</b> ' + docs.map(d => '<a href="#" data-verdoc="' + d.id + '">' + esc(d.nombre) + '</a>' + (d.vigenteHasta ? ' (hasta ' + Util.fmtFecha(d.vigenteHasta) + ')' : '') + (d.ronda === 2 ? ' ' + UI.tag('subsanación', 'info') : '')).join(' · ') + '</div>' : '') +
-    (ed && docs.length && typeof Asistente !== 'undefined' && Asistente.activo(p) ? '<div class="ia-lectura"><button class="btn sm" type="button" id="vrLeerIA">Leer con el asistente de IA</button> <span class="small muted">Extrae datos con su texto literal y su página; usted confirma.</span><div id="vrIA"></div></div>' : '') +
+    (ed && docs.some(d => Archivos.extension(d.nombre) === 'pdf') ? '<div class="ia-lectura"><button class="btn sm" type="button" id="vrLeer">Leer el documento</button> <span class="small muted">Busca en el PDF los datos del requisito y muestra dónde están; usted confirma. Sin internet.</span><div id="vrLector"></div></div>' : '') +
     UI.formulario(campos, 'vr') +
     (ed ? '' : '<div class="nota warn">Este requisito lo verifica el ' + esc((r.evaluador||'').toLowerCase()) + '. Su usuario solo lo consulta.</div>') +
     (hist.length ? '<details class="small"><summary>Historia (' + hist.length + ')</summary><ul>' + hist.map(h => '<li>' + Util.fmtSello(h.fecha) + ' · ' + esc(h.evaluador) + ' · ' + esc(h.cumple) + (h.puntaje !== undefined ? ' · ' + h.puntaje + ' pts' : '') +
@@ -99,8 +99,8 @@ function abrirVerificacion(p, R, ofertaId, codigo){
       UI.toast('Verificación guardada', 'ok'); App.render();
     } }] : []) });
   $$('[data-verdoc]', m.el).forEach(a => a.onclick = e => { e.preventDefault(); Archivos.ver(docs.find(d => d.id === a.dataset.verdoc)).catch(er => UI.error(er, 'visor')); });
-  const bIA = $('#vrLeerIA', m.el);
-  if (bIA) bIA.onclick = () => Asistente.leerEnVerificacion(p, o, r, docs, m.el).catch(er => UI.error(er, 'asistente de IA'));
+  const bL = $('#vrLeer', m.el);
+  if (bL) bL.onclick = () => Lector.enVerificacion(p, o, r, docs, m.el);
 }
 function accionesVerificar(p, R){
   return { 'verificar':b => abrirVerificacion(p, R, b.dataset.of, b.dataset.req) };

@@ -305,7 +305,7 @@ const DemoEvaluacion = (function(){
     doc.setProperties({ title:d.nombre, author:d.autor, subject:'Documento de demostración', creator:'ARKEN ANALYTICA (demostración)' });
     doc.setFontSize(16); doc.text('DOCUMENTO DE DEMOSTRACIÓN', 20, 30);
     doc.setFontSize(11);
-    [proponente, d.requisito + ' · ' + d.nombre.replace(/\.pdf$/, ''), 'Fecha del documento: ' + (d.fechaDocumento || '—'), 'Vigente hasta: ' + (d.vigenteHasta || 'sin vencimiento'),
+    [proponente, d.requisito + ' · ' + d.nombre.replace(/\.pdf$/, ''), 'Fecha de expedición: ' + (d.fechaDocumento ? Util.fmtFechaLarga(d.fechaDocumento) : '—'), 'Vigente hasta: ' + (d.vigenteHasta ? Util.fmtFechaLarga(d.vigenteHasta) : 'sin vencimiento'),
       'Documento ficticio, generado por ARKEN ANALYTICA para la demostración. No tiene validez.'].forEach((t, i) => doc.text(doc.splitTextToSize(t, 170), 20, 45 + i * 10));
     return new Uint8Array(doc.output('arraybuffer'));
   }

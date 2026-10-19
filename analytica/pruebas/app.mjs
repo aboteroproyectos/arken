@@ -40,8 +40,8 @@ try {
   const prog = readFileSync(join(ANALYTICA, 'programa', 'ARKEN_ANALYTICA.html'), 'utf8');
   m.ok(html === preparar(prog, { conCapacitor: html.includes('vendor/capacitor.js') }).html, 'www/index.html es el que sale del programa con preparar-web (npm run preparar)');
   const csp = (html.match(/http-equiv="Content-Security-Policy" content="([^"]*)"/) || [])[1] || '';
-  m.ok(/script-src 'self' blob: 'sha256-/.test(csp) && !/unsafe-inline'[^;]*;/.test(csp.split('script-src')[1].split(';')[0] + ';') && /connect-src 'self' blob: data: https:\/\/api\.anthropic\.com;/.test(csp),
-    'La CSP de la app permite los scripts por su huella (sin unsafe-inline) y la red solo hacia la API de Anthropic');
+  m.ok(/script-src 'self' blob: 'sha256-/.test(csp) && !/unsafe-inline'[^;]*;/.test(csp.split('script-src')[1].split(';')[0] + ';') && /connect-src 'self' blob: data:;/.test(csp) && !/anthropic|https:/.test(csp),
+    'La CSP de la app permite los scripts por su huella (sin unsafe-inline) y la red queda cerrada');
   m.ok(html.indexOf('app/arken-app.js') < html.indexOf('<script data-libreria='), 'La capa se carga antes que el programa');
 
   m.seccion('Navegador normal');
@@ -58,19 +58,18 @@ try {
   m.seccion('Escritorio simulado');
   const c2 = await contexto(nav);
   await c2.addInitScript(() => {
-    const secretos = new Map(); window.__copias = [];
-    window.arkenAnalytica = { version: '0.4.0', plataforma: 'windows',
-      secretos: { disponible: async () => true, guardar: async (n, v, meta) => { secretos.set(n, { v, meta }); return true; }, info: async (n) => (secretos.has(n) ? secretos.get(n).meta : null), leer: async (n) => (secretos.has(n) ? secretos.get(n).v : null), borrar: async (n) => secretos.delete(n) },
+    window.__copias = [];
+    window.arkenAnalytica = { version: '0.5.0', plataforma: 'windows',
       copias: { hayDeHoy: async () => window.__copias.length > 0, guardar: async (b) => { window.__copias.push(Array.from(b.slice(0, 4)).join(',') + ':' + b.length); window.__ultima = b; return { bytes: b.length }; }, abrirCarpeta: async () => true } };
   });
   const n2 = await abrir(c2, srv.url(RUTA));
   await ingresar(n2.pg, 'admin', 'arken', 'prueba-app-2026');
   await n2.pg.waitForFunction(() => window.__copias.length === 1, null, { timeout: 60000 });
-  const copia = await n2.pg.evaluate(async () => { await ClaveIA.guardar('sk-ant-prueba-' + 'y'.repeat(30), true); const b = window.__ultima; let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return { b64: btoa(s), app: window.ArkenApp, enIDB: await Almacen.secreto('clave-ia'), estado: ClaveIA.estado() }; });
+  const copia = await n2.pg.evaluate(async () => { const b = window.__ultima; let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return { b64: btoa(s), app: window.ArkenApp, sinIA: typeof ClaveIA === 'undefined' && typeof ClienteIA === 'undefined' && typeof AnthropicSDK === 'undefined' && !document.getElementById('arken-analytica-sdk'), lector: typeof LectorLocal === 'object' }; });
   const zip = await JSZip.loadAsync(Buffer.from(copia.b64, 'base64'));
   m.ok(!!zip.file('manifiesto.json') && JSON.parse(await zip.file('manifiesto.json').async('string')).formato === 'ARKEN-ANALYTICA-RESPALDO', 'Al entrar se guarda la copia del día: un respaldo completo y restaurable');
   m.ok(copia.app.plataforma === 'windows' && !copia.app.soloConsulta, 'En el computador el programa hace todo (no es solo consulta)');
-  m.ok(copia.estado.donde === 'equipo' && copia.estado.escritorio && !copia.enIDB, 'La clave de API va a la bóveda del sistema operativo, no a la base del navegador');
+  m.ok(copia.sinIA && copia.lector, 'El programa no trae conexión con la IA de Anthropic: lee los documentos con su lector local');
   const aud = await n2.pg.evaluate(() => Auditoria.lista().filter((a) => a.objeto === 'respaldo').length);
   m.ok(aud === 0, 'La copia del día no llena la auditoría');
   m.ok(!n2.errores.length, 'Sin errores de JavaScript' + (n2.errores.length ? ': ' + n2.errores.slice(0, 2).join(' | ') : ''));

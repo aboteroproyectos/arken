@@ -54,20 +54,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: |
-            analytica/package-lock.json
-            analytica/herramientas/sdk/package-lock.json
+          cache-dependency-path: analytica/package-lock.json
       # Sin las dependencias opcionales de pdf.js (canvas): las pruebas solo leen el texto de los PDF.
       - run: npm ci --omit=optional
-      # El SDK oficial y esbuild, con sus versiones fijas, para rehacer el bloque del SDK y compararlo.
-      # Aquí sí van las dependencias opcionales: el binario de esbuild es una de ellas.
-      - run: npm run sdk:instalar
       - name: Ningún archivo trae datos, claves, llaves privadas, paquetes, sobres ni respaldos
         run: npm run verificar-sin-datos
       - name: El HTML de programa/ es el que sale de fuente/
         run: npm run comprobar
-      - name: El SDK incrustado es el oficial de Anthropic, sin cambios
-        run: npm run sdk:comprobar
       - name: Núcleo (presupuesto, NIT, festivos, Excel de ARKEN y PRECIOS, Anexo B, acuerdo, cronograma, revisión)
         run: npm run prueba:unitarias
       - name: Criptografía (huellas, contraseñas, llaves del proceso, su respaldo y el sobre cerrado)
@@ -76,7 +69,7 @@ jobs:
         run: npm run prueba:nucleo-fase-2
       - name: Núcleo de la Fase 3 (estadística, recálculo, desbalance, AIU, APU, indicadores, métodos económicos, desempate, alertas)
         run: npm run prueba:nucleo-fase-3
-      - name: Núcleo de la Fase 4 (comparativo, gerencial, 15 gráficas, concepto, informe, asistente de IA y presupuesto adjudicado)
+      - name: Núcleo de la Fase 4 (comparativo, gerencial, 15 gráficas, concepto, informe y presupuesto adjudicado)
         run: npm run prueba:nucleo-fase-4
       - name: Sobres maliciosos contra la recepción y la apertura
         run: npm run prueba:sobres-maliciosos
@@ -90,7 +83,9 @@ jobs:
         run: npm run prueba:punta-a-punta
       - name: Punta a punta de la Fase 3 (cinco ofertas de demostración, bandeja de alertas, verificación, subsanación y orden de elegibilidad)
         run: npm run prueba:punta-a-punta-fase-3
-      - name: Punta a punta de la Fase 4 (módulos 15 y 16, concepto firmado, informe PDF y Excel, asistente con la API simulada, ARKEN CONTROL)
+      - name: Lector de documentos sin internet (valores, fechas, NIT, porcentajes e indicadores con su texto y página)
+        run: npm run prueba:lector
+      - name: Punta a punta de la Fase 4 (módulos 15 y 16, concepto firmado, informe PDF y Excel, lector de documentos, ARKEN CONTROL)
         run: npm run prueba:punta-a-punta-fase-4
       - name: Capa de las apps en Chromium (navegador, escritorio y Android simulados)
         run: npm run preparar && npm run prueba:app
