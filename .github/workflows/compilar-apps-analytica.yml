@@ -22,7 +22,13 @@ on:
     paths:
       - 'analytica/**'
       - '.github/workflows/compilar-apps-analytica.yml'
+  # Con «etiqueta», compila main y adjunta los instaladores a esa versión ya creada en GitHub.
   workflow_dispatch:
+    inputs:
+      etiqueta:
+        description: 'Versión ya creada a la que se adjuntan los instaladores (analytica-vX.Y.Z)'
+        required: false
+        default: ''
 
 concurrency:
   group: compilar-analytica-${{ github.ref }}
@@ -235,9 +241,13 @@ jobs:
   # ─── Publicación: solo con una etiqueta de versión (analytica-vX.Y.Z) ───
   publicar:
     name: Publicar versión
-    if: startsWith(github.ref, 'refs/tags/analytica-v')
+    if: startsWith(github.ref, 'refs/tags/analytica-v') || startsWith(inputs.etiqueta, 'analytica-v')
     needs: [android, ios, windows, mac, linux]
     runs-on: ubuntu-latest
+    # Este trabajo no descarga el repositorio: no hay carpeta analytica/.
+    defaults:
+      run:
+        working-directory: .
     permissions:
       contents: write
     steps:
@@ -261,7 +271,8 @@ jobs:
           fi
       - uses: softprops/action-gh-release@v3
         with:
-          name: ARKEN ANALYTICA ${{ github.ref_name }}
+          tag_name: ${{ inputs.etiqueta || github.ref_name }}
+          name: ARKEN ANALYTICA ${{ inputs.etiqueta || github.ref_name }}
           files: |
             instaladores/**/*.apk
             instaladores/**/*.exe
