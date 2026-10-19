@@ -245,6 +245,20 @@ jobs:
         with:
           path: instaladores
           merge-multiple: true
+      # El APK solo existe con el secreto ARKEN_FIRMA_CLAVE; los instaladores de computador y el de iOS
+      # sí son obligatorios.
+      - name: Están los instaladores
+        id: archivos
+        run: |
+          for patron in '*.exe' '*.dmg' '*.AppImage' '*.ipa'; do
+            if [ -z "$(find instaladores -name "$patron" -print -quit)" ]; then echo "::error::Falta el instalador $patron"; exit 1; fi
+          done
+          if [ -n "$(find instaladores -name '*.apk' -print -quit)" ]; then
+            echo "android=**Android:** …-Android.apk" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning title=Versión sin Android::Falta el secreto ARKEN_FIRMA_CLAVE; la versión se publica sin el APK."
+            echo "android=**Android:** no incluido en esta versión (falta la clave de firma)." >> "$GITHUB_OUTPUT"
+          fi
       - uses: softprops/action-gh-release@v3
         with:
           name: ARKEN ANALYTICA ${{ github.ref_name }}
@@ -254,7 +268,7 @@ jobs:
             instaladores/**/*.dmg
             instaladores/**/*.AppImage
             instaladores/**/*.ipa
-          fail_on_unmatched_files: true
+          fail_on_unmatched_files: false
           body: |
             **Computador (recomendado para la empresa):** Windows …-Windows.exe · macOS …-macOS.dmg · Linux …-Linux.AppImage
-            **Celular y tableta, solo consulta:** Android …-Android.apk · iOS …-iOS-sin-firma.ipa (requiere firmarse para instalarse; vea analytica/README.md).
+            **Celular y tableta, solo consulta:** ${{ steps.archivos.outputs.android }} · **iOS:** …-iOS-sin-firma.ipa (requiere firmarse para instalarse; vea analytica/README.md).
