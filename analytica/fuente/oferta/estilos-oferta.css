@@ -1,0 +1,27 @@
+/* ============================================================
+   ARKEN OFERTA — lo propio del programa del proponente
+   ============================================================ */
+.gate-card.ancha{ max-width:620px; max-height:calc(100vh - 32px); overflow:auto; }
+.gate-body .verif{ font-size:12.5px; }
+.gate-body .verif li{ margin:4px 0; }
+.gate-body .huella{ display:block; margin-top:4px; }
+
+/* Requisito: ficha con su ayuda al lado (§15, módulos 05 a 12). */
+.req{ display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:var(--gap); }
+.req .ayuda-lado{ background:var(--paper); border:1px solid var(--line-soft); border-radius:var(--r); padding:12px 14px; font-size:12px; color:var(--graphite); }
+.req .ayuda-lado ul{ margin:6px 0 0; padding-left:16px; }
+.req .ayuda-lado b{ display:block; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--brass); margin-bottom:4px; }
+@media(max-width:900px){ .req{ grid-template-columns:minmax(0,1fr); } }
+
+table.t td input,table.t td select{ min-width:90px; padding:5px 7px; font-size:12px; }
+table.t td input.ancho{ min-width:220px; }
+table.t td input.num{ text-align:right; font-family:var(--font-num); }
+.adj{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:6px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px; }
+.adj:last-child{ border-bottom:0; }
+.adj .huella{ flex:1 1 220px; }
+.revisar{ box-shadow:inset 3px 0 0 var(--warn); }
+.ok-txt{ color:var(--ok); font-weight:600; }
+.bad-txt{ color:var(--bad); font-weight:600; }
+.organigrama ul{ list-style:none; padding-left:18px; border-left:1px dashed var(--silver); margin:4px 0; }
+.organigrama li{ margin:4px 0; font-size:12.5px; }
+.organigrama li b{ color:var(--ink); }

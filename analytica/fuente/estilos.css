@@ -97,3 +97,9 @@ table.t .marcas .tag{ margin-right:3px; }
 table.t td.cod{ font-family:var(--font-num); font-size:11.5px; white-space:nowrap; }
 .head-actions select{ width:auto; max-width:260px; }
 @media (max-width: 520px){ .head-actions .btn, .card-head .btn{ white-space:normal; } }
+
+/* ── Fase 2: recepción y carpetas de proponentes ── */
+.zona-sobres{ border:2px dashed var(--line-strong, #B9B2A5); border-radius:var(--r); padding:22px 16px; text-align:center; margin:var(--gap) 0; cursor:pointer; background:var(--paper-2, transparent); }
+.zona-sobres:hover,.zona-sobres:focus,.zona-sobres.encima{ border-color:var(--brass); outline:none; background:rgba(169,139,84,.08); }
+.pastilla{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+.bad-txt{ color:var(--bad, #96362E); }

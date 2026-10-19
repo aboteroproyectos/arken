@@ -76,6 +76,8 @@ const Documentos = (function(){
     const r = Pdf.generar({ titulo:'Pliego de condiciones', documento:'Pliego ' + p.codigo + ' v' + p.versionPliego,
       lineaIzquierda:'Proceso: ' + p.codigo + ' · ' + p.nombre, bloques:Pliego.bloques(ctx), marcaAgua:marcaDe(p) });
     const sha256 = await Cripto.sha256(await r.blob.arrayBuffer());
+    // El PDF queda guardado: va dentro de cada paquete de invitación (§13).
+    await Almacen.ponerArchivo(sha256, r.blob);
     const nombre = 'Pliego_' + Util.codigoArchivo(p.codigo) + '_v' + p.versionPliego + '.pdf';
     p.pliego = { generado:{ fecha:new Date().toISOString(), usuario:Sesion.usuario.usuario, sha256, huellaContenido, paginas:r.paginas, nombre }, revisado:false };
     await Modelo.guardarProceso(p, 'Pliego generado · ' + sha256);
@@ -84,7 +86,7 @@ const Documentos = (function(){
   }
 
   /* ── Acuerdo de confidencialidad ── */
-  function pdfConfidencialidad(p, invitado){
+  function cfgConfidencialidad(p, invitado){
     const ctx = Modelo.contextoConfidencialidad(p, invitado);
     const est = Confidencialidad.estado(ctx);
     const cl = Confidencialidad.armar(ctx);
@@ -101,9 +103,15 @@ const Documentos = (function(){
     B.push({ t:'texto', txt:Confidencialidad.anexo2(ctx) });
     const adv = Confidencialidad.advertenciaPais(p.pais);
     if (adv) B.unshift({ t:'texto', txt:adv, negrita:true });
-    guardarPdf('Acuerdo_de_confidencialidad_' + Util.codigoArchivo(p.codigo) + (invitado ? '_' + Util.razonSocialArchivo(invitado.razonSocial) : '') + '.pdf', { titulo:'', documento:'Acuerdo de confidencialidad', bloques:B,
-      lineaIzquierda:'Proceso: ' + p.codigo, marcaAgua:marcaDe(p, est === 'aprobado' ? '' : p.demo ? 'BORRADOR' : 'BORRADOR · SIN APROBAR') });
-    Auditoria.registrar('exportar', 'acuerdo de confidencialidad PDF', est + (invitado ? ' · ' + invitado.razonSocial : ''), p.id);
+    return { est, cfg:{ titulo:'', documento:'Acuerdo de confidencialidad', bloques:B, lineaIzquierda:'Proceso: ' + p.codigo,
+      marcaAgua:marcaDe(p, est === 'aprobado' ? '' : p.demo ? 'BORRADOR' : 'BORRADOR · SIN APROBAR') } };
+  }
+  /** El acuerdo de un invitado, para el paquete (§13). */
+  function blobConfidencialidad(p, invitado){ return Pdf.generar(cfgConfidencialidad(p, invitado).cfg).blob; }
+  function pdfConfidencialidad(p, invitado){
+    const c = cfgConfidencialidad(p, invitado);
+    guardarPdf('Acuerdo_de_confidencialidad_' + Util.codigoArchivo(p.codigo) + (invitado ? '_' + Util.razonSocialArchivo(invitado.razonSocial) : '') + '.pdf', c.cfg);
+    Auditoria.registrar('exportar', 'acuerdo de confidencialidad PDF', c.est + (invitado ? ' · ' + invitado.razonSocial : ''), p.id);
   }
 
   /* ── Exportar el presupuesto para ARKEN CONTROL (§4.2) ── */
@@ -211,5 +219,5 @@ const Documentos = (function(){
     UI.descargar('ARKEN_ANALYTICA_auditoria_' + Util.selloArchivo(Date.now()) + '.xlsx', new Blob([XLSX.write(wb, { type:'array', bookType:'xlsx' })]));
   }
 
-  return { NIVELES, pdfPresupuesto, pdfPliego, pdfConfidencialidad, exportarParaArken, importarDeArken, importarDePrecios, excelAuditoria, bloquesPresupuesto };
+  return { NIVELES, marcaDe, pdfPresupuesto, pdfPliego, pdfConfidencialidad, blobConfidencialidad, exportarParaArken, importarDeArken, importarDePrecios, excelAuditoria, bloquesPresupuesto };
 })();

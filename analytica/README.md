@@ -7,9 +7,9 @@ Evaluación de propuestas de obra, app hermana de [ARKEN CONTROL](../README.md) 
 - los documentos y los invitados con su acuerdo de confidencialidad;
 - el cronograma y el pliego en PDF.
 
-Antes de emitir, una revisión bloquea la emisión mientras falte algo.
+Antes de emitir, una revisión bloquea la emisión mientras falte algo. Después genera un paquete por invitado con **ARKEN OFERTA**, el programa con el que cada proponente prepara su oferta y la devuelve en un sobre cerrado. Responde preguntas, emite adendas, recibe los sobres y los abre después del cierre con la frase del proceso y dos miembros del comité.
 
-**Estado:** Fase 1 de 4, el núcleo del programa principal. Los paquetes de invitación, ARKEN OFERTA (el programa del proponente) y los sobres llegan en la Fase 2; la verificación y los puntajes, en la 3; el comparativo, el informe y las apps, en la 4.
+**Estado:** Fase 2 de 4. Ya están el principal hasta la apertura, ARKEN OFERTA y los sobres. La verificación y los puntajes llegan en la Fase 3; el comparativo, el informe y las apps, en la 4.
 
 Más información:
 
@@ -32,7 +32,8 @@ El archivo del repositorio está siempre vacío de datos. **No suba al repositor
 
 - **Código fuente:**
   - `fuente/nucleo/`: cálculo, Excel, NIT, festivos, condiciones, acuerdo, cronograma, revisión, criptografía, pliego y demostración. No toca la pantalla.
-  - `fuente/app/`: almacén, sesión, interfaz, PDF y vistas de cada módulo.
+  - `fuente/app/`: almacén, sesión, interfaz, PDF, paquetes, preguntas y adendas, recepción y apertura, y las vistas de cada módulo.
+  - `fuente/oferta/`: ARKEN OFERTA (verificación del paquete, borrador, intercambio de archivos y sus dieciséis módulos). Se arma con el mismo núcleo y viaja comprimido dentro del principal.
   - `fuente/estilos.css` y `fuente/cuerpo.html`.
 - **Armar el programa:**
   - `npm run construir` arma `programa/ARKEN_ANALYTICA.html`;

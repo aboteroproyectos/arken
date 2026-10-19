@@ -15,6 +15,7 @@
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FUENTE = join(RAIZ, 'fuente');
@@ -22,6 +23,12 @@ const SALIDA = join(RAIZ, 'programa', 'ARKEN_ANALYTICA.html');
 const MODULOS = join(RAIZ, 'node_modules');
 const LOGO = join(RAIZ, '..', 'recursos', 'logo-original.png');
 const VERSION = JSON.parse(readFileSync(join(RAIZ, 'package.json'), 'utf8')).version;
+/* ARKEN OFERTA (§15) comparte el núcleo y la base de la interfaz del principal. */
+const APP_COMPARTIDA = ['01-base.js', '04-ui.js', '05-pdf.js'];
+const LIB_OFERTA = ['jspdf', 'jspdf-autotable', 'xlsx', 'jszip'];
+/* La plantilla de ARKEN OFERTA viaja comprimida dentro del principal; la fecha
+   fija hace que el ZIP salga idéntico en cada construcción. */
+const FECHA_ZIP = new Date('2026-01-01T00:00:00Z');
 
 /* Las mismas librerías y versiones que ARKEN CONTROL, más JSZip 3.10.1 (§6). */
 const LIBRERIAS = [
@@ -49,10 +56,60 @@ function libreria([nombre, ruta, version]) {
   return `<script data-libreria="${nombre}@${version}">\n${seguro(leer(join(MODULOS, nombre, ruta)))}\n</script>`;
 }
 
-export function construir() {
-  const logo = 'data:image/png;base64,' + readFileSync(LOGO).toString('base64');
+function logoDataUrl() { return 'data:image/png;base64,' + readFileSync(LOGO).toString('base64'); }
+function fuentes(carpeta, lista) {
+  return (lista || archivos(join(FUENTE, carpeta))).map((n) => `/* ─── fuente/${carpeta}/${n} ─── */\n` + leer(join(FUENTE, carpeta, n))).join('\n');
+}
+
+/** ARKEN OFERTA, con el lugar del pliego vacío (<script id="arken-pliego">null). */
+export function construirOferta() {
+  const logo = logoDataUrl();
+  const js = fuentes('nucleo') + '\n' + fuentes('app', APP_COMPARTIDA) + '\n' + fuentes('oferta');
+  const css = leer(join(FUENTE, 'estilos-arken.css')) + '\n' + leer(join(FUENTE, 'estilos.css')) + '\n' + leer(join(FUENTE, 'oferta', 'estilos-oferta.css'));
+  return `<!DOCTYPE html>
+<html lang="es" data-density="normal" data-tema="claro"><head>
+<!--
+  ARKEN OFERTA ${VERSION} · Programa del proponente
+  Lo genera ARKEN ANALYTICA dentro de cada paquete de invitación, con el pliego
+  del invitado adentro. Funciona abierto desde el disco, sin internet y sin
+  instalar nada. No edite este archivo.
+-->
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${CSP}">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16181A">
+<meta name="arken-oferta-version" content="${VERSION}">
+<link rel="icon" href="${logo}">
+<title>ARKEN OFERTA — Programa del proponente</title>
+<style>
+${css}
+</style>
+</head>
+<body>
+${leer(join(FUENTE, 'oferta', 'cuerpo.html')).replaceAll('{{LOGO}}', logo)}
+${LIBRERIAS.filter((l) => LIB_OFERTA.includes(l[0])).map(libreria).join('\n')}
+<script>
+"use strict";
+${seguro(js.replaceAll('{{LOGO}}', logo).replaceAll('{{VERSION}}', VERSION))}
+</script>
+</body>
+</html>
+`;
+}
+/** La plantilla de ARKEN OFERTA comprimida en base64, para incrustarla en el principal. */
+async function plantillaOferta() {
+  const require = createRequire(import.meta.url);
+  const JSZip = require(join(MODULOS, 'jszip'));
+  const z = new JSZip();
+  z.file('ARKEN_OFERTA.html', construirOferta(), { date:FECHA_ZIP });
+  return z.generateAsync({ type:'base64', compression:'DEFLATE', compressionOptions:{ level:9 } });
+}
+
+export async function construir() {
+  const logo = logoDataUrl();
   const worker = readFileSync(join(MODULOS, 'pdfjs-dist', 'build', 'pdf.worker.min.js')).toString('base64');
-  const nucleo = archivos(join(FUENTE, 'nucleo')).map((n) => `/* ─── fuente/nucleo/${n} ─── */\n` + leer(join(FUENTE, 'nucleo', n))).join('\n');
+  const oferta = await plantillaOferta();
+  const nucleo = fuentes('nucleo');
   const app = archivos(join(FUENTE, 'app')).map((n) => `/* ─── fuente/app/${n} ─── */\n` + leer(join(FUENTE, 'app', n))).join('\n');
   const css = leer(join(FUENTE, 'estilos-arken.css')) + '\n' + leer(join(FUENTE, 'estilos.css'));
   const cuerpo = leer(join(FUENTE, 'cuerpo.html'));
@@ -84,6 +141,7 @@ ${css}
 ${cuerpo.replaceAll('{{LOGO}}', logo)}
 ${LIBRERIAS.map(libreria).join('\n')}
 <script id="pdfjs-worker" type="text/plain">${worker}</script>
+<script id="plantilla-oferta" type="text/plain">${oferta}</script>
 <script>
 "use strict";
 ${seguro(nucleo)}
@@ -96,7 +154,7 @@ ${seguro(app.replaceAll('{{LOGO}}', logo).replaceAll('{{VERSION}}', VERSION))}
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const html = construir();
+  const html = await construir();
   if (process.argv.includes('--comprobar')) {
     if (!existsSync(SALIDA) || leer(SALIDA) !== html) {
       console.error('✖ programa/ARKEN_ANALYTICA.html no corresponde a fuente/. Ejecute «npm run construir» y suba el resultado.');

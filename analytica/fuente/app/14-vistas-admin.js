@@ -1,13 +1,13 @@
-/* ─────────────── Módulos 08 a 16: fases siguientes ───────────────
+/* ─────────────── Módulos 11 a 16: fases siguientes ───────────────
    Están en el riel desde ya, atenuados, para que el ciclo completo se vea;
    cada uno dice qué hará y en qué fase llega. */
 const MODULOS = [
   { id:'00', nombre:'Tablero del proceso' }, { id:'01', nombre:'Procesos' }, { id:'02', nombre:'Presupuesto base' },
   { id:'03', nombre:'Base de precios' }, { id:'04', nombre:'Condiciones de la oferta' }, { id:'05', nombre:'Documentos del proceso' },
   { id:'06', nombre:'Invitados y confidencialidad' }, { id:'07', nombre:'Pliego, revisión y emisión' },
-  { id:'08', nombre:'Preguntas y adendas', fase:2, texto:'Preguntas de los invitados con su respuesta publicada a todos, y adendas numeradas y firmadas que crean una versión nueva del pliego.' },
-  { id:'09', nombre:'Recepción y apertura', fase:2, texto:'Carga de muchos sobres a la vez, asignación por código de invitación, cierre y apertura con acta, sin abrir nada antes de la hora de cierre.' },
-  { id:'10', nombre:'Documentos de proponentes', fase:2, texto:'Una carpeta por proponente, cuyo nombre empieza por su razón social, con cada documento contra el requisito que responde.' },
+  { id:'08', nombre:'Preguntas y adendas', texto:'Preguntas de los invitados con su respuesta publicada a todos, y adendas numeradas y firmadas que crean una versión nueva del pliego.' },
+  { id:'09', nombre:'Recepción y apertura', texto:'Carga de muchos sobres a la vez, asignación por código de invitación, cierre y apertura con acta, sin abrir nada antes de la hora de cierre.' },
+  { id:'10', nombre:'Documentos de proponentes', texto:'Una carpeta por proponente, cuyo nombre empieza por su razón social, con cada documento contra el requisito que responde.' },
   { id:'11', nombre:'Verificación y subsanaciones', fase:3, texto:'Verificación de cada requisito habilitante por su evaluador, solicitudes de subsanación con plazo y su respuesta.' },
   { id:'12', nombre:'Análisis presupuestal', fase:3, texto:'Aritmética, capítulos, subcapítulos, actividades, insumos, AIU, desbalance y APU, oferta por oferta contra el presupuesto base.' },
   { id:'13', nombre:'Análisis técnico, legal y financiero', fase:3, texto:'Requisito por proponente, con su estado y la evidencia: jurídico, financiero, experiencia, personal, equipos, sistemas de gestión y programación.' },
@@ -32,10 +32,19 @@ Vistas['17'] = function(){
     ['Registre a los invitados y el acuerdo', 'Módulo 06. NIT con dígito de verificación, contacto y el acuerdo de confidencialidad, que aprueba un usuario con rol Jurídico.'],
     ['Revise y emita', 'Módulo 07. Cronograma, condiciones generales, llaves del proceso con su respaldo, pliego en PDF y la revisión completa. «Emitir» se habilita con todo en verde.']
   ];
+  const pasos2 = [
+    ['Genere un paquete por invitado', 'Módulo 07 › Paquetes y envío. Cada ZIP trae ARKEN OFERTA con el pliego de ese invitado, LEAME_PRIMERO y, según el modo de confidencialidad, el pliego en PDF y los documentos, todo firmado. El programa prepara el correo; usted lo envía.'],
+    ['Responda preguntas y emita adendas', 'Módulo 08. Las respuestas salen numeradas, firmadas y sin decir quién preguntó. Una adenda crea la versión siguiente del pliego; después del plazo de adendas solo se admite prorrogar el cierre.'],
+    ['Reciba los sobres', 'Módulo 09. Suelte todos los ZIP a la vez: cada uno se asigna a su invitado por el código de invitación y queda sellado, sin abrir. De cada invitado vale el último sobre generado antes del cierre.'],
+    ['Cierre y abra', 'Módulo 09. A la hora de cierre, el acta de cierre. La apertura exige la frase del proceso y dos miembros del comité; descifra todo a la vez, verifica cada adjunto, recalcula los totales y deja el acta de apertura.'],
+    ['Revise los documentos de cada proponente', 'Módulo 10. Una carpeta por proponente, con su color, cada documento contra su requisito, su vigencia y búsqueda de texto en los PDF.']
+  ];
   const html = cabecera('17', 'Ayuda', 'Cómo usar ARKEN ANALYTICA · versión ' + esc(VERSION_PROGRAMA)) +
     '<div class="nota-flujo">' + PASOS_FLUJO.map((x, i) => (i ? '<span class="fl">›</span>' : '') + '<span class="paso">' + x + '</span>').join('') + '</div>' +
     '<div class="card"><div class="card-head"><h3>Preparar un proceso (Fase 1)</h3></div><div class="card-body">' +
       pasos.map((p, i) => '<div class="chk ok"><span class="ic" aria-hidden="true">' + (i + 1) + '</span><div class="tx"><b>' + esc(p[0]) + '.</b> ' + esc(p[1]) + '</div></div>').join('') + '</div></div>' +
+    '<div class="card"><div class="card-head"><h3>Invitar, recibir y abrir (Fase 2)</h3></div><div class="card-body">' +
+      pasos2.map((p, i) => '<div class="chk ok"><span class="ic" aria-hidden="true">' + (i + 8) + '</span><div class="tx"><b>' + esc(p[0]) + '.</b> ' + esc(p[1]) + '</div></div>').join('') + '</div></div>' +
     '<div class="grid g2"><div class="card"><div class="card-head"><h3>Sus datos</h3></div><div class="card-body small">' +
       '<p>Los datos viven en este navegador (IndexedDB), nunca dentro del archivo del programa ni en internet. Descargue un respaldo .zip con frecuencia desde Administración › Respaldos.</p>' +
       '<p>Las llaves privadas de cada proceso se guardan cifradas con la frase del proceso, que el programa no conoce.</p></div></div>' +

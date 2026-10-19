@@ -117,7 +117,7 @@ const Cripto = (function(){
     return r;
   }
 
-  /* ── Firma del manifiesto (§13); la Fase 2 la usa al emitir paquetes ── */
+  /* ── Firma del manifiesto, de las respuestas y de las adendas (§13, §12.3) ── */
   async function firmar(llavePrivadaFirma, texto){
     const s = await crypto.subtle.sign({ name:'ECDSA', hash:'SHA-384' }, llavePrivadaFirma, enc.encode(texto));
     return aB64(s);
@@ -127,6 +127,49 @@ const Cripto = (function(){
     return crypto.subtle.verify({ name:'ECDSA', hash:'SHA-384' }, k, deB64(firmaB64), enc.encode(texto));
   }
 
-  return { ITER_FRASE, sha256, hashContrasena, verificarContrasena, cifrarConFrase, descifrarConFrase, fraseValida,
+  /* ── Sobre cerrado (§14) ──
+     El contenido se cifra con una llave AES-GCM de 256 bits aleatoria. Esa
+     llave se envuelve con ECDH efímero contra la pública de cifrado del
+     proceso: del secreto compartido sale, con HKDF-SHA-256, la llave que la
+     cifra. Solo quien tiene la privada del proceso (con la frase) la abre. */
+  const INFO_SOBRE = enc.encode('ARKEN-SOBRE v1 · llave del contenido');
+  async function llaveEnvoltura(privada, publica, sal){
+    const secreto = await crypto.subtle.deriveBits({ name:'ECDH', public:publica }, privada, 384);
+    const base = await crypto.subtle.importKey('raw', secreto, 'HKDF', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name:'HKDF', hash:'SHA-256', salt:sal, info:INFO_SOBRE }, base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+  }
+  async function cifrarSobre(publicaCifradoJwk, bytes){
+    const delProceso = await crypto.subtle.importKey('jwk', publicaCifradoJwk, { name:'ECDH', namedCurve:'P-384' }, false, []);
+    const efimera = await crypto.subtle.generateKey({ name:'ECDH', namedCurve:'P-384' }, true, ['deriveBits']);
+    const contenido = await crypto.subtle.generateKey({ name:'AES-GCM', length:256 }, true, ['encrypt']);
+    const ivContenido = azar(12), ivLlave = azar(12), sal = azar(16);
+    const cifrado = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv:ivContenido }, contenido, bytes));
+    const envoltura = await llaveEnvoltura(efimera.privateKey, delProceso, sal);
+    const crudo = await crypto.subtle.exportKey('raw', contenido);
+    const llave = await crypto.subtle.encrypt({ name:'AES-GCM', iv:ivLlave }, envoltura, crudo);
+    const efimeraPub = await crypto.subtle.exportKey('jwk', efimera.publicKey);
+    return { cifrado, envuelta:{ formato:'ARKEN-LLAVE-ENVUELTA', version:1, alg:'ECDH-P384 + HKDF-SHA-256 + AES-GCM-256',
+      efimera:{ kty:efimeraPub.kty, crv:efimeraPub.crv, x:efimeraPub.x, y:efimeraPub.y }, sal:aB64(sal), ivLlave:aB64(ivLlave), llave:aB64(llave), ivContenido:aB64(ivContenido),
+      huellaPublica:await sha256(JSON.stringify({ crv:publicaCifradoJwk.crv, x:publicaCifradoJwk.x, y:publicaCifradoJwk.y })) } };
+  }
+  /** Abre un sobre con la privada de cifrado del proceso (de abrirLlaves). */
+  async function abrirSobre(privadaCifrado, envuelta, cifrado){
+    if (!envuelta || envuelta.formato !== 'ARKEN-LLAVE-ENVUELTA' || envuelta.version !== 1) throw new Error('La llave del sobre no tiene el formato ARKEN-LLAVE-ENVUELTA, versión 1.');
+    const efimera = await crypto.subtle.importKey('jwk', Object.assign({ ext:true }, envuelta.efimera), { name:'ECDH', namedCurve:'P-384' }, false, []);
+    let crudo, claro;
+    try {
+      const envoltura = await llaveEnvoltura(privadaCifrado, efimera, deB64(envuelta.sal));
+      crudo = await crypto.subtle.decrypt({ name:'AES-GCM', iv:deB64(envuelta.ivLlave) }, envoltura, deB64(envuelta.llave));
+    } catch(e){ throw new Error('La llave del sobre no corresponde a este proceso: no se puede abrir con sus llaves.'); }
+    const contenido = await crypto.subtle.importKey('raw', crudo, { name:'AES-GCM' }, false, ['decrypt']);
+    try { claro = await crypto.subtle.decrypt({ name:'AES-GCM', iv:deB64(envuelta.ivContenido) }, contenido, cifrado); }
+    catch(e){ throw new Error('El contenido cifrado del sobre fue alterado: no pasa la verificación de AES-GCM.'); }
+    return new Uint8Array(claro);
+  }
+  /** Huella corta de una pública, para que el invitado la compare con la
+      que le dicta la EMPRESA PRINCIPAL por otro medio. */
+  async function huellaPublica(jwk){ return sha256(JSON.stringify({ crv:jwk.crv, x:jwk.x, y:jwk.y })); }
+
+  return { ITER_FRASE, sha256, cifrarSobre, abrirSobre, huellaPublica, hashContrasena, verificarContrasena, cifrarConFrase, descifrarConFrase, fraseValida,
     crearLlaves, abrirLlaves, verificarFrase, respaldoLlaves, leerRespaldoLlaves, firmar, verificar, aB64, deB64 };
 })();
