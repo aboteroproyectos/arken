@@ -14,8 +14,9 @@
     "prueba:cripto": "node pruebas/cripto.mjs",
     "prueba:ida-y-vuelta": "node pruebas/ida-y-vuelta.mjs",
     "prueba:humo": "node pruebas/humo.mjs",
-    "prueba": "npm run verificar-sin-datos && npm run comprobar && npm run prueba:unitarias && npm run prueba:cripto && npm run prueba:nucleo-fase-2 && npm run prueba:sobres-maliciosos && npm run prueba:ida-y-vuelta && npm run prueba:humo && npm run prueba:oferta && npm run prueba:punta-a-punta",
+    "prueba": "npm run verificar-sin-datos && npm run comprobar && npm run prueba:unitarias && npm run prueba:cripto && npm run prueba:nucleo-fase-2 && npm run prueba:nucleo-fase-3 && npm run prueba:sobres-maliciosos && npm run prueba:ida-y-vuelta && npm run prueba:humo && npm run prueba:oferta && npm run prueba:punta-a-punta",
     "prueba:nucleo-fase-2": "node pruebas/nucleo-fase-2.mjs",
+    "prueba:nucleo-fase-3": "node pruebas/nucleo-fase-3.mjs",
     "prueba:sobres-maliciosos": "node pruebas/sobres-maliciosos.mjs",
     "prueba:oferta": "node pruebas/oferta.mjs",
     "prueba:punta-a-punta": "node pruebas/punta-a-punta.mjs"
