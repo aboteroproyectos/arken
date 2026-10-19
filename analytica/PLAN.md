@@ -5,7 +5,7 @@
 - **Un solo código fuente, dos programas.** `analytica/fuente/` tiene el núcleo (sin pantalla: modelo, cálculo, Excel de ARKEN, festivos, NIT, criptografía, revisión de emisión, textos legales) y la interfaz del principal. `herramientas/construir.mjs` arma `programa/ARKEN_ANALYTICA.html` concatenando estilos, cuerpo, librerías y módulos. ARKEN OFERTA se arma del mismo núcleo, así el proponente ve los mismos totales que el evaluador. Su HTML viaja comprimido dentro del principal, que lo copia en cada paquete con el pliego del invitado.
 - **Sin internet.** Las librerías (jsPDF 2.5.1, jspdf-autotable 3.8.2, SheetJS 0.18.5, pdf.js 3.11.174 y JSZip 3.10.1) van **dentro** del HTML, tomadas de `node_modules` con versión fija. `npm run comprobar` falla si el HTML del repositorio no es exactamente el que sale de `fuente/`.
 - **Patrón ARKEN.** Módulos con nombre propio (`const Calculo = (function(){ … })();`). El núcleo corre igual en el navegador y en Node (`node:vm`), que es como lo prueban las pruebas unitarias.
-- **Pesado fuera del hilo de la pantalla.** Las huellas SHA-256 de archivos se calculan en un Web Worker.
+- **Pesado fuera del hilo de la pantalla.** Las huellas SHA-256 de archivos se calculan en un Web Worker. El análisis de la Fase 3 (`Motor.analizar`) es una función pura sobre los datos del proceso; corre en el hilo de la pantalla con caché y se puede llevar a un Worker sin cambiarla (decisión 82).
 - **Escritorio y móvil** (Electron, Capacitor) llegan en la Fase 4, como dice §26.
 
 ## Estructura de archivos
@@ -17,13 +17,15 @@ analytica/
   fuente/nucleo/*.js              ← Util, Calculo, Nit, Festivos, ExcelArken, ExcelPrecios, Parametros,
                                      PlantillaCondiciones, Confidencialidad, Revision, Cripto, Demo
   fuente/nucleo/8x-*.js           ← Paquete, Sobre, Adendas, Actas (Fase 2)
+  fuente/evaluacion/*.js          ← Estadistica, Presupuestal, Tecnico, Puntaje, Alertas, Motor, DemoOfertas (Fase 3;
+                                     solo en el principal)
   fuente/app/*.js                 ← Almacen (IndexedDB), Sesion y Permisos, UI, Pdf, Documentos,
-                                     Respaldo, Paquetes, Consultas, Recepcion, Vistas, App
+                                     Respaldo, Paquetes, Consultas, Recepcion, Evaluacion, Bandeja, Vistas, App
   fuente/oferta/*                 ← ARKEN OFERTA: cuerpo, estilos, almacén, verificación, borrador,
                                      intercambio, vistas y App
   herramientas/construir.mjs
   pruebas/ unitarias · cripto · nucleo-fase-2 · sobres-maliciosos · ida-y-vuelta (con el ARKEN_CONTROL.html real)
-           · humo · oferta · punta-a-punta
+           · nucleo-fase-3 · humo · oferta · punta-a-punta · punta-a-punta-fase-3
   PLAN · DECISIONES · CAMBIOS · GUIA_DE_PRUEBA · README
 ```
 

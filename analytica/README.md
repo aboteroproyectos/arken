@@ -9,7 +9,9 @@ Evaluación de propuestas de obra, app hermana de [ARKEN CONTROL](../README.md) 
 
 Antes de emitir, una revisión bloquea la emisión mientras falte algo. Después genera un paquete por invitado con **ARKEN OFERTA**, el programa con el que cada proponente prepara su oferta y la devuelve en un sobre cerrado. Responde preguntas, emite adendas, recibe los sobres y los abre después del cierre con la frase del proceso y dos miembros del comité.
 
-**Estado:** Fase 2 de 4. Ya están el principal hasta la apertura, ARKEN OFERTA y los sobres. La verificación y los puntajes llegan en la Fase 3; el comparativo, el informe y las apps, en la 4.
+Después verifica cada oferta, la analiza contra el presupuesto base, emite alertas con su porqué y su evidencia, y la puntúa hasta el orden de elegibilidad.
+
+**Estado:** Fase 3 de 4. Ya están el principal hasta el orden de elegibilidad, ARKEN OFERTA, los sobres y la bandeja de alertas. El comparativo, el informe y las apps llegan en la Fase 4.
 
 Más información:
 
@@ -32,7 +34,8 @@ El archivo del repositorio está siempre vacío de datos. **No suba al repositor
 
 - **Código fuente:**
   - `fuente/nucleo/`: cálculo, Excel, NIT, festivos, condiciones, acuerdo, cronograma, revisión, criptografía, pliego y demostración. No toca la pantalla.
-  - `fuente/app/`: almacén, sesión, interfaz, PDF, paquetes, preguntas y adendas, recepción y apertura, y las vistas de cada módulo.
+  - `fuente/evaluacion/`: estadística, análisis presupuestal, técnico y financiero, puntajes, alertas, el motor que lo junta y las ofertas de demostración. No toca la pantalla y no va en ARKEN OFERTA.
+  - `fuente/app/`: almacén, sesión, interfaz, PDF, paquetes, preguntas y adendas, recepción y apertura, evaluación, bandeja de alertas y las vistas de cada módulo.
   - `fuente/oferta/`: ARKEN OFERTA (verificación del paquete, borrador, intercambio de archivos y sus dieciséis módulos). Se arma con el mismo núcleo y viaja comprimido dentro del principal.
   - `fuente/estilos.css` y `fuente/cuerpo.html`.
 - **Armar el programa:**

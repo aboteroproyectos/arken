@@ -118,3 +118,45 @@ Decisiones tomadas donde el documento maestro deja lugar a criterio. Numeradas y
     Como JSZip limpia los `../` al leer, se revisa el nombre original de cada entrada.
 70. **El verificador del repositorio busca el pliego incrustado** en cualquier HTML, incluso en la plantilla comprimida dentro del principal. También busca los archivos que solo existen en un proceso real (paquetes, ARKEN OFERTA de un invitado, borradores, sobres, preguntas, respuestas, adendas, plantillas de precios y actas).
 71. **Los módulos 08, 09 y 10 dejan de estar atenuados**; los 11 a 16 siguen con la fase en que llegan.
+
+## Verificación (Fase 3)
+
+72. **Cada verificación es una fila nueva**, con el evaluador, la fecha, la observación y la evidencia (documento, página y texto literal). Vale la última por fecha; las anteriores quedan como historia y no se borran.
+73. **Los valores de cumplimiento son cinco:** sí, no, subsanable, pendiente y **no aplica**. El documento maestro nombra los cuatro primeros; «no aplica» se agregó para los requisitos condicionales (por ejemplo, el acuerdo de consorcio de un proponente individual). Cuenta como cumplido.
+74. **Cada requisito lo verifica el rol de su grupo:** el técnico, el jurídico o el financiero, además del administrador. «No cumple» y «Subsanable» exigen observación.
+75. **La respuesta a una subsanación se carga directamente** en el principal y va a la carpeta del proponente como ronda 2. No pasa por ARKEN OFERTA ni por un sobre: la subsanación es un intercambio abierto, no una oferta. Se anota si llegó después del plazo.
+76. **El plazo de la subsanación es en días hábiles** con los festivos de Colombia, y la solicitud sale en PDF con el nombre del proponente.
+77. **La justificación de un valor artificialmente bajo la decide solo el comité.** Mientras no se acepte, la oferta queda pendiente.
+
+## Análisis presupuestal
+
+78. **El desbalance usa el z robusto (mediana y MAD) sobre el precio relativo al nivel de cada oferta:** el precio unitario dividido por el costo directo de esa misma oferta. Así, una oferta pareja que es más barata en todo no sale desbalanceada; la que es cara en unas actividades y barata en otras, sí. Con pocas ofertas el MAD es muy pequeño, así que el z (3,5) solo marca si además se aparta al menos un 10 % de la mediana relativa. La regla de ±30 % frente a la base se mide sobre el precio tal cual.
+79. **Solo se revisan los APU desglosados.** Un APU de un solo renglón («precio unitario de…») no se compara con el de la base ni cuenta para los APU idénticos entre ofertas.
+80. **Los insumos se emparejan con la base solos** cuando coinciden la descripción normalizada y la unidad. Los parecidos (Jaccard ≥ 0,5, misma unidad) se sugieren, y lo que confirma una persona manda.
+81. **El costo empresa mínimo de un jornal** sale del SMMLV y el factor prestacional de los parámetros, con 210 horas al mes desde julio de 2026 y 220 antes (reducción gradual de la jornada).
+82. **El análisis corre en el hilo de la pantalla**, con caché, y se recalcula al cambiar una verificación, una subsanación o la configuración. No se midió con el proceso grande de §25 (3.000 actividades y 12 proponentes); si congela la pantalla, se lleva a un Web Worker.
+
+## Técnico, legal y financiero
+
+83. **La experiencia cuenta los primeros N contratos en el orden en que el proponente los declaró**, cuando el pliego limita el número. Cada valor se convierte a SMMLV del año de terminación.
+84. **Los indicadores financieros de un consorcio o una unión temporal** se calculan con las cifras que declara la figura. Las participaciones de los integrantes quedan a la vista para que el evaluador las revise.
+85. **El programa sugiere y el evaluador decide.** Indicadores, experiencia, personal, programación y documentos traen una sugerencia con su cálculo, pero nada se da por cumplido sin una verificación registrada.
+
+## Puntajes
+
+86. **Los puntajes se redondean a dos decimales** en cada componente y en el total.
+87. **La cercanía al presupuesto oficial** resta a partir de la oferta más cercana (Dmín), con el doble de pendiente por encima del presupuesto que por debajo (k = 1 por debajo y 2 por encima, ajustables por proceso). Las fórmulas siguen las del documento tipo y deben verificarse contra la versión vigente antes de un proceso real.
+88. **La media geométrica incluye el presupuesto oficial** tantas veces como dice el documento tipo según el número de ofertas (dos veces con cuatro ofertas).
+
+## Alertas
+
+89. **El estado de una alerta se conserva al volver a analizar.** Cada alerta tiene una clave estable (tipo, ofertas y objeto); si deja de presentarse, queda como «ya no se presenta» con su historia.
+90. **Los precios que se mueven juntos se miden con la correlación de los logaritmos de la desviación frente a la base** (precio de la oferta ÷ precio base), y se marca por encima de 0,98. Así no cuenta que todas las ofertas sigan la escala de la base.
+91. **Las mismas cifras** son al menos tres actividades con el mismo precio unitario al centavo que no es múltiplo de 100: un redondeo inusual repetido.
+92. **Los indicios de acuerdo entre proponentes no van en ARKEN OFERTA**, y cada alerta de este tipo recuerda que es un indicio que hay que verificar, no una prueba.
+
+## Demostración
+
+93. **Las ofertas de demostración se generan en el principal** como sobres cerrados de verdad, cifrados con la llave del proceso, y entran por la recepción y la apertura de siempre. Se generan con una hora tres minutos antes de ahora, así son anteriores al cierre adelantado.
+94. **Solo en un proceso de demostración se puede adelantar el cierre**, a un minuto antes de ahora en hora de Colombia, para seguir con el acta de cierre y la apertura sin esperar.
+95. **Los módulos 11 a 14 dejan de estar atenuados**; el 15 y el 16 siguen con la Fase 4.

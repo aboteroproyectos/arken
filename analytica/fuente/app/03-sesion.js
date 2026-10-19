@@ -32,6 +32,12 @@ const Roles = (function(){
     recibirOfertas:['administrador','director','comite'],
     abrirOfertas:['administrador','director','comite'],
     demostracion:['administrador','director'],
+    /* Fase 3: cada evaluador verifica lo de su rol (Evaluacion.puedeEvaluar lo comprueba por requisito). */
+    evaluar:['administrador','tecnico','juridicoEval','financiero'],
+    gestionarSubsanaciones:['administrador','director'],
+    decidirComite:['administrador','comite'],
+    revisarAlertas:['administrador','director','tecnico','juridicoEval','financiero','comite'],
+    configurarEvaluacion:['administrador','director'],
     exportar:['administrador','director','tecnico','juridicoEval','financiero','comite','juridico','consulta'],
     respaldar:['administrador','director']
   };

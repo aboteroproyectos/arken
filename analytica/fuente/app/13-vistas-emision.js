@@ -75,7 +75,7 @@ const CAMPOS_GENERAL = (g) => [
   { k:'reglasEmpate', lab:'Criterios de desempate, en orden, uno por renglón', tipo:'textarea', filas:3, val:(g.reglasEmpate||[]).join('\n'), c2:true },
   { k:'metodoEconomico', lab:'Método de evaluación económica', tipo:'select', val:g.metodoEconomico, c2:true, opts:Object.keys(Pliego.METODOS).map(k => ({ v:k, n:Pliego.METODOS[k].nombre })) },
   { k:'kBajo', lab:'Cercanía: k por debajo de la base', tipo:'number', val:g.kBajo }, { k:'kAlto', lab:'Cercanía: k por encima de la base', tipo:'number', val:g.kAlto },
-  { k:'umbralBajoPct', lab:'Umbral de valor artificialmente bajo (% por debajo de la base)', tipo:'number', val:g.umbralBajoPct },
+  { k:'umbralBajoPct', lab:'Umbral de valor artificialmente bajo (% por debajo de la mediana de las ofertas)', tipo:'number', val:g.umbralBajoPct },
   { k:'rechazarSobrePresupuesto', lab:'Se rechazan las ofertas por encima del presupuesto oficial', tipo:'check', val:g.rechazarSobrePresupuesto },
   { k:'reglaCorreccion', lab:'Regla de corrección aritmética', val:g.reglaCorreccion, c2:true },
   { k:'versionDocumentoTipo', lab:'Versión del documento tipo de Colombia Compra Eficiente que se cita', val:g.versionDocumentoTipo, c2:true }

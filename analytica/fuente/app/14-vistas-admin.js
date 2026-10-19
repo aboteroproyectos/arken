@@ -1,6 +1,6 @@
-/* ─────────────── Módulos 11 a 16: fases siguientes ───────────────
-   Están en el riel desde ya, atenuados, para que el ciclo completo se vea;
-   cada uno dice qué hará y en qué fase llega. */
+/* ─────────────── Riel ───────────────
+   Los módulos 15 y 16 están desde ya, atenuados, para que el ciclo completo
+   se vea; cada uno dice qué hará y en qué fase llega. */
 const MODULOS = [
   { id:'00', nombre:'Tablero del proceso' }, { id:'01', nombre:'Procesos' }, { id:'02', nombre:'Presupuesto base' },
   { id:'03', nombre:'Base de precios' }, { id:'04', nombre:'Condiciones de la oferta' }, { id:'05', nombre:'Documentos del proceso' },
@@ -8,10 +8,10 @@ const MODULOS = [
   { id:'08', nombre:'Preguntas y adendas', texto:'Preguntas de los invitados con su respuesta publicada a todos, y adendas numeradas y firmadas que crean una versión nueva del pliego.' },
   { id:'09', nombre:'Recepción y apertura', texto:'Carga de muchos sobres a la vez, asignación por código de invitación, cierre y apertura con acta, sin abrir nada antes de la hora de cierre.' },
   { id:'10', nombre:'Documentos de proponentes', texto:'Una carpeta por proponente, cuyo nombre empieza por su razón social, con cada documento contra el requisito que responde.' },
-  { id:'11', nombre:'Verificación y subsanaciones', fase:3, texto:'Verificación de cada requisito habilitante por su evaluador, solicitudes de subsanación con plazo y su respuesta.' },
-  { id:'12', nombre:'Análisis presupuestal', fase:3, texto:'Aritmética, capítulos, subcapítulos, actividades, insumos, AIU, desbalance y APU, oferta por oferta contra el presupuesto base.' },
-  { id:'13', nombre:'Análisis técnico, legal y financiero', fase:3, texto:'Requisito por proponente, con su estado y la evidencia: jurídico, financiero, experiencia, personal, equipos, sistemas de gestión y programación.' },
-  { id:'14', nombre:'Evaluación y puntajes', fase:3, texto:'Puntaje de cada requisito ponderable con la regla del pliego, el método económico, el desempate y el orden de elegibilidad.' },
+  { id:'11', nombre:'Verificación y subsanaciones', texto:'Verificación de cada requisito habilitante por su evaluador, solicitudes de subsanación con plazo y su respuesta.' },
+  { id:'12', nombre:'Análisis presupuestal', texto:'Aritmética, capítulos, subcapítulos, actividades, insumos, AIU, desbalance y APU, oferta por oferta contra el presupuesto base.' },
+  { id:'13', nombre:'Análisis técnico, legal y financiero', texto:'Requisito por proponente, con su estado y la evidencia: jurídico, financiero, experiencia, personal, equipos, sistemas de gestión y programación.' },
+  { id:'14', nombre:'Evaluación y puntajes', texto:'Puntaje de cada requisito ponderable con la regla del pliego, el método económico, el desempate y el orden de elegibilidad.' },
   { id:'15', nombre:'Comparativo y cuadro gerencial', fase:4, texto:'El comparativo de todas las ofertas y el cuadro gerencial, con las quince gráficas.' },
   { id:'16', nombre:'Concepto e informe', fase:4, texto:'El concepto de adjudicación para el comité y el informe en PDF y Excel con su lista de casillas.' },
   { id:'17', nombre:'Ayuda' }
@@ -39,12 +39,22 @@ Vistas['17'] = function(){
     ['Cierre y abra', 'Módulo 09. A la hora de cierre, el acta de cierre. La apertura exige la frase del proceso y dos miembros del comité; descifra todo a la vez, verifica cada adjunto, recalcula los totales y deja el acta de apertura.'],
     ['Revise los documentos de cada proponente', 'Módulo 10. Una carpeta por proponente, con su color, cada documento contra su requisito, su vigencia y búsqueda de texto en los PDF.']
   ];
+  const pasos3 = [
+    ['Verifique los requisitos habilitantes', 'Módulo 11. Una matriz requisito por proponente: cada celda se verifica con su documento, su página y el texto literal, y queda como fila nueva con quién y cuándo. Cada evaluador verifica solo lo de su rol; «No cumple» exige observación.'],
+    ['Pida subsanaciones', 'Módulo 11 › Subsanaciones. La solicitud sale en PDF con el plazo en días hábiles; la respuesta del proponente queda en su carpeta. La justificación de un valor bajo la decide el comité.'],
+    ['Analice el presupuesto', 'Módulo 12. Aritmética, capítulos, subcapítulos, actividades, insumos, AIU, desbalance y APU contra el presupuesto base, con cada diferencia por renglón.'],
+    ['Revise lo técnico, legal y financiero', 'Módulo 13. Indicadores financieros, experiencia en SMMLV, personal, sistemas de gestión, programación y los requisitos que usted creó, con la sugerencia del programa y la decisión del evaluador.'],
+    ['Atienda la bandeja de alertas', 'Botón de alertas en la barra. Cada alerta dice qué encontró, por qué importa, la regla y qué hacer, con su evidencia a un clic. Póngala en revisión, confírmela o descártela con motivo.'],
+    ['Puntúe y ordene', 'Módulo 14. Puntaje económico con el método del pliego, ponderables, desempate y el orden de elegibilidad. Mientras falte una verificación, el puntaje es provisional.']
+  ];
   const html = cabecera('17', 'Ayuda', 'Cómo usar ARKEN ANALYTICA · versión ' + esc(VERSION_PROGRAMA)) +
     '<div class="nota-flujo">' + PASOS_FLUJO.map((x, i) => (i ? '<span class="fl">›</span>' : '') + '<span class="paso">' + x + '</span>').join('') + '</div>' +
     '<div class="card"><div class="card-head"><h3>Preparar un proceso (Fase 1)</h3></div><div class="card-body">' +
       pasos.map((p, i) => '<div class="chk ok"><span class="ic" aria-hidden="true">' + (i + 1) + '</span><div class="tx"><b>' + esc(p[0]) + '.</b> ' + esc(p[1]) + '</div></div>').join('') + '</div></div>' +
     '<div class="card"><div class="card-head"><h3>Invitar, recibir y abrir (Fase 2)</h3></div><div class="card-body">' +
       pasos2.map((p, i) => '<div class="chk ok"><span class="ic" aria-hidden="true">' + (i + 8) + '</span><div class="tx"><b>' + esc(p[0]) + '.</b> ' + esc(p[1]) + '</div></div>').join('') + '</div></div>' +
+    '<div class="card"><div class="card-head"><h3>Verificar, analizar y puntuar (Fase 3)</h3></div><div class="card-body">' +
+      pasos3.map((p, i) => '<div class="chk ok"><span class="ic" aria-hidden="true">' + (i + 13) + '</span><div class="tx"><b>' + esc(p[0]) + '.</b> ' + esc(p[1]) + '</div></div>').join('') + '</div></div>' +
     '<div class="grid g2"><div class="card"><div class="card-head"><h3>Sus datos</h3></div><div class="card-body small">' +
       '<p>Los datos viven en este navegador (IndexedDB), nunca dentro del archivo del programa ni en internet. Descargue un respaldo .zip con frecuencia desde Administración › Respaldos.</p>' +
       '<p>Las llaves privadas de cada proceso se guardan cifradas con la frase del proceso, que el programa no conoce.</p></div></div>' +

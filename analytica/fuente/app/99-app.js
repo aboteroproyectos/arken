@@ -119,12 +119,13 @@ const App = (function(){
     $('#btnAdmin').onclick = () => ir('admin');
     $('#btnConfig').onclick = () => ir('config');
     $('#btnCargarOfertas').onclick = () => { if (!Modelo.activo()){ UI.toast('Abra un proceso primero', 'bad'); return; } Sesion.pestanas.rec = 'recepcion'; ir('09'); };
-    $('#btnAlertas').onclick = () => UI.aviso('Bandeja de alertas', '<p>No hay alertas. Las alertas del análisis de ofertas (aritmética, desbalance, valor artificialmente bajo, documentos vencidos, posibles acuerdos) llegan en la <b>Fase 3</b>.</p>');
+    $('#btnAlertas').onclick = () => Bandeja.abrir().catch(e => UI.error(e, 'Bandeja de alertas'));
   }
   function pintarBarra(){
     const p = Modelo.activo();
     $('#tbProceso').innerHTML = p ? esc(p.codigo + ' · ' + p.estado) + etiquetaDemo(p) : '— sin proceso seleccionado —';
     $('#btnAdmin').style.display = Permisos.puede('administrar') || Permisos.puede('respaldar') ? '' : 'none';
+    Bandeja.pintarContador();
     pintarLogoEmpresa();
   }
   function pintarLogoEmpresa(){
@@ -184,7 +185,7 @@ const App = (function(){
   }
 
   /* ── Riel ── */
-  const REQUIERE_PROCESO = ['00','02','04','05','06','07','08','09','10'];
+  const REQUIERE_PROCESO = ['00','02','04','05','06','07','08','09','10','11','12','13','14'];
   function pintarRail(){
     const p = Modelo.activo();
     $('#railList').innerHTML = MODULOS.map(m => {

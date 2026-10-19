@@ -109,7 +109,8 @@ export async function construir() {
   const logo = logoDataUrl();
   const worker = readFileSync(join(MODULOS, 'pdfjs-dist', 'build', 'pdf.worker.min.js')).toString('base64');
   const oferta = await plantillaOferta();
-  const nucleo = fuentes('nucleo');
+  /* La evaluación (Fase 3) es solo del principal: ARKEN OFERTA no la lleva. */
+  const nucleo = fuentes('nucleo') + '\n' + fuentes('evaluacion');
   const app = archivos(join(FUENTE, 'app')).map((n) => `/* ─── fuente/app/${n} ─── */\n` + leer(join(FUENTE, 'app', n))).join('\n');
   const css = leer(join(FUENTE, 'estilos-arken.css')) + '\n' + leer(join(FUENTE, 'estilos.css'));
   const cuerpo = leer(join(FUENTE, 'cuerpo.html'));

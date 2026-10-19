@@ -1,4 +1,4 @@
-# ARKEN ANALYTICA · Guía de prueba de la Fase 1
+# ARKEN ANALYTICA · Guía de prueba (fases 1 a 3)
 
 ## Cómo abrirlo
 
@@ -135,6 +135,52 @@ Parta del proceso de demostración ya emitido (pasos 1 a 8).
 2. En «Buscar en los PDF», escriba una palabra: la lista lleva a la página y resalta el hallazgo.
 3. «Descargar la carpeta» baja un ZIP cuyo nombre empieza por la razón social del proponente.
 
+### 17. Fase 3: ofertas de demostración (módulo 09)
+
+1. Cargue la demostración, emita el proceso y entre al módulo 09.
+2. Pulse **Ofertas de demostración**. Llegan cinco sobres cerrados, uno por invitado, marcados DEMOSTRACIÓN. Cada uno trae un rasgo:
+   - Beta, desbalanceada y cargada al inicio;
+   - Gamma, valor bajo y un residente con menos años de los exigidos;
+   - Delta, el certificado de existencia vencido;
+   - Delta y Épsilon, el mismo director de obra;
+   - Épsilon, aritmética errada y endeudamiento por encima del límite;
+   - Alfa, ninguno.
+3. Pulse **Adelantar el cierre (demostración)**, genere el acta de cierre y abra los sobres con la frase y dos miembros del comité.
+
+### 18. Bandeja de alertas
+
+1. Pulse el botón de alertas de la barra superior. El contador dice cuántas hay abiertas.
+2. Compruebe que cada rasgo del paso 17 aparece como alerta, con su nivel, qué encontró, por qué importa, la regla y qué hacer, y que Alfa no tiene ninguna.
+3. Pulse un enlace de la evidencia:
+   - el de un renglón lleva al módulo 12 con el renglón resaltado;
+   - el de un documento lo abre en el visor.
+4. Descarte una alerta con un motivo. Cambie una verificación y vuelva a abrir la bandeja: la alerta sigue descartada.
+
+### 19. Verificación y subsanaciones (módulo 11)
+
+1. Cree un usuario con el rol Evaluador jurídico (Administración › Usuarios) y entre con él.
+2. En la matriz, pulse una celda de un requisito jurídico. Elija el cumplimiento, el documento, la página y copie el texto que lo acredita. Guarde.
+3. Intente verificar un requisito técnico: el programa no lo deja.
+4. Intente «No cumple» sin observación: no se guarda.
+5. Como administrador, en **Subsanaciones**, pida a Delta subsanar el certificado de existencia con 3 días hábiles. Sale el PDF de la solicitud.
+6. Registre la respuesta con un PDF: queda en la carpeta de Delta del módulo 10, marcada como subsanación.
+7. Pida a Gamma la justificación del valor. Regístrela y decídala con un usuario del comité.
+
+### 20. Análisis presupuestal y técnico (módulos 12 y 13)
+
+1. En el módulo 12, recorra las ocho subpestañas con cada oferta:
+   - en Aritmética, Épsilon muestra las diferencias por renglón;
+   - en Desbalance, Beta muestra sus capítulos caros y baratos;
+   - en AIU, el desglose de la administración frente al personal.
+2. En **Configuración**, cambie un umbral: el análisis se recalcula.
+3. En el módulo 13 revise los indicadores financieros (Épsilon no cumple el endeudamiento), la experiencia en SMMLV, el personal y la programación.
+
+### 21. Puntajes y orden de elegibilidad (módulo 14)
+
+1. Con todas las verificaciones hechas, el puntaje deja de ser provisional.
+2. Revise el orden con el método económico del pliego y la tabla de sensibilidad, que dice si el orden cambia cuando cada grupo pesa un 10 % más o menos. Épsilon aparece al final, no habilitada, con su causal.
+3. Borre la demostración en Administración › Demostración: también se borran las verificaciones, las subsanaciones y las alertas.
+
 ## Pruebas automáticas
 
 En la carpeta `analytica/`:
@@ -151,13 +197,15 @@ npm run prueba
 - las pruebas unitarias (85);
 - la de criptografía, con el sobre cerrado (29);
 - la del núcleo de la Fase 2 (68): pliego sin precios, manifiesto, ZIP y PDF maliciosos, cabecera del sobre, recálculo, adendas y actas;
+- la del núcleo de la Fase 3 (85): estadística, costo empresa mínimo, cada método económico contra un ejemplo a mano, TRM, desempate, habilitación, indicadores financieros, consorcio, experiencia, personal, días hábiles, ruta crítica, las alertas de las ofertas de demostración y una evaluación completa;
 - la de sobres maliciosos contra la recepción y la apertura reales (22);
 - la de ida y vuelta con el `programa/ARKEN_CONTROL.html` real (18);
 - la de humo del principal (53);
 - la de humo de ARKEN OFERTA (16): autenticidad, dieciséis módulos, temas, 360 px, borrador en archivo, sesión y cierre;
-- la de punta a punta (50), con cinco ARKEN OFERTA en su propio navegador. Recorre los paquetes, el camino de la confidencialidad, las preguntas, la adenda, los sobres, la recepción, el cierre con el reloj adelantado, la apertura con el comité y la carpeta de cada proponente.
+- la de punta a punta (50), con cinco ARKEN OFERTA en su propio navegador. Recorre los paquetes, el camino de la confidencialidad, las preguntas, la adenda, los sobres, la recepción, el cierre con el reloj adelantado, la apertura con el comité y la carpeta de cada proponente;
+- la de punta a punta de la Fase 3 (42): cinco sobres de demostración, cierre y apertura, la bandeja con cada alerta y su evidencia, los roles, la verificación desde la matriz, la subsanación, la justificación decidida por el comité, el orden de elegibilidad con cada método frente al calculado a mano y el borrado de la demostración.
 
-Resultado de esta entrega: **341 de 341 comprobaciones pasaron**.
+Resultado de esta entrega: **468 de 468 comprobaciones pasaron**.
 
 Para Chromium, las pruebas buscan `/opt/pw-browsers` o la variable `CHROME_PATH`.
 
@@ -170,11 +218,11 @@ Para Chromium, las pruebas buscan `/opt/pw-browsers` o la variable `CHROME_PATH`
 | 3 | ARKEN OFERTA abre con doble clic en los cuatro navegadores y rechaza un paquete alterado | **Probado en Chromium:** abre desde `file://`, rechaza un paquete con un byte cambiado y nombra el archivo, y rechaza un ARKEN OFERTA con el pliego editado. **No se probó en Edge, Firefox ni Safari.** |
 | 4 | Cada sobre queda con su invitado, en su carpeta | **Probado:** cinco sobres a la vez, asignados por el código de invitación aunque el archivo esté renombrado; el repetido, el ajeno y el reemplazado; una carpeta por proponente. |
 | 5 | Un sobre no se abre antes del cierre, sin la frase ni sin dos del comité; un byte alterado se detecta | **Probado:** antes del cierre se rechaza, también llamando a la lógica; exige dos miembros distintos del rol Comité; un byte alterado se detecta al recibir y al abrir (`pruebas/cripto.mjs`, `pruebas/sobres-maliciosos.mjs`, `pruebas/punta-a-punta.mjs`). |
-| 6 | Totales recalculados y diferencias por renglón | **Parcial:** en la apertura cada oferta se recalcula con las cantidades del pliego y se listan sus diferencias de precio por actividad. El análisis presupuestal completo es de la Fase 3. |
-| 7 | A dos clics del dato, del documento y de la regla | **Parcial:** el documento de cada requisito está a dos clics en el módulo 10. El dato y la regla, en las fases 3 y 4. |
-| 8 | Alertas de la prueba punta a punta | No probado: Fase 3. |
-| 9 | Orden de elegibilidad calculado a mano | No probado: Fase 3. |
-| 10 | Requisitos creados por el usuario en todos los módulos | **Parcial:** aparecen en el pliego, en ARKEN OFERTA y en la carpeta del proponente. La evaluación, el comparativo, el concepto y el informe llegan en sus fases. |
+| 6 | Totales recalculados y diferencias por renglón | **Probado:** cada oferta se recalcula con las cantidades del pliego y el módulo 12 muestra cada diferencia por renglón, con la de Épsilon detectada en la prueba (`pruebas/nucleo-fase-3.mjs`, `pruebas/punta-a-punta-fase-3.mjs`). |
+| 7 | A dos clics del dato, del documento y de la regla | **Probado para las alertas:** desde la bandeja, un clic en la evidencia lleva al renglón resaltado o abre el documento en el visor; la regla está en la misma tarjeta. Desde cada puntaje, el módulo 14 muestra el cálculo. Desde el informe, en la Fase 4. |
+| 8 | Alertas de la prueba punta a punta | **Probado:** las nueve alertas esperadas aparecen, todas con evidencia, porqué, regla y qué hacer, y Alfa no tiene ninguna. Ver el supuesto sobre las ofertas de demostración. |
+| 9 | Orden de elegibilidad calculado a mano | **Probado** con los cinco métodos económicos, en el núcleo y en el navegador. |
+| 10 | Requisitos creados por el usuario en todos los módulos | **Parcial:** aparecen en el pliego, en ARKEN OFERTA, en la carpeta del proponente y en la evaluación (módulos 11, 13 y 14). El comparativo, el concepto y el informe llegan en la Fase 4. |
 | 11 | Informe en PDF carta con índice, encabezado, pie y «Página x de y» | **Probado en el motor de PDF** con el presupuesto, el pliego, el acuerdo y las actas. El informe llega en la Fase 4. |
 | 12 | No se emite sin acuerdo aprobado por abogado ni sin respaldo de llaves | **Probado** desde la Fase 1 (`pruebas/humo.mjs`, `pruebas/unitarias.mjs`). |
 | 13 | Sistema visual de ARKEN en claro y oscuro, tres densidades, 360 px | **Probado en Chromium**, en el principal y en los dieciséis módulos de ARKEN OFERTA. No se probó en Firefox ni en Safari. |
@@ -183,7 +231,10 @@ Para Chromium, las pruebas buscan `/opt/pw-browsers` o la variable `CHROME_PATH`
 
 ## Supuestos de esta entrega
 
-- **Fórmulas de Colombia Compra Eficiente.** Se transcribieron de memoria y hay que verificarlas contra el documento tipo vigente antes de puntuar (Fase 3).
+- **Fórmulas de Colombia Compra Eficiente.** Los cinco métodos económicos y el desempate se transcribieron de memoria. Las pruebas comprueban que el programa aplica bien esas fórmulas, no que sean las del documento tipo vigente: hay que verificarlas antes de un proceso real.
+- **Ofertas de la prueba de la Fase 3.** §25 pide llenar cinco ARKEN OFERTA en el navegador. La prueba de la Fase 2 ya lo hace con cinco ARKEN OFERTA reales; la de la Fase 3 usa sobres generados en el principal con el mismo formato y la misma llave, porque así cada oferta trae exactamente el rasgo que se busca. La parte del informe es de la Fase 4.
+- **Rendimiento.** El análisis no se midió con 3.000 actividades y 12 proponentes (§25).
+- **Umbrales de las alertas.** Son los de la decisión 78 y la configuración del módulo 12; conviene ajustarlos con procesos reales.
 - **SMMLV de 2000 a 2009.** Quedan marcados «por verificar»; los de 2010 a 2026 son los del documento maestro.
 - **Textos legales.** El acuerdo de confidencialidad y el pliego son una redacción de partida. No se emiten sin la aprobación de un abogado.
 - **Navegadores.** Probado en Chromium. Edge usa el mismo motor, pero no se probó por separado; Firefox y Safari tampoco se probaron, ni el principal ni ARKEN OFERTA.
