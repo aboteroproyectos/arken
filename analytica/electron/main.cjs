@@ -1,21 +1,18 @@
 // ARKEN ANALYTICA · app de escritorio (Windows, macOS y Linux), recomendada para la empresa (§6).
 //
 // Muestra el programa en una ventana propia, servido desde la app (app://analytica/), y le da lo
-// que una página web no tiene:
-//   · la bóveda del sistema operativo (safeStorage) para la clave de API del asistente de IA;
-//   · una copia de los datos por día, de los últimos 10 días.
+// que una página web no tiene: una copia de los datos por día, de los últimos 10 días.
 // Los datos del programa quedan en el almacenamiento de la app, en la carpeta del usuario:
 //   Windows: %APPDATA%\ARKEN ANALYTICA
 //   macOS:   ~/Library/Application Support/ARKEN ANALYTICA
 //   Linux:   ~/.config/ARKEN ANALYTICA
-// Lo único que sale a la red es el asistente de IA opcional, hacia api.anthropic.com.
+// Nada sale a internet: la app bloquea toda conexión fuera de ella.
 
-const { app, BrowserWindow, Menu, dialog, ipcMain, net, protocol, safeStorage, screen, session, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, net, protocol, screen, session, shell } = require('electron');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
-const { crearBoveda, cifradoDelSistema } = require('./boveda.cjs');
 const { crearCopias } = require('./copias.cjs');
 
 const ESQUEMA = 'app';
@@ -23,7 +20,6 @@ const ORIGEN = 'app://analytica';
 const WWW = path.join(__dirname, '..', 'www');
 const ID_APP = 'com.aboteroproyectos.arkenanalytica';
 const NOMBRE = 'ARKEN ANALYTICA';
-const API = 'https://api.anthropic.com/';
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -45,7 +41,6 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 let ventana = null;
-let boveda = null;
 let copias = null;
 
 const archivoVentana = () => path.join(app.getPath('userData'), 'ventana.json');
@@ -64,7 +59,8 @@ function iniciar() {
     return net.fetch(pathToFileURL(archivo).toString());
   });
 
-  boveda = crearBoveda({ archivo: path.join(app.getPath('userData'), 'secretos.json'), cifrado: cifradoDelSistema(safeStorage) });
+  // La 0.4 guardaba aquí, cifrada, la clave de API del asistente de IA, que ya no existe
+  fs.rmSync(path.join(app.getPath('userData'), 'secretos.json'), { force: true });
   copias = crearCopias({ carpeta: path.join(app.getPath('userData'), 'datos') });
 
   configurarSesion(session.defaultSession);
@@ -156,11 +152,11 @@ function configurarSesion(ses) {
     responder(PERMITIDOS.has(permiso) && esNuestro(detalle.requestingUrl || detalle.securityOrigin)),
   );
   ses.setPermissionCheckHandler((_wc, permiso, origen) => PERMITIDOS.has(permiso) && esNuestro(origen));
-  // Fuera de la app, solo la API de Anthropic (el asistente de IA); nada más sale a internet
+  // Nada sale a internet: solo lo de la propia app
   ses.webRequest.onBeforeRequest((detalle, responder) => {
     const u = detalle.url;
     const propio = u.startsWith(ORIGEN + '/') || /^(blob|data|devtools|chrome-extension|chrome):/i.test(u);
-    responder({ cancel: !(propio || u.startsWith(API)) });
+    responder({ cancel: !propio });
   });
   ses.on('will-download', (_e, item) => {
     let nombre = item.getFilename();
@@ -182,12 +178,6 @@ function registrarIPC() {
         return { ok: false, error: String((err && err.message) || err).slice(0, 1000) };
       }
     });
-
-  manejar('analytica:secretos:disponible', () => boveda.disponible());
-  manejar('analytica:secretos:guardar', (_e, n, v, meta) => boveda.guardar(n, v, meta));
-  manejar('analytica:secretos:info', (_e, n) => boveda.info(n));
-  manejar('analytica:secretos:leer', (_e, n) => boveda.leer(n));
-  manejar('analytica:secretos:borrar', (_e, n) => boveda.borrar(n));
 
   manejar('analytica:copias:hoy', () => copias.hayDeHoy());
   manejar('analytica:copias:guardar', (_e, bytes) => copias.guardar(bytes));

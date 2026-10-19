@@ -212,16 +212,14 @@ Parta del proceso de demostración ya emitido (pasos 1 a 8).
 5. En **Versiones**, baje un informe anterior.
 6. Con el concepto firmado, pulse **Presupuesto adjudicado para ARKEN CONTROL** e impórtelo en ARKEN CONTROL (módulo 02 › Importar Excel). El costo directo es el de la oferta adjudicada; el AIU se digita con los porcentajes de la hoja de instrucciones.
 
-### 26. Asistente de IA (opcional)
+### 26. Lector de documentos (sin internet)
 
-Necesita una clave de API de Anthropic. Sin ella, el programa hace todo lo demás igual.
-
-1. Como administrador, en **Asistente**, enciéndalo, elija el modelo y el tope del mes, y guarde la clave con **Escribir la clave**. Pulse **Probar**.
-2. En la verificación (módulo 11) de un requisito con documento, pulse **Leer con el asistente de IA**. La ventana dice qué se envía, a dónde y cuánto cuesta. Envíe.
-3. Revise lo propuesto: cada dato trae el texto literal y la página. Use uno: llena el documento, la página y el texto, y usted decide el cumplimiento.
-4. En **Asistente**, pida la redacción del concepto. Acepte o descarte cada parte.
-5. Ponga un tope de US$ 0,01 e intente otra llamada: no se hace.
-6. Apague el asistente en el proceso: los botones desaparecen.
+1. En la verificación (módulo 11) de un requisito jurídico de Delta con documento PDF, pulse **Leer el documento**. Vienen marcados los datos que suelen servir para ese grupo de requisitos.
+2. Pulse **Leer**. La fecha de expedición y la vigencia aparecen con el fragmento del documento y la página.
+3. Pulse **Usar como evidencia** en una: llena el documento, la página y el texto literal. El «¿Cumple?» no cambia; lo decide usted.
+4. Marque **Otro dato**, escriba «Vigente hasta» y lea de nuevo: trae lo que sigue a esas palabras.
+5. Con un PDF escaneado como imagen, el lector dice que no tiene texto.
+6. En el módulo 16 ya no está la pestaña del asistente de IA, y el programa funciona igual sin internet.
 
 ### 27. Apps
 
@@ -245,17 +243,18 @@ npm run prueba
 - la de criptografía, con el sobre cerrado (29);
 - la del núcleo de la Fase 2 (68): pliego sin precios, manifiesto, ZIP y PDF maliciosos, cabecera del sobre, recálculo, adendas y actas;
 - la del núcleo de la Fase 3 (85): estadística, costo empresa mínimo, cada método económico contra un ejemplo a mano, TRM, desempate, habilitación, indicadores financieros, consorcio, experiencia, personal, días hábiles, ruta crítica, las alertas de las ofertas de demostración y una evaluación completa;
-- la del núcleo de la Fase 4 (47): el comparativo suma lo mismo que el cálculo en cada nivel, el gerencial, las 15 gráficas sin NaN, el concepto, el informe con un requisito creado por el usuario, la validación de la IA, el costo y el tope, y el presupuesto adjudicado leído como lo lee ARKEN CONTROL;
+- la del núcleo de la Fase 4 (34): el comparativo suma lo mismo que el cálculo en cada nivel, el gerencial, las 15 gráficas sin NaN, el concepto, el informe con un requisito creado por el usuario y el presupuesto adjudicado leído como lo lee ARKEN CONTROL;
+- la del lector de documentos (30): cada dato con su fragmento y su página, estados financieros de dos columnas, cifras negativas, fechas de las formas usuales, un PDF sin texto y ninguna conexión;
 - la de sobres maliciosos contra la recepción y la apertura reales (22);
 - la de ida y vuelta con el `programa/ARKEN_CONTROL.html` real (18);
 - la de humo del principal (53);
 - la de humo de ARKEN OFERTA (16): autenticidad, dieciséis módulos, temas, 360 px, borrador en archivo, sesión y cierre;
 - la de punta a punta (50), con cinco ARKEN OFERTA en su propio navegador. Recorre los paquetes, el camino de la confidencialidad, las preguntas, la adenda, los sobres, la recepción, el cierre con el reloj adelantado, la apertura con el comité y la carpeta de cada proponente;
 - la de punta a punta de la Fase 3 (42): cinco sobres de demostración, cierre y apertura, la bandeja con cada alerta y su evidencia, los roles, la verificación desde la matriz, la subsanación, la justificación decidida por el comité, el orden de elegibilidad con cada método frente al calculado a mano y el borrado de la demostración;
-- la de punta a punta de la Fase 4 (51): módulos 15 y 16 sobre el proceso evaluado, la evidencia a dos clics, las exportaciones, las firmas y el cambio después de firmar, el informe en PDF y Excel, el asistente con la API simulada (nunca con una clave real) y el presupuesto adjudicado importado en el `programa/ARKEN_CONTROL.html` real;
-- la de la capa de las apps (16): `www/` con la política por huellas, un script inyectado que no corre, la copia diaria y la bóveda en el escritorio simulado, y el modo de consulta y el menú Compartir en Android simulado.
+- la de punta a punta de la Fase 4 (48): módulos 15 y 16 sobre el proceso evaluado, la evidencia a dos clics, las exportaciones, las firmas y el cambio después de firmar, el informe en PDF y Excel, el lector de documentos sobre el PDF de un proponente sin ninguna petición fuera del equipo y el presupuesto adjudicado importado en el `programa/ARKEN_CONTROL.html` real;
+- la de la capa de las apps (16): `www/` con la política por huellas, un script inyectado que no corre, la copia diaria y el programa sin el asistente de IA en el escritorio simulado, y el modo de consulta y el menú Compartir en Android simulado.
 
-Resultado de esta entrega: **582 de 582 comprobaciones pasaron**.
+Resultado de esta entrega: **596 de 596 comprobaciones pasaron**.
 
 Para Chromium, las pruebas buscan `/opt/pw-browsers` o la variable `CHROME_PATH`.
 
@@ -276,8 +275,8 @@ Para Chromium, las pruebas buscan `/opt/pw-browsers` o la variable `CHROME_PATH`
 | 11 | Informe en PDF carta con índice, encabezado, pie y «Página x de y» | **Probado:** el PDF del informe trae la portada, el índice con cada sección, el encabezado, el pie y «Página x de y» en cada página después de la portada, y la marca de agua mientras no esté firmado (`pruebas/punta-a-punta-fase-4.mjs`). |
 | 12 | No se emite sin acuerdo aprobado por abogado ni sin respaldo de llaves | **Probado** desde la Fase 1 (`pruebas/humo.mjs`, `pruebas/unitarias.mjs`). |
 | 13 | Sistema visual de ARKEN en claro y oscuro, tres densidades, 360 px | **Probado en Chromium**, en el principal y en los dieciséis módulos de ARKEN OFERTA. No se probó en Firefox ni en Safari. |
-| 14 | Textos escapados; ninguna clave ni llave privada en claro | **Probado:** una razón social con HTML no rompe el pliego incrustado; un nombre de archivo con HTML en un sobre se rechaza sin pintarse; ningún paquete ni sobre trae una llave privada; la clave de API no queda en la base del navegador en claro, ni en los respaldos, ni en la solicitud a la API; en las apps, un script inyectado no corre. El verificador bloquea en el repositorio los paquetes, sobres, informes, conceptos y copias. |
-| 15 | La IA no crea datos ni puntajes | **Probado con la API simulada:** una lectura cuyo texto no está en el documento se descarta, lo que se usa lo decide el evaluador y la lectura no escribe ninguna verificación; una redacción con una cifra o un proponente que no estén en la evaluación no se puede aceptar; la herramienta de lectura no tiene campos de cumplimiento ni de puntaje. **No se probó con la API real** (no hay clave en las pruebas). |
+| 14 | Textos escapados; ninguna clave ni llave privada en claro | **Probado:** una razón social con HTML no rompe el pliego incrustado; un nombre de archivo con HTML en un sobre se rechaza sin pintarse; ningún paquete ni sobre trae una llave privada; desde la 0.5 el programa no usa claves de API ni trae el SDK de Anthropic; en las apps, un script inyectado no corre. El verificador bloquea en el repositorio los paquetes, sobres, informes, conceptos y copias. |
+| 15 | La IA no crea datos ni puntajes | **Desde la 0.5 no hay IA.** El lector de documentos solo propone datos que salen del documento, con su fragmento y su página; lo que se usa lo decide el evaluador y la lectura no escribe ninguna verificación (`pruebas/lector.mjs`, `pruebas/punta-a-punta-fase-4.mjs`). |
 
 ## Supuestos de esta entrega
 
@@ -291,6 +290,6 @@ Para Chromium, las pruebas buscan `/opt/pw-browsers` o la variable `CHROME_PATH`
 - **Reloj.** El cierre lo marca el reloj de cada equipo. ARKEN OFERTA no genera sobres después del cierre según su reloj, y el principal rechaza los que digan haberse generado después según la hora del sobre. Un reloj del proponente atrasado a propósito podría poner una hora falsa en el sobre; el principal avisa si la hora va adelantada, y el acta registra la hora de recepción de cada sobre.
 - **Sobre sin cifrar.** En un proceso de sobre cerrado se recibe con aviso y no se rechaza (decisión 58).
 - **Búsqueda en los PDF.** Solo encuentra texto en los PDF que lo tienen; los escaneados sin capa de texto no se buscan.
-- **Asistente de IA con la API real.** Las pruebas usan una API simulada. Antes de un proceso real, conviene probar la lectura con documentos reales y revisar los precios por millón de tokens (decisión 118).
+- **Lector con documentos reales.** Se probó con los documentos de demostración y con textos de ejemplo de certificados, pólizas y estados financieros. Los documentos reales varían en su redacción: conviene probarlo con los de un proceso real y anotar las etiquetas que no reconozca. No lee PDF escaneados (decisión 134).
 - **Apps.** La capa se probó en Chromium con el escritorio y Android simulados. La app de escritorio y las de celular se compilan en GitHub Actions, pero no se abrieron en un equipo ni en un teléfono reales. Los documentos de varios cientos de MB no se probaron en la app (decisión 127).
 - **Demostración.** Usa NIT de la serie 999, que la DIAN no asigna, y nombres que empiezan por «DEMO».

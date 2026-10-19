@@ -6,9 +6,8 @@
 
    · En el computador (Electron, electron/preload.cjs expone window.arkenAnalytica):
      una copia de los datos por día. Al entrar, si hoy no hay copia, se arma el
-     respaldo completo del programa (el mismo ZIP de Administración › Respaldos,
-     sin la bóveda de secretos) y se guarda en la carpeta de la app; quedan los
-     últimos 10 días. La clave de API del asistente la cifra el sistema operativo.
+     respaldo completo del programa (el mismo ZIP de Administración › Respaldos)
+     y se guarda en la carpeta de la app; quedan los últimos 10 días.
    · En el celular y la tableta (Capacitor): el principal solo CONSULTA el
      tablero, el comparativo y el informe (window.ArkenApp.soloConsulta). Los
      datos llegan restaurando un respaldo hecho en el computador. Los archivos

@@ -6,9 +6,9 @@
 //     capítulo y la exportación en PNG, SVG y PDF
 //   · desde un puntaje o un requisito, un clic abre la verificación con el documento, la página y la
 //     regla (criterio 7)
-//   · el asistente de IA con una API simulada: aviso con el costo, tope del mes, datos aceptados solo si
-//     su texto literal está en el documento, redacción con cifras ajenas rechazada y la clave fuera de
-//     los respaldos (criterios 14 y 15)
+//   · el lector de documentos, sin internet: lee la fecha de expedición y la vigencia del PDF de un
+//     proponente con su texto y su página, llena la evidencia sin tocar el «¿Cumple?», explica un PDF
+//     escaneado y no hace ninguna petición fuera del equipo (criterios 14 y 15)
 //   · el concepto firmado por dos miembros del comité; si la evaluación cambia, vuelve a borrador
 //   · el informe en PDF carta con las secciones elegidas en el orden elegido, índice, «Página x de y» y
 //     la marca de borrador cuando corresponde (criterio 11), su Excel y sus versiones
@@ -21,7 +21,7 @@ import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
-import { RUTA_ANALYTICA, RUTA_ARKEN, servidor, navegador, contexto, vigilarErrores, abrirAnalytica, ingresar, irA, pestana, botonModal, cerrarModales, marcador, XLSX, leerPDF, abrirArken, ingresarArken } from './comun.mjs';
+import { RUTA_ANALYTICA, RUTA_ARKEN, servidor, navegador, contexto, vigilarErrores, abrirAnalytica, ingresar, irA, pestana, botonModal, cerrarModales, marcador, XLSX, leerPDF, abrirArken, ingresarArken, llenar } from './comun.mjs';
 import { prepararEvaluado } from './preparar-evaluado.mjs';
 
 const require = createRequire(import.meta.url);
@@ -41,7 +41,6 @@ async function bajar(fn, nombre) {
   await d.saveAs(ruta);
   return { ruta, nombre: d.suggestedFilename() };
 }
-const CLAVE_FALSA = 'sk-ant-prueba-' + 'x'.repeat(30);
 
 try {
   await abrirAnalytica(pp, srv.url(RUTA_ANALYTICA));
@@ -117,126 +116,66 @@ try {
   await pp.waitForFunction(() => !Decision.configInforme(Modelo.activo(), Evaluacion.analisis(Modelo.activo())).graficas.includes('pareto'));
   m.ok(true, '«En el informe» quita la gráfica del informe (y la vuelve a poner con otro clic)');
 
-  m.seccion('Asistente de IA con una API simulada');
-  await pp.evaluate((clave) => {
-    window.__llamadas = []; window.__claves = [];
-    // Las exportaciones del SDK empaquetado son de solo lectura: se reemplaza el objeto entero.
-    window.AnthropicSDK = Object.assign({}, AnthropicSDK, { Anthropic: class {
-      constructor(o) { window.__claves.push(o.apiKey); this.models = { retrieve: async (id) => ({ id, display_name: 'Simulado' }) }; this.messages = { create: async (b) => { window.__llamadas.push(JSON.parse(JSON.stringify(b, (k, v) => (k === 'data' ? '[pdf ' + v.length + ']' : v)))); return window.__respuesta(b); } }; }
-    } });
-  }, CLAVE_FALSA);
-  await irA(pp, '16'); await pestana(pp, 'asistente');
-  m.ok(/El asistente está apagado/.test(await pp.textContent('#stage')), 'Apagado de entrada: sin encenderlo y sin clave no se usa');
-  await accion('ia-clave');
-  await pp.fill('#pd_clave', CLAVE_FALSA);
-  await botonModal(pp, 'Guardar');
-  await pp.waitForFunction(() => ClaveIA.estado().donde === 'equipo');
-  await pp.check('#iaActivo'); await pp.fill('#iaTope', '5');
-  await accion('ia-guardar');
-  await pp.waitForFunction(() => Asistente.cfg().activo && Asistente.cfg().topeMensualUsd === 5);
-  const boveda = await pp.evaluate(async (clave) => { const r = await Almacen.secreto('clave-ia'); const txt = new TextDecoder().decode(new Uint8Array(r.datos)); return { cifrada: r.datos instanceof ArrayBuffer && !txt.includes(clave), final: r.final }; }, CLAVE_FALSA);
-  m.ok(boveda.cifrada && boveda.final === CLAVE_FALSA.slice(-4), 'La clave queda cifrada con AES-GCM en este equipo; solo se ven sus últimos 4 caracteres');
-
-  // Lectura: un dato con su texto literal real, uno inventado y uno cuyo valor no está en su texto.
+  m.seccion('Lector de documentos, sin internet');
+  // Toda petición que salga de la página hacia otro equipo queda anotada: no debe haber ninguna.
+  const fuera = [];
+  pp.on('request', (q) => { const u = q.url(); if (/^https?:/.test(u) && !/^https?:\/\/(127\.0\.0\.1|localhost)[:/]/.test(u)) fuera.push(u); });
+  await irA(pp, '16');
+  m.ok(!(await pp.locator('#stage [data-pestana][data-id="asistente"]').count()) && !/Asistente de IA/.test(await pp.textContent('#stage')), 'El módulo 16 ya no tiene la pestaña del asistente de IA');
   const filasAntes = await pp.evaluate(() => Evaluacion.evaluaciones(Modelo.activo().id).length);
-  const lec0 = await pp.evaluate(async () => {
-    const p = Modelo.activo(), R = Evaluacion.analisis(p);
-    const o = R.ofertas.find((x) => /Delta/.test(x.nombre)), r = R.requisitos.find((x) => x.codigo === 'JUR-02');
-    const doc = Motor.adjuntosDe(o, 'JUR-02').find((d) => Archivos.extension(d.nombre) === 'pdf');
-    const pags = await TextoPdf.paginas(doc.sha256);
-    const t = pags[0].replace(/\s+/g, ' ').trim();
-    const lit = t.slice(0, Math.min(60, t.length));
-    const palabra = lit.split(' ').filter((w) => w.length > 3)[0];
-    window.__respuesta = () => ({ model: 'claude-opus-5-5', usage: { input_tokens: 3000, output_tokens: 400 }, content: [
-      { type: 'tool_use', name: 'registrar_dato', input: { campo: 'otro', valor: palabra, texto_literal: lit, pagina: 1 } },
-      { type: 'tool_use', name: 'registrar_dato', input: { campo: 'fecha_expedicion', valor: '1 de enero de 1999', texto_literal: 'Expedido el 1 de enero de 1999 en la notaría 99 de la ciudad', pagina: 1 } },
-      { type: 'tool_use', name: 'registrar_dato', input: { campo: 'valor_asegurado', valor: '777.777.777', texto_literal: lit, pagina: 1 } },
-      { type: 'text', text: 'Registré 3 datos.' }] });
-    window.__lec = Asistente.leer(p, o, r, doc, ['fecha_expedicion', 'otro'], 'el título del documento').catch((e) => ({ error: e.message }));
-    return { lit, palabra, doc: doc.nombre };
-  });
-  await pp.waitForSelector('#modales .overlay .modal-foot button:has-text("Enviar a la API")');
-  const aviso = await pp.textContent('#modales .overlay:last-child');
-  m.ok(/API de Anthropic/.test(aviso) && /Costo estimado/.test(aviso) && /Tope del mes/.test(aviso) && /US\$ 5\.00/.test(aviso), 'Antes de enviar: aviso de que el documento sale hacia Anthropic, costo estimado y tope del mes');
-  await botonModal(pp, 'Enviar a la API');
-  const lec = await pp.evaluate(() => window.__lec);
-  if (lec.error) m.nota('Lectura: ' + lec.error);
-  const sol = await pp.evaluate(() => window.__llamadas[0]);
-  const herr = sol.tools[0];
-  m.ok(herr.strict === true && herr.name === 'registrar_dato' && !Object.keys(herr.input_schema.properties).some((k) => /cumple|puntaje/i.test(k)) && sol.messages[0].content[0].type === 'document',
-    'La solicitud lleva el PDF y una herramienta strict:true sin campos de cumplimiento ni de puntaje');
-  m.ok(lec.datos.length === 3 && lec.datos[0].aceptado && !lec.datos[1].aceptado && /no está en el documento/.test(lec.datos[1].motivo) && !lec.datos[2].aceptado && /valor no está/.test(lec.datos[2].motivo),
-    'Se acepta solo el dato cuyo texto literal está en el documento; el inventado y el de valor ajeno se descartan (criterio 15)');
-  const filasDespues = await pp.evaluate(() => Evaluacion.evaluaciones(Modelo.activo().id).length);
-  m.ok(filasDespues === filasAntes, 'La lectura no escribe ninguna verificación');
-  // Desde la verificación, el evaluador usa el dato comprobado como evidencia.
   await irA(pp, '11'); await pestana(pp, 'verificacion');
   const idDelta = await pp.evaluate(() => Evaluacion.analisis(Modelo.activo()).ofertas.find((o) => /Delta/.test(o.nombre)).id);
   await pp.click(`#stage [data-accion="verificar"][data-of="${idDelta}"][data-req="JUR-02"]`);
-  await pp.waitForSelector('#vrLeerIA'); await pp.click('#vrLeerIA');
+  await pp.waitForSelector('#vrLeer'); await pp.click('#vrLeer');
+  const sugeridos = await pp.evaluate(() => Array.from(document.querySelectorAll('#modales [data-lccampo]')).filter((x) => x.checked).map((x) => x.dataset.lccampo));
+  m.ok(sugeridos.includes('fecha_expedicion') && sugeridos.includes('vigencia_hasta'), 'Para un requisito jurídico sugiere la fecha de expedición y la vigencia');
   const cumpleAntes = await pp.inputValue('#vr_cumple');
-  await pp.click('#iaLeer');
-  await botonModal(pp, 'Enviar a la API');
-  await pp.waitForSelector('#modales [data-iausar]');
-  await pp.click('#modales [data-iausar]');
-  const ev2 = { texto: await pp.inputValue('#vr_texto'), pagina: await pp.inputValue('#vr_pagina'), cumple: await pp.inputValue('#vr_cumple') };
-  m.ok(ev2.texto === lec0.lit && ev2.pagina === '1' && ev2.cumple === cumpleAntes, '«Usar como evidencia» llena el documento, la página y el texto literal; el «¿Cumple?» lo deja como estaba');
+  await pp.click('#lcLeer');
+  await pp.waitForSelector('#modales [data-lcusar]');
+  const lec = await pp.evaluate(() => (S.lecturasIA || []).filter((x) => x.modelo === 'lector').slice(-1)[0]);
+  const fe = lec.datos.find((d) => d.campo === 'fecha_expedicion'), vh = lec.datos.find((d) => d.campo === 'vigencia_hasta');
+  const docOk = await pp.evaluate((l) => { const R = Evaluacion.analisis(Modelo.activo()); const o = R.ofertas.find((x) => x.id === l.ofertaId); const d = Motor.adjuntosDe(o, 'JUR-02').find((x) => x.id === l.docId); return { fecha: d.fechaDocumento, vence: d.vigenteHasta }; }, lec);
+  m.ok(fe && fe.normalizado === docOk.fecha && /^Fecha de expedición: \d{1,2} de [a-z]+ de \d{4}$/.test(fe.texto) && fe.pagina === 1, 'Lee la fecha de expedición del PDF del proponente, con su texto y su página: ' + (fe ? fe.valor : 'no la encontró'));
+  m.ok(vh && vh.normalizado === docOk.vence, 'Lee la vigencia del documento');
+  await pp.click('#modales [data-lcusar]');
+  const ev2 = { texto: await pp.inputValue('#vr_texto'), pagina: await pp.inputValue('#vr_pagina'), doc: await pp.inputValue('#vr_doc'), cumple: await pp.inputValue('#vr_cumple') };
+  m.ok(ev2.texto === fe.texto && ev2.pagina === '1' && ev2.doc === lec.docId && ev2.cumple === cumpleAntes, '«Usar como evidencia» llena el documento, la página y el texto literal; el «¿Cumple?» lo deja como estaba');
   await cerrarModales(pp);
-  // Tope del mes.
-  const tope = await pp.evaluate(async () => {
-    await Asistente.guardarCfg({ topeMensualUsd: 0.001 });
-    const p = Modelo.activo(), R = Evaluacion.analisis(p), o = R.ofertas[0], r = R.requisitos.find((x) => x.codigo === 'JUR-02');
+  const filasDespues = await pp.evaluate(() => Evaluacion.evaluaciones(Modelo.activo().id).length);
+  m.ok(filasDespues === filasAntes, 'La lectura no escribe ninguna verificación');
+  // Otro dato que escribe el evaluador, y un PDF sin texto.
+  const otro = await pp.evaluate(async () => {
+    const p = Modelo.activo(), R = Evaluacion.analisis(p), o = R.ofertas.find((x) => /Delta/.test(x.nombre)), r = R.requisitos.find((x) => x.codigo === 'JUR-02');
     const doc = Motor.adjuntosDe(o, 'JUR-02').find((d) => Archivos.extension(d.nombre) === 'pdf');
-    try { await Asistente.leer(p, o, r, doc, ['otro'], ''); return 'leyó'; } catch (e) { return e.message; } finally { await Asistente.guardarCfg({ topeMensualUsd: 5 }); }
+    const l = await Lector.leer(p, o, r, doc, ['otro'], 'Vigente hasta');
+    const { jsPDF } = window.jspdf; const vacio = new jsPDF(); vacio.rect(10, 10, 50, 50);
+    const bytes = new Uint8Array(vacio.output('arraybuffer')), sha = await Cripto.sha256(bytes);
+    await Almacen.ponerArchivo(sha, new Blob([bytes], { type: 'application/pdf' }));
+    let escaneado = '';
+    try { await Lector.leer(p, o, r, Object.assign({}, doc, { id: 'x', sha256: sha, nombre: 'escaneado.pdf' }), ['fecha_expedicion'], ''); } catch (e) { escaneado = e.message; }
+    return { valor: (l.datos[0] || {}).valor, escaneado };
   });
-  m.ok(/tope del mes/.test(tope), 'Con lo gastado y lo estimado por encima del tope, no envía nada: ' + tope.split('.')[0]);
-  // Redacción: una parte con una cifra que no está en la evaluación no se puede aceptar.
-  await pp.evaluate(() => {
-    const R = Evaluacion.analisis(Modelo.activo()), d = R.ofertas.find((o) => /Delta/.test(o.nombre)), a = R.ofertas.find((o) => /Alfa/.test(o.nombre));
-    window.__respuesta = () => ({ model: 'claude-opus-5-5', usage: { input_tokens: 5000, output_tokens: 900 }, content: [{ type: 'tool_use', name: 'proponer_redaccion', input: {
-      resumen: 'Se evaluaron cinco ofertas; cuatro quedaron habilitadas. ' + d.nombre + ' obtuvo el mayor puntaje.',
-      recomendacion: 'Se recomienda adjudicar a ' + d.nombre + ' por $ 123.456.789, con un descuento adicional.',
-      condiciones: ['Presentar la garantía de cumplimiento antes de firmar el contrato.'],
-      riesgos: [{ proponente: d.nombre, riesgos: ['Es un consorcio: la responsabilidad es solidaria entre sus integrantes.'] }, { proponente: 'DEMO Inventada S.A.S.', riesgos: ['x'] }] } }] });
-  });
-  await irA(pp, '16'); await pestana(pp, 'asistente');
-  await accion('ia-redactar');
-  await botonModal(pp, 'Enviar a la API');
-  await pp.waitForSelector('#stage .propuesta-ia');
-  const props = await pp.evaluate(() => Asistente.propuestas(Modelo.activo())[0].partes.map((x) => [x.nombre, x.aceptable, x.motivo]));
-  const reqR = await pp.evaluate(() => window.__llamadas[window.__llamadas.length - 1]);
-  m.ok(reqR.tool_choice.name === 'proponer_redaccion' && reqR.tools[0].strict === true && !/"base64"/.test(JSON.stringify(reqR)), 'La redacción se pide con los hechos de la evaluación, sin documentos, y una herramienta strict:true');
-  m.ok(props[0][1] && !props[1][1] && /123456789/.test(props[1][2]) && props.find((x) => /Inventada/.test(x[0]))[1] === false, 'La recomendación con una cifra ajena y los riesgos de un proponente que no existe quedan sin poder aceptarse');
-  const marcadas = await pp.locator('#stage .propuesta-ia .tag:has-text("propuesta de la IA, sin aceptar")').count();
-  await pp.click('#stage [data-accion="ia-aceptar"][data-i="0"]');
-  await pp.waitForFunction(() => ((S.conceptos || []).find((c) => c.procesoId === Modelo.activo().id) || { textos: {} }).textos.resumen);
-  const resumen = await pp.evaluate(() => S.conceptos.find((c) => c.procesoId === Modelo.activo().id).textos.resumen);
-  m.ok(marcadas === props.length && /cinco ofertas/.test(resumen), 'Cada parte se muestra marcada hasta que una persona la acepta; el resumen aceptado pasa al concepto');
-  // La clave no viaja en el respaldo ni está en el programa.
-  const resp = await pp.evaluate(async () => { const r = await Respaldo.generar(); const b = new Uint8Array(await r.blob.arrayBuffer()); let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); });
-  const zip = await JSZip.loadAsync(Buffer.from(resp, 'base64'));
-  let enResp = false;
-  for (const n of Object.keys(zip.files)) if (!zip.files[n].dir && (await zip.files[n].async('string')).includes(CLAVE_FALSA)) enResp = true;
+  m.ok(!!otro.valor && /\d{4}|sin vencimiento/.test(otro.valor), '«Otro dato» devuelve lo que sigue a la palabra escrita: ' + otro.valor);
+  m.ok(/escaneada/.test(otro.escaneado), 'Un PDF sin texto se explica: ' + otro.escaneado.split(':')[0]);
+  m.ok(!fuera.length, 'Nada salió a internet' + (fuera.length ? ': ' + fuera.slice(0, 2).join(' ') : ''));
   const html = readFileSync(new URL('../programa/ARKEN_ANALYTICA.html', import.meta.url), 'utf8');
-  m.ok(!enResp && !Object.keys(zip.files).some((n) => /secretos/.test(n)) && !/sk-ant-[A-Za-z0-9_-]{8,}/.test(html), 'La clave no está en el respaldo (no lleva el almacén de secretos) ni en el programa (criterio 14)');
-  const usos = await pp.evaluate(() => Asistente.uso().map((u) => u.tipo));
-  m.ok(usos.filter((t) => t === 'lectura').length === 2 && usos.includes('redacción'), 'Cada uso queda registrado con su costo y en la auditoría');
+  m.ok(!/api\.anthropic\.com|AnthropicSDK|sk-ant-[A-Za-z0-9_-]{8,}/.test(html) && await pp.evaluate(() => typeof ClaveIA === 'undefined' && typeof Asistente === 'undefined'), 'El programa no trae el asistente de IA, su clave ni el SDK de Anthropic');
 
   m.seccion('Concepto de adjudicación y firmas');
-  await pestana(pp, 'concepto');
+  await irA(pp, '16'); await pestana(pp, 'concepto');
   m.ok(/borrador: no es una decisión/.test(await pp.textContent('#stage')), 'El concepto empieza como borrador');
   await pp.fill('#cc_notas', 'Revisado en sesión del comité de prueba.');
   await accion('concepto-guardar');
   await pp.waitForFunction(() => S.conceptos.find((c) => c.procesoId === Modelo.activo().id).textos.notas);
   await accion('concepto-firmar');
-  await pp.fill('#pd_u1', 'comite1'); await pp.fill('#pd_c1', 'clave-comite1-2026'); await pp.fill('#pd_u2', 'comite1'); await pp.fill('#pd_c2', 'clave-comite1-2026');
+  await llenar(pp, { '#pd_u1': 'comite1', '#pd_c1': 'clave-comite1-2026', '#pd_u2': 'comite1', '#pd_c2': 'clave-comite1-2026' });
   await botonModal(pp, 'Firmar');
   await pp.waitForSelector('.toast.bad, #modales .nota.bad', { timeout: 15000 }).catch(() => null);
   const unaSola = await pp.evaluate(() => (S.conceptos.find((c) => c.procesoId === Modelo.activo().id).firmas || []).length);
   m.ok(unaSola === 0, 'El mismo miembro dos veces no firma');
   await cerrarModales(pp);
   await accion('concepto-firmar');
-  await pp.fill('#pd_u1', 'comite1'); await pp.fill('#pd_c1', 'clave-comite1-2026'); await pp.fill('#pd_u2', 'comite2'); await pp.fill('#pd_c2', 'clave-comite2-2026');
+  await llenar(pp, { '#pd_u1': 'comite1', '#pd_c1': 'clave-comite1-2026', '#pd_u2': 'comite2', '#pd_c2': 'clave-comite2-2026' });
   await botonModal(pp, 'Firmar');
   await pp.waitForFunction(() => Decision.estadoRapido(Modelo.activo()).estado === 'firmado', null, { timeout: 15000 });
   const firm = await pp.evaluate(async () => { const k = await Decision.concepto(Modelo.activo()); return { estado: k.estado, n: k.firmas.length, huella: k.huella, rec: k.R.ofertas.find((o) => o.id === k.final.recomendado).nombre, notas: k.final.notas }; });
@@ -344,9 +283,9 @@ try {
   const tab = await pp.evaluate(() => ({ graf: document.querySelectorAll('#stage .grafica-card svg').length, ger: /Cuadro gerencial/.test(document.querySelector('#stage').textContent) }));
   m.ok(tab.graf === 3 && tab.ger, 'Después de la apertura, el tablero muestra el cuadro gerencial y las gráficas 1, 3 y 8');
   const quedan = await pp.evaluate(async () => { await Modelo.borrarDemo(); App.render(); return ['conceptos', 'informes', 'lecturasIA', 'usoIA'].map((n) => (S[n] || []).length).reduce((a, b) => a + b, 0); });
-  m.ok(quedan === 0, 'Se borran los conceptos, los informes, las lecturas y los usos del asistente de la demostración');
+  m.ok(quedan === 0, 'Se borran los conceptos, los informes y las lecturas de la demostración');
   const aud = await pp.evaluate(() => Auditoria.lista().map((a) => a.accion + ' ' + a.objeto));
-  m.ok(['firmar concepto de adjudicación', 'generar informe de evaluación', 'exportar presupuesto adjudicado', 'usar asistente de IA', 'aceptar redacción del asistente de IA'].every((x) => aud.includes(x)), 'Auditoría de la firma, el informe, la exportación y el asistente');
+  m.ok(['firmar concepto de adjudicación', 'generar informe de evaluación', 'exportar presupuesto adjudicado', 'leer documento con el lector'].every((x) => aud.includes(x)), 'Auditoría de la firma, el informe, la exportación y las lecturas');
   m.ok(!errores.length, 'Sin errores de JavaScript' + (errores.length ? ': ' + errores.slice(0, 3).join(' | ') : ''));
   m.ok(!ctx.peticionesExternas.length, 'Ninguna petición a internet (la API estaba simulada)');
 } catch (e) {

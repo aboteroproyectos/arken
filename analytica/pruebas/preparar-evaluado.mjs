@@ -2,7 +2,7 @@
 // (cinco ofertas abiertas, todo verificado, Delta y Gamma subsanadas y la justificación aceptada).
 // Lo usan las pruebas de la Fase 4 para partir de una evaluación terminada.
 
-import { irA, botonModal, prepararEmitido } from './comun.mjs';
+import { irA, botonModal, prepararEmitido, llenar } from './comun.mjs';
 // Las mismas calificaciones de la Fase 3 (y de escenario-evaluacion.mjs).
 export const CALIF = { Alfa: { 'SG-04': 18, 'TEC-01': 55, 'TEC-03': 45 }, Beta: { 'SG-04': 15, 'TEC-01': 50, 'TEC-03': 40 }, Gamma: { 'SG-04': 12, 'TEC-01': 40, 'TEC-03': 35 },
   Delta: { 'SG-04': 16, 'TEC-01': 52, 'TEC-03': 42 }, 'Épsilon': { 'SG-04': 14, 'TEC-01': 48, 'TEC-03': 38 } };
@@ -24,15 +24,16 @@ export async function prepararEvaluado(pp, frase = 'el comité abre las ofertas'
   await pp.waitForFunction(() => Recepcion.actas(Modelo.activo().id, 'cierre').length === 1, null, { timeout: 30000 });
   await pp.waitForSelector('#stage [data-accion="abrir-ofertas"]:not([disabled])');
   await accion('abrir-ofertas');
-  await pp.fill('#pd_frase', frase); await pp.fill('#pd_u1', 'comite1'); await pp.fill('#pd_c1', 'clave-comite1-2026'); await pp.fill('#pd_u2', 'comite2'); await pp.fill('#pd_c2', 'clave-comite2-2026');
+  await llenar(pp, { '#pd_frase': frase, '#pd_u1': 'comite1', '#pd_c1': 'clave-comite1-2026', '#pd_u2': 'comite2', '#pd_c2': 'clave-comite2-2026' });
   await botonModal(pp, 'Abrir los 5 sobre(s)');
+  const avisos = await pp.evaluate(() => Array.from(document.querySelectorAll('#toasts .toast')).map((t) => t.textContent));
   try {
     await pp.waitForFunction(() => Recepcion.ofertas(Modelo.activo().id).length === 5 && Recepcion.actas(Modelo.activo().id, 'apertura').length === 1, null, { timeout: 240000 });
   } catch (e) {
     const estado = await pp.evaluate(() => ({ ofertas: Recepcion.ofertas(Modelo.activo().id).length, actas: Recepcion.actas(Modelo.activo().id).map((a) => a.tipo),
-      toasts: Array.from(document.querySelectorAll('#toasts .toast')).map((t) => t.textContent), modales: Array.from(document.querySelectorAll('#modales .overlay')).map((o) => o.textContent.slice(0, 200)),
+      toasts: Array.from(document.querySelectorAll('#toasts .toast')).map((t) => t.textContent), modales: Array.from(document.querySelectorAll('#modales .overlay')).map((o) => o.textContent.slice(0, 120) + ' … ' + o.textContent.slice(-220)), campos: Array.from(document.querySelectorAll('#modales input')).map((i) => i.id + '=' + (i.value ? 'lleno' : 'vacío')),
       registro: RegistroTecnico.entradas().slice(-3).map((x) => JSON.stringify(x).slice(0, 300)) }));
-    throw new Error('La apertura no terminó: ' + JSON.stringify(estado));
+    throw new Error('La apertura no terminó: ' + JSON.stringify(Object.assign(estado, { avisos })));
   }
   return pp.evaluate(async (CALIF) => {
     const p = Modelo.activo(), ofs = Recepcion.ofertas(p.id);

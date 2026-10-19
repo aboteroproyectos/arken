@@ -52,7 +52,7 @@ Vistas['17'] = function(){
     ['Firme el concepto', 'Módulo 16 › Concepto. El programa lo genera desde la evaluación y el comité edita cada texto. Lo firman dos miembros del comité; si algo cambia después, vuelve a borrador.'],
     ['Genere el informe', 'Módulo 16 › Informe. Elija y ordene las secciones y las gráficas. Sale en PDF y en Excel, y cada versión queda guardada. Sin el concepto firmado, lleva la marca de borrador.'],
     ['Pase el adjudicado a ARKEN CONTROL', 'Módulo 16 › Concepto, con el concepto firmado: «Presupuesto adjudicado para ARKEN CONTROL» produce el Excel que ARKEN importa. El AIU se digita en ARKEN con los porcentajes del libro.'],
-    ['Use el asistente de IA si quiere', 'Módulo 16 › Asistente. Opcional y apagado de entrada: con su clave de API, lee documentos y propone redacción. Cada envío se confirma con su costo; nada se escribe sin que usted lo acepte, y no da puntajes.']
+    ['Lea los documentos con el lector', 'Módulo 11 › Verificación › «Leer el documento». Busca en el PDF del proponente las fechas, valores, NIT, porcentajes e indicadores del requisito y muestra la página y el texto donde están. Funciona sin internet y sin costo; los PDF escaneados como imagen no tienen texto que leer.']
   ];
   const html = cabecera('17', 'Ayuda', 'Cómo usar ARKEN ANALYTICA · versión ' + esc(VERSION_PROGRAMA)) +
     '<div class="nota-flujo">' + PASOS_FLUJO.map((x, i) => (i ? '<span class="fl">›</span>' : '') + '<span class="paso">' + x + '</span>').join('') + '</div>' +

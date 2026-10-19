@@ -14,7 +14,7 @@
 //
 // Uso: npm run prueba:punta-a-punta-fase-3
 
-import { RUTA_ANALYTICA, servidor, navegador, contexto, vigilarErrores, abrirAnalytica, ingresar, irA, pestana, botonModal, marcador, prepararEmitido } from './comun.mjs';
+import { RUTA_ANALYTICA, servidor, navegador, contexto, vigilarErrores, abrirAnalytica, ingresar, irA, pestana, botonModal, marcador, prepararEmitido, llenar } from './comun.mjs';
 
 const m = marcador('Prueba de punta a punta de ARKEN ANALYTICA (Fase 3)');
 const srv = await servidor();
@@ -52,7 +52,7 @@ try {
   await pp.waitForFunction(() => Recepcion.actas(Modelo.activo().id, 'cierre').length === 1, null, { timeout: 30000 });
   await pp.waitForSelector('#stage [data-accion="abrir-ofertas"]:not([disabled])');
   await accion('abrir-ofertas');
-  await pp.fill('#pd_frase', FRASE); await pp.fill('#pd_u1', 'comite1'); await pp.fill('#pd_c1', 'clave-comite1-2026'); await pp.fill('#pd_u2', 'comite2'); await pp.fill('#pd_c2', 'clave-comite2-2026');
+  await llenar(pp, { '#pd_frase': FRASE, '#pd_u1': 'comite1', '#pd_c1': 'clave-comite1-2026', '#pd_u2': 'comite2', '#pd_c2': 'clave-comite2-2026' });
   await botonModal(pp, 'Abrir los 5 sobre(s)');
   await pp.waitForFunction(() => Recepcion.ofertas(Modelo.activo().id).length === 5, null, { timeout: 90000 });
   m.ok(true, 'Acta de cierre y apertura con la frase y dos miembros del comité: cinco ofertas abiertas');

@@ -221,16 +221,15 @@ Vistas['16'] = function(){
   if (!c.R) return c;
   const { p, R } = c;
   const tab = UI.pestanaActiva('c16', 'concepto');
-  const pest = UI.pestanas('c16', [['concepto', 'Concepto de adjudicación'], ['informe', 'Informe'], ['versiones', 'Versiones del informe'], ['asistente', 'Asistente de IA']], tab);
+  const pest = UI.pestanas('c16', [['concepto', 'Concepto de adjudicación'], ['informe', 'Informe'], ['versiones', 'Versiones del informe']], tab);
   const reg = (S.conceptos || []).find(x => x.procesoId === p.id) || { textos:{}, firmas:[] };
   const final = Concepto.aplicarTextos(Concepto.generar(R, { alertas:Evaluacion.alertas(p.id) }), reg.textos);
   const er = Decision.estadoRapido(p), firmado = er.estado === 'firmado';
   const k = { final, estado:er.estado, firmas:firmado ? reg.firmas : [], huella:firmado ? reg.huella : null, cambio:!!er.cambioDespuesDeFirmar };
-  let cuerpo = tab === 'concepto' ? vistaConcepto(p, R, k) : tab === 'informe' ? vistaInforme(p, R) : tab === 'versiones' ? vistaVersiones(p) : (typeof VistaAsistente !== 'undefined' ? VistaAsistente.html(p, R) : '');
+  let cuerpo = tab === 'concepto' ? vistaConcepto(p, R, k) : tab === 'informe' ? vistaInforme(p, R) : vistaVersiones(p);
   const html = cabecera('16', 'Concepto e informe', c.sub) + pest + cuerpo;
   return { html, alPintar:() => {
     if (tab === 'informe') conectarInforme(p, R);
-    if (tab === 'asistente' && typeof VistaAsistente !== 'undefined') VistaAsistente.conectar(p, R);
     // La huella de lo firmado se comprueba contra la evaluación de hoy: si cambió, el concepto vuelve a borrador.
     if (tab === 'concepto' && firmado) Decision.concepto(p).then(x => { const el = $('#avisoFirma'); if (el && x && x.cambioDespuesDeFirmar) el.innerHTML = AVISO_CAMBIO; }).catch(e => RegistroTecnico.anotar('huella del concepto', e));
   }, acciones:Object.assign(accionesVerificar(p, R), {
@@ -261,5 +260,5 @@ Vistas['16'] = function(){
       } finally { App.render(); }
     },
     'informe-bajar':el => Archivos.descargar(el.dataset.sha, el.dataset.nombre)
-  }, typeof VistaAsistente !== 'undefined' ? VistaAsistente.acciones(p, R) : {}) };
+  }) };
 };

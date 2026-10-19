@@ -1,7 +1,7 @@
 // ARKEN ANALYTICA · genera www/, la carpeta que empaquetan Electron (Windows, macOS y Linux) y
 // Capacitor (Android e iOS), a partir de programa/ARKEN_ANALYTICA.html (§6).
 //
-// El programa se usa tal cual: ya trae dentro sus librerías y el SDK de Anthropic, así que no
+// El programa se usa tal cual: ya trae dentro sus librerías, así que no
 // hay nada que bajar de internet. Solo se hacen estos cambios, y ninguno toca su lógica:
 //   1. Se comprueba que no traiga datos (el bloque <script id="arken-datos"> en null).
 //   2. Se agrega la capa de la app (app/arken-app.js y app/arken-app.css), antes del programa, y
@@ -9,7 +9,7 @@
 //   3. La política de seguridad de contenido (CSP) pasa a permitir cada script en línea del
 //      programa por su huella SHA-256 en lugar de 'unsafe-inline': un <script> o un atributo on…
 //      que llegara a colarse en la página (el texto de un proponente sin escapar) no corre. La red
-//      sigue cerrada salvo la API de Anthropic, para el asistente de IA opcional.
+//      sigue cerrada.
 //
 // Uso: npm run preparar
 
@@ -60,7 +60,7 @@ export function preparar(html, { conCapacitor = true } = {}) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' blob: data: https://api.anthropic.com",
+    "connect-src 'self' blob: data:",
     "object-src 'none'",
     "base-uri 'none'",
     "form-action 'none'",
