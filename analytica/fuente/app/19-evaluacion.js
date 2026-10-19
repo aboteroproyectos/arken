@@ -292,7 +292,7 @@ const Evaluacion = (function(){
 
   return { ROL_DE, evaluaciones, subsanaciones, alertas, requisitos, base, nombreOferta, hayOfertas, datos, analisis, invalidar, puedeEvaluar, evaluar, historia,
     pedir, responder, decidirJustificacion, guardarConfig, emparejar, decidirVersion, registrarSorteo, actualizarAlertas, abiertas, cambiarEstadoAlerta,
-    leerMetadatos, leerDocumentos, tecnicaTerminada };
+    leerMetadatos, leerDocumentos, tecnicaTerminada, guardarEvaluacion };
 })();
 
 /* ── Demostración de la Fase 3: cinco sobres cerrados de proponentes ficticios ── */

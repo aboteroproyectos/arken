@@ -38,6 +38,12 @@ const Roles = (function(){
     decidirComite:['administrador','comite'],
     revisarAlertas:['administrador','director','tecnico','juridicoEval','financiero','comite'],
     configurarEvaluacion:['administrador','director'],
+    /* Fase 4: el concepto lo redacta el comité (o el director) y lo firman dos miembros del comité, autenticados. */
+    redactarConcepto:['administrador','director','comite'],
+    generarInforme:['administrador','director','comite'],
+    exportarAdjudicado:['administrador','director'],
+    usarAsistente:['administrador','director','tecnico','juridicoEval','financiero','comite'],
+    configurarAsistente:['administrador'],
     exportar:['administrador','director','tecnico','juridicoEval','financiero','comite','juridico','consulta'],
     respaldar:['administrador','director']
   };

@@ -9,7 +9,7 @@ const S = { empresa:{}, config:{}, cargado:false };
 
 const Almacen = (function(){
   const NOMBRE = 'arken-analytica';
-  const VERSION = 1;
+  const VERSION = 2;
   /* [almacén, índices]. Los de las fases 2 a 4 se crean ya, vacíos, para
      que llegar a ellas no exija una migración. */
   const ESQUEMA = [
@@ -25,7 +25,11 @@ const Almacen = (function(){
     ['subsanaciones', [['procesoId','procesoId']]], ['alertas', [['procesoId','procesoId']]],
     ['conceptos', [['procesoId','procesoId']]], ['informes', [['procesoId','procesoId']]], ['actas', [['procesoId','procesoId']]]
   ];
-  const ALMACENES = ESQUEMA.map(x => x[0]);
+  /* Versión 2 (Fase 4): lo del asistente de IA. «secretos» guarda la clave de
+     API cifrada; no está en ALMACENES, así que no se carga en S ni viaja en
+     los respaldos. */
+  const ESQUEMA_2 = [['lecturasIA', [['procesoId','procesoId']]], ['usoIA', []]];
+  const ALMACENES = ESQUEMA.concat(ESQUEMA_2).map(x => x[0]);
   /* Migraciones: una función por versión, de la anterior a esa. */
   const MIGRACIONES = {
     1(db){
@@ -34,6 +38,13 @@ const Almacen = (function(){
         indices.forEach(([n, k]) => st.createIndex(n, k, { unique:false }));
       });
       db.createObjectStore('archivos', { keyPath:'sha256' });
+    },
+    2(db){
+      ESQUEMA_2.forEach(([nombre, indices]) => {
+        const st = db.createObjectStore(nombre, { keyPath:'id' });
+        indices.forEach(([n, k]) => st.createIndex(n, k, { unique:false }));
+      });
+      db.createObjectStore('secretos', { keyPath:'id' });
     }
   };
 
@@ -143,6 +154,13 @@ const Almacen = (function(){
     S.config = ((S.unicos||[]).find(x => x.id === 'config') || {}).datos || {};
   }
 
-  return { ALMACENES, VERSION, abrir, todos, poner, borrar, guardarEmpresa, guardarConfig, ponerArchivo, leerArchivo, hayArchivo,
+  /* Secretos del equipo (la clave de API cifrada y su llave no exportable): solo en
+     IndexedDB, nunca en S ni en respaldos. Sin IndexedDB no hay dónde guardarlos. */
+  function hayBoveda(){ return !enMemoria && !!db; }
+  async function secreto(id){ return hayBoveda() ? (await prom(tx('secretos').get(id))) || null : null; }
+  async function ponerSecreto(reg){ if (!hayBoveda()) throw new Error('Este navegador no deja guardar cifrado: la base está en memoria.'); await prom(tx('secretos', 'readwrite').put(reg)); }
+  async function borrarSecreto(id){ if (hayBoveda()) await prom(tx('secretos', 'readwrite').delete(id)); }
+
+  return { ALMACENES, VERSION, abrir, hayBoveda, secreto, ponerSecreto, borrarSecreto, todos, poner, borrar, guardarEmpresa, guardarConfig, ponerArchivo, leerArchivo, hayArchivo,
     borrarArchivo, listaArchivos, reemplazarTodo, enMemoria:() => enMemoria, alGuardar:(fn) => { alGuardar = fn; } };
 })();

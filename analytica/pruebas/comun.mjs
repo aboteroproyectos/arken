@@ -28,7 +28,7 @@ export function nucleo() {
   const leerCarpeta = (c) => { const carpeta = join(ANALYTICA, 'fuente', c); return readdirSync(carpeta).filter((n) => n.endsWith('.js')).sort().map((n) => readFileSync(join(carpeta, n), 'utf8')).join('\n'); };
   const codigo = leerCarpeta('nucleo') + '\n' + leerCarpeta('evaluacion');
   const ctx = vm.createContext({ crypto: webcrypto, Intl, console, XLSX, TextEncoder, TextDecoder, btoa, atob, URL });
-  vm.runInContext(codigo + '\n;this.N = { Util, Calculo, Nit, Festivos, ExcelArken, ExcelPrecios, Parametros, PlantillaCondiciones, Confidencialidad, Cronograma, Revision, Cripto, Pliego, Demo, Paquete, Sobre, Adendas, Actas, Estadistica, Presupuestal, Tecnico, Puntaje, Alertas, Motor, DemoOfertas };', ctx);
+  vm.runInContext(codigo + '\n;this.N = { Util, Calculo, Nit, Festivos, ExcelArken, ExcelPrecios, Parametros, PlantillaCondiciones, Confidencialidad, Cronograma, Revision, Cripto, Pliego, Demo, Paquete, Sobre, Adendas, Actas, Estadistica, Presupuestal, Tecnico, Puntaje, Alertas, Motor, DemoOfertas, Comparativo, Graficas, Concepto, Informe };', ctx);
   return ctx.N;
 }
 

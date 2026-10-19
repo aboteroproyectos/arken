@@ -12,8 +12,8 @@ const MODULOS = [
   { id:'12', nombre:'Análisis presupuestal', texto:'Aritmética, capítulos, subcapítulos, actividades, insumos, AIU, desbalance y APU, oferta por oferta contra el presupuesto base.' },
   { id:'13', nombre:'Análisis técnico, legal y financiero', texto:'Requisito por proponente, con su estado y la evidencia: jurídico, financiero, experiencia, personal, equipos, sistemas de gestión y programación.' },
   { id:'14', nombre:'Evaluación y puntajes', texto:'Puntaje de cada requisito ponderable con la regla del pliego, el método económico, el desempate y el orden de elegibilidad.' },
-  { id:'15', nombre:'Comparativo y cuadro gerencial', fase:4, texto:'El comparativo de todas las ofertas y el cuadro gerencial, con las quince gráficas.' },
-  { id:'16', nombre:'Concepto e informe', fase:4, texto:'El concepto de adjudicación para el comité y el informe en PDF y Excel con su lista de casillas.' },
+  { id:'15', nombre:'Comparativo y cuadro gerencial', texto:'El comparativo de todas las ofertas y el cuadro gerencial, con las quince gráficas.' },
+  { id:'16', nombre:'Concepto e informe', texto:'El concepto de adjudicación para el comité y el informe en PDF y Excel con su lista de casillas.' },
   { id:'17', nombre:'Ayuda' }
 ];
 MODULOS.filter(m => m.fase).forEach(m => {

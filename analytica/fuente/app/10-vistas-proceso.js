@@ -58,9 +58,26 @@ Vistas['00'] = function(){
     '<div class="grid g2" style="margin-top:var(--gap)"><div class="card"><div class="card-head"><h3>Cronograma</h3>' + boton('ir-07', 'Editar', 'sm') + '</div><div class="card-body flush"><div class="tw"><table class="t"><thead><tr><th>Hito</th><th>Fecha</th><th>Hora</th></tr></thead><tbody>' +
       Cronograma.activos(p.cronograma).map(h => '<tr' + (sig && sig.clave === h.clave ? ' style="font-weight:700"' : '') + '><td>' + esc(h.nombre) + (sig && sig.clave === h.clave ? ' ' + UI.tag('siguiente', 'brass') : '') + '</td><td>' + Util.fmtFecha(h.fecha) + '</td><td>' + esc(h.hora || '—') + '</td></tr>').join('') +
     '</tbody></table></div></div></div>' +
-    '<div class="card"><div class="card-head"><h3>Composición del presupuesto base</h3></div><div class="card-body">' + composicion(pres) + '</div></div></div>';
-  return { html, acciones:Object.assign({ 'ir-07':() => App.ir('07') }, Vistas['01'].accionesComunes) };
+    '<div class="card"><div class="card-head"><h3>Composición del presupuesto base</h3></div><div class="card-body">' + composicion(pres) + '</div></div></div>' +
+    resumenDecision(p);
+  return { html, alPintar:() => { if (typeof conectarGraficas === 'function') conectarGraficas(); }, acciones:Object.assign({ 'ir-07':() => App.ir('07'), 'ir-15':() => App.ir('15'), 'ir-16':() => App.ir('16') }, Vistas['01'].accionesComunes) };
 };
+/** Después de la apertura: el cuadro gerencial corto y las gráficas 1, 3 y 8 (§20). */
+function resumenDecision(p){
+  if (!Recepcion.actas(p.id, 'apertura').length || !Recepcion.ofertas(p.id).length || ocultarPrecios()) return '';
+  try {
+    const R = Evaluacion.analisis(p);
+    if (!R) return '';
+    const G = Comparativo.gerencial(R, { alertas:Evaluacion.alertas(p.id), concepto:Decision.estadoRapido(p) });
+    const op = { colores:Decision.colores(p, R), capitulo:GRAFICAS.capitulo || undefined };
+    const tarjeta = id => { const g = Graficas.una(id, R, op); return '<div class="card grafica-card"><div class="card-head"><h3>' + g.numero + '. ' + esc(g.titulo) + '</h3></div><div class="card-body"><div class="lienzo">' + g.svg + '</div></div></div>'; };
+    return '<div class="card" style="margin-top:var(--gap)"><div class="card-head"><h3>Cuadro gerencial · ' + esc(G.portada) + (G.provisional ? ' ' + UI.tag('provisional', 'warn') : '') + '</h3><div class="btn-row">' + boton('ir-15', 'Comparativo', 'sm') + boton('ir-16', 'Concepto e informe', 'sm') + '</div></div>' +
+      '<div class="card-body flush"><div class="tw"><table class="t"><thead><tr><th class="n">Puesto</th><th>Proponente</th><th class="n">Valor total</th><th class="n">Puntaje</th><th>Habilitación</th><th>Semáforo</th></tr></thead><tbody>' +
+      G.filas.map(f => '<tr><td class="n">' + (f.puesto || '—') + '</td><td>' + pastilla(p, R.ofertas.find(o => o.id === f.id)) + esc(f.nombre) + '</td><td class="n">' + money(f.total) + '</td><td class="n">' + (f.puntaje === null ? '—' : cant(f.puntaje)) + '</td>' +
+        '<td>' + tagHabilitacion({ estado:f.habilitacion }) + '</td><td>' + UI.tag(f.semaforo, { verde:'ok', amarillo:'warn', rojo:'bad' }[f.semaforo]) + '</td></tr>').join('') + '</tbody></table></div></div></div>' +
+      '<div class="graficas" style="margin-top:var(--gap)">' + ['totales', 'calor', 'radar'].map(tarjeta).join('') + '</div>';
+  } catch(e){ RegistroTecnico.anotar('tablero: resumen de la decisión', e); return ''; }
+}
 function composicion(pres){
   const pc = Calculo.porCategoria(pres), total = Object.values(pc).reduce((a, b) => a + b, 0) || 1;
   const COLORES = { 'Materiales':'#A98B54', 'Mano de Obra':'#3C5A76', 'Herramientas':'#767C83', 'Equipos':'#3B6E52', 'Ferretería':'#9A6B1E', 'Consumibles':'#8A6E4B', 'Todo Costo':'#96362E' };

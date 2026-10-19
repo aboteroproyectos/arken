@@ -78,6 +78,7 @@ const App = (function(){
     ['#topbar', '#ledger', '#shell'].forEach(s => $(s).style.display = '');
     $('#gPass').value = '';
     Inactividad.iniciar();
+    await ClaveIA.iniciar();
     await Auditoria.registrar('ingresar', 'sesión', u.usuario);
     let ultimo = null;
     try { ultimo = localStorage.getItem('arken-analytica-proceso'); } catch(e){}
@@ -88,6 +89,7 @@ const App = (function(){
   function salir(mensaje){
     if (Sesion.usuario) Auditoria.registrar('salir', 'sesión', Sesion.usuario.usuario + (mensaje ? ' · ' + mensaje : ''));
     Sesion.usuario = null; Sesion.pestanas = {}; Sesion.llaves = {};
+    ClienteIA.olvidar();
     Inactividad.detener();
     $('#modales').innerHTML = '';
     ['#topbar', '#ledger', '#shell'].forEach(s => $(s).style.display = 'none');
@@ -185,7 +187,7 @@ const App = (function(){
   }
 
   /* ── Riel ── */
-  const REQUIERE_PROCESO = ['00','02','04','05','06','07','08','09','10','11','12','13','14'];
+  const REQUIERE_PROCESO = ['00','02','04','05','06','07','08','09','10','11','12','13','14','15','16'];
   function pintarRail(){
     const p = Modelo.activo();
     $('#railList').innerHTML = MODULOS.map(m => {
