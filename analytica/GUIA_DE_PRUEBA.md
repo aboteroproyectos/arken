@@ -255,7 +255,7 @@ npm run prueba
 - la de punta a punta de la Fase 4 (51): módulos 15 y 16 sobre el proceso evaluado, la evidencia a dos clics, las exportaciones, las firmas y el cambio después de firmar, el informe en PDF y Excel, el asistente con la API simulada (nunca con una clave real) y el presupuesto adjudicado importado en el `programa/ARKEN_CONTROL.html` real;
 - la de la capa de las apps (16): `www/` con la política por huellas, un script inyectado que no corre, la copia diaria y la bóveda en el escritorio simulado, y el modo de consulta y el menú Compartir en Android simulado.
 
-Resultado de esta entrega: **532 de 532 comprobaciones pasaron en este equipo**, sin contar la de punta a punta de la Fase 2 (50). Esa prueba se detuvo en este equipo por tiempo de espera durante la apertura, igual que con la versión 0.3.0, que sí pasa en GitHub Actions; el resultado que vale es el de GitHub Actions.
+Resultado de esta entrega: **582 de 582 comprobaciones pasaron**.
 
 Para Chromium, las pruebas buscan `/opt/pw-browsers` o la variable `CHROME_PATH`.
 
