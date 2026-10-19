@@ -1,5 +1,77 @@
 # ARKEN ANALYTICA · Registro de cambios
 
+## 0.3.0 · Fase 3 · Verificación y análisis (19 de octubre de 2026)
+
+Con esta entrega, las ofertas abiertas se verifican, se analizan y se ordenan. Cada hallazgo llega a una bandeja de alertas con su porqué y su evidencia.
+
+### Verificación (módulo 11)
+
+- **Matriz requisito por proponente.** Cada celda se verifica en una ventana con el documento, la página y el texto literal que lo acredita. Cada verificación queda como una fila nueva con el evaluador, la fecha y la observación; la anterior no se borra.
+- **Cada evaluador, lo suyo.** El evaluador técnico, el jurídico y el financiero verifican solo los requisitos de su grupo. «No cumple» y «Subsanable» exigen observación. Hay cinco valores: sí, no, subsanable, pendiente y no aplica.
+- **Subsanaciones:**
+  - la solicitud sale en PDF, con el plazo en días hábiles con festivos de Colombia;
+  - la respuesta del proponente queda en su carpeta del módulo 10, marcada como subsanación, y se anota si llegó fuera de plazo;
+  - la justificación de un valor artificialmente bajo se pide igual y la decide solo el comité.
+- **Habilitación** por proponente: habilitada, no habilitada (con su causal) o pendiente. Mientras alguna esté pendiente, el puntaje es provisional.
+- Una oferta sobre una versión anterior del pliego espera la decisión del comité.
+
+### Análisis presupuestal (módulo 12)
+
+Ocho subpestañas, cada una con el presupuesto base al lado:
+
+- **Aritmética:** cada renglón recalculado, con la diferencia frente a lo declarado y si el APU suma.
+- **Capítulos, subcapítulos y actividades:** valor y desviación frente a la base, coloreados por tamaño.
+- **Insumos:** el precio de cada insumo frente a la base. Se emparejan solos cuando coinciden la descripción y la unidad; los parecidos se sugieren y una persona los confirma o los empareja a mano.
+- **AIU:** porcentajes, desglose de la administración frente al personal ofrecido y el costo empresa mínimo, y el IVA con la base y la tarifa del pliego.
+- **Desbalance:** z robusto (mediana y MAD) sobre el precio relativo al nivel de cada oferta, la regla de ±30 % frente a la base y el cargue al inicio con la programación.
+- **APU:** rendimientos, insumos faltantes, desperdicios y jornales por debajo del costo empresa mínimo.
+- **Configuración:** los umbrales de cada regla, ajustables por proceso.
+
+### Técnico, legal y financiero (módulo 13)
+
+- **Indicadores financieros:** liquidez, endeudamiento, cobertura de intereses, capital de trabajo, rentabilidades. Para consorcios y uniones temporales se usa lo declarado por la figura, con su participación.
+- **Experiencia** convertida a SMMLV del año de terminación, el área y el número de contratos.
+- **Personal:** formación y años frente al cargo, la misma persona en dos cargos de dedicación completa y el organigrama.
+- **Sistemas de gestión, programación** (ruta crítica, plazo y precedencias) y los requisitos que usted creó.
+- Cada uno muestra la sugerencia del programa, el cálculo y la decisión del evaluador.
+
+### Evaluación y puntajes (módulo 14)
+
+- **Cinco métodos económicos:** menor valor, cercanía al presupuesto, media aritmética, media aritmética alta y media geométrica con el presupuesto, con la TRM cuando aplica.
+- Ponderables automáticos (por rangos o proporcionales a lo verificado) y manuales.
+- Desempate en el orden del pliego, con sorteo registrado en acta.
+- Orden de elegibilidad, la sensibilidad (si el orden cambia cuando cada grupo pesa un 10 % más o menos) y las no habilitadas al final, con su causal.
+
+### Bandeja de alertas (§18.11)
+
+- **Botón en la barra superior**, con un contador de alertas abiertas.
+- **Lo que trae cada alerta:** el nivel (crítica, importante u observación), qué encontró, por qué importa, la regla aplicada, qué hacer y su evidencia. Desde la bandeja, un clic en la evidencia lleva al renglón resaltado, al requisito o al documento en su página.
+- **Estados:** nueva, en revisión, confirmada y descartada (con motivo). El estado se conserva al volver a analizar. Una alerta que deja de presentarse queda como «ya no se presenta».
+- **Posibles acuerdos entre proponentes:**
+  - APU idénticos;
+  - precios que se mueven juntos;
+  - las mismas cifras;
+  - el mismo contacto;
+  - la misma persona en dos ofertas.
+  Cada uno trae un recordatorio de que es un indicio, no una prueba.
+- El tablero del proceso cuenta las alertas abiertas por nivel.
+
+### Demostración
+
+- En el módulo 09 de un proceso de demostración:
+  - «Ofertas de demostración» genera cinco sobres cerrados de proponentes ficticios, cada uno con un rasgo que el análisis debe encontrar, y los recibe como cualquier sobre;
+  - «Adelantar el cierre (demostración)» lleva el cierre a un minuto antes de ahora, para seguir con el acta y la apertura.
+- Borrar la demostración también borra sus verificaciones, subsanaciones y alertas.
+
+### Pruebas
+
+- **`pruebas/nucleo-fase-3.mjs` (85):**
+  - estadística, costo empresa mínimo y cada método económico contra un ejemplo a mano;
+  - TRM, desempate, habilitación, indicadores financieros, consorcio, experiencia en SMMLV, personal, días hábiles y ruta crítica;
+  - las alertas de las cinco ofertas de demostración y una evaluación completa con el orden calculado a mano.
+- **`pruebas/punta-a-punta-fase-3.mjs` (42), en Chromium:** sobres de demostración, cierre, apertura con el comité, la bandeja con cada alerta y su evidencia a un clic, los roles, la verificación desde la matriz, la subsanación con su PDF, la justificación decidida por el comité, el orden de elegibilidad con cada método frente al calculado a mano, el estado de una alerta descartada y el borrado de la demostración.
+- La de humo deja atenuados solo los módulos 15 y 16.
+
 ## 0.2.0 · Fase 2 · Invitación, ARKEN OFERTA, sobres y apertura (18 de octubre de 2026)
 
 Con esta entrega el ciclo llega de la emisión a la apertura: el principal arma un paquete por invitado, cada invitado prepara su oferta en ARKEN OFERTA y la devuelve en un sobre cerrado, y el comité la abre después del cierre.
