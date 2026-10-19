@@ -1,0 +1,12 @@
+# Dependencias
+node_modules/
+
+# Archivos de un proceso real: nunca se suben a este repositorio (es público).
+# herramientas/verificar-sin-datos.mjs los rechaza aunque alguien los fuerce.
+ARKEN_INVITACION*.zip
+*OFERTA*.zip
+sobre*.json
+*.sobre
+*respaldo*.zip
+*respaldo*.json
+*llaves*.json

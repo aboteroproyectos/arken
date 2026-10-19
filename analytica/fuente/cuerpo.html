@@ -1,0 +1,73 @@
+<!-- ══════════════════ PANTALLA DE INGRESO ══════════════════ -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-top">
+      <img src="{{LOGO}}" alt="ARKEN">
+      <div class="nm">ARKEN</div>
+      <div class="sb">Analytica · Evaluación de propuestas</div>
+    </div>
+    <div class="gate-body">
+      <div id="gateErr"></div>
+      <div class="field"><label for="gUser">Usuario</label>
+        <input id="gUser" type="text" autocomplete="username" spellcheck="false" aria-label="Usuario"></div>
+      <div class="field"><label for="gPass">Contraseña</label>
+        <input id="gPass" type="password" autocomplete="current-password" aria-label="Contraseña"></div>
+      <button class="btn primary block" id="gBtn" type="button" disabled>Ingresar</button>
+      <div class="row" style="justify-content:space-between">
+        <button class="btn ghost sm" id="gRestaurar" type="button">Restaurar respaldo</button>
+        <span class="muted small" id="gHint"></span>
+      </div>
+    </div>
+    <div class="gate-foot"><span class="gate-copy">© <span id="gAnio"></span> ARKEN ANALYTICA — TODOS LOS DERECHOS RESERVADOS</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════ BARRA SUPERIOR ══════════════════ -->
+<header class="topbar" id="topbar" style="display:none">
+  <div class="brand">
+    <img class="brand-mark" src="{{LOGO}}" alt="ARKEN">
+    <div class="brand-txt">
+      <div class="brand-name">ARKEN</div>
+      <div class="brand-sub">Analytica</div>
+    </div>
+  </div>
+  <div class="topbar-div"></div>
+  <div class="topbar-proj">
+    <div class="lab">Proceso · Estado</div>
+    <div class="val" id="tbProceso">— sin proceso seleccionado —</div>
+  </div>
+  <div class="topbar-actions">
+    <span class="saved" id="tbGuardado"><i></i><span>Guardado</span></span>
+    <button class="btn sm brass" id="btnCargarOfertas" type="button">Cargar ofertas</button>
+    <button class="btn sm ghost tb" id="btnAlertas" type="button" aria-label="Bandeja de alertas">Alertas <span class="pill" id="tbAlertas">0</span></button>
+    <button class="btn sm ghost tb" id="btnAdmin" type="button">Administración</button>
+    <button class="btn sm ghost tb" id="btnConfig" type="button">Configuración</button>
+    <div class="logo-slot" id="logoEmpresa" title="Logo de la empresa (se carga en Configuración)">Logo empresa</div>
+    <button class="btn sm ghost tb" id="btnSalir" type="button" title="Cerrar sesión">Salir</button>
+  </div>
+</header>
+
+<!-- ══════════════════ CINTA DE TOTALES ══════════════════ -->
+<div class="ledger" id="ledger" style="display:none"></div>
+
+<!-- ══════════════════ ESTRUCTURA ══════════════════ -->
+<div class="shell" id="shell" style="display:none">
+  <nav class="rail" id="rail" aria-label="Módulos">
+    <div class="rail-head"><div class="eyebrow">Módulos</div></div>
+    <div class="rail-list" id="railList"></div>
+    <div class="rail-foot">
+      <div class="muted small" id="railUsuario"></div>
+    </div>
+  </nav>
+  <main class="stage" id="stage"></main>
+</div>
+
+<div id="cintaDemo" class="cinta-demo hide" role="status">DEMOSTRACIÓN · Datos ficticios · Se borran en Administración › Demostración</div>
+<div id="modales"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<input type="file" id="selectorArchivo" style="display:none">
+
+<!-- Este programa nunca guarda datos dentro de sí mismo: los datos viven en
+     IndexedDB y en los respaldos .zip. El bloque queda en null para que
+     herramientas/verificar-sin-datos.mjs lo pueda comprobar. -->
+<script id="arken-datos" type="application/json">null</script>
