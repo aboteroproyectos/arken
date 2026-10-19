@@ -313,15 +313,38 @@ function validarPresupuestoExcel(p, wb){
       if (!c || vistos.has(normaliza(c))){ do { n++; c = 'INS-' + String(n).padStart(4,'0'); } while (vistos.has(normaliza(c))); }
       vistos.add(normaliza(c)); codigoIns.set(ins.id, c);
     });
+    // ARKEN reutiliza el insumo que tenga la misma descripción: si el presupuesto (una oferta, que
+    // cotiza el mismo insumo con precios distintos en cada APU) trae dos con la misma descripción y
+    // distinto precio, el segundo se llama «… · precio 2» para que ARKEN no los junte en uno.
+    const precios = new Map(), nombreIns = new Map();
+    insumosUsados.forEach(i => {
+      const k = normaliza(i.nombre), pr = Util.redondearDec(Number(i.precio||0), 3);
+      const L = precios.get(k) || []; let j = L.indexOf(pr);
+      if (j < 0){ L.push(pr); j = L.length - 1; precios.set(k, L); }
+      nombreIns.set(i.id, j ? i.nombre + ' · precio ' + (j + 1) : i.nombre);
+    });
     const hIns = [ENC_INSUMOS];
-    insumosUsados.forEach(i => hIns.push([codigoIns.get(i.id), i.categoria, i.nombre, i.unidad, Util.redondearDec(Number(i.precio||0), 3)]));
+    insumosUsados.forEach(i => hIns.push([codigoIns.get(i.id), i.categoria, nombreIns.get(i.id), i.unidad, Util.redondearDec(Number(i.precio||0), 3)]));
+    // Lo mismo con los APU: una oferta trae un APU por actividad y puede repetir el código o el
+    // nombre del pliego con otro contenido. El código no se repite en el archivo y ARKEN junta
+    // los APU de igual nombre: el repetido con otro contenido se llama «… · 2».
+    const codigoApu = new Map(), nombreApu = new Map(), vistosApu = new Set(), contenidos = new Map();
+    apusUsados.forEach((ap, id) => {
+      let c = String(ap.codigo||'').trim() || 'APU';
+      if (vistosApu.has(normaliza(c))){ let k = 2; while (vistosApu.has(normaliza(c + '-' + k))) k++; c = c + '-' + k; }
+      vistosApu.add(normaliza(c)); codigoApu.set(id, c);
+      const huella = (ap.insumos||[]).map(x => codigoIns.get(x.idInsumo) + '×' + Number(x.cantidad||0)).join('|') + '|' + normaliza(ap.unidad);
+      const k = normaliza(ap.nombre), L = contenidos.get(k) || [];
+      let j = L.indexOf(huella); if (j < 0){ L.push(huella); j = L.length - 1; contenidos.set(k, L); }
+      nombreApu.set(id, j ? ap.nombre + ' · ' + (j + 1) : ap.nombre);
+    });
     const hApu = [ENC_APU];
-    apusUsados.forEach(ap => (ap.insumos||[]).forEach((x, k) => {
-      hApu.push([ap.codigo, k === 0 ? ap.nombre : '', k === 0 ? ap.unidad : '', codigoIns.get(x.idInsumo) || '', Number(x.cantidad||0)]);
+    apusUsados.forEach((ap, id) => (ap.insumos||[]).forEach((x, k) => {
+      hApu.push([codigoApu.get(id), k === 0 ? nombreApu.get(id) : '', k === 0 ? ap.unidad : '', codigoIns.get(x.idInsumo) || '', Number(x.cantidad||0)]);
     }));
     const hAct = [ENC_ACT];
     (pres.capitulos||[]).forEach(cap => (cap.subs||[]).forEach(sub => (sub.acts||[]).forEach(a => {
-      const cods = (a.apus||[]).map(id => { const x = Calculo.apu(pres, id); return x ? x.codigo : ''; }).filter(Boolean).join(', ');
+      const cods = (a.apus||[]).map(id => codigoApu.get(id) || '').filter(Boolean).join(', ');
       hAct.push([cap.codigo, cap.nombre, sub.codigo, sub.nombre, a.codigo, a.nombre, a.unidad, Number(a.cantidad||0), cods]);
     })));
     const t = Calculo.totales(pres);

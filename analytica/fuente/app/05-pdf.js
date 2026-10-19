@@ -34,7 +34,14 @@ const Pdf = (function(){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation:cfg.orientacion === 'l' ? 'landscape' : 'portrait', unit:'mm', format:'letter' });
     paraHelvetica(doc);
-    const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 11, BOT = 16;
+    /* Orientación por sección (§21): las hojas nuevas, también las que agrega autoTable, salen con la orientación vigente. */
+    let ori = cfg.orientacion === 'l' ? 'l' : 'p';
+    const addPage0 = doc.addPage.bind(doc);
+    doc.addPage = function(formato, orientacion){ const r = addPage0(formato || 'letter', orientacion || ori); medir(); return r; };
+    let W = 0, H = 0;
+    const M = 11, BOT = 16;
+    function medir(){ W = doc.internal.pageSize.getWidth(); H = doc.internal.pageSize.getHeight(); }
+    medir();
     const e = S.empresa || {};
     const usuario = Sesion.usuario ? (Sesion.usuario.nombre || Sesion.usuario.usuario) : '';
     const fecha = Util.fmtSello(Date.now());
@@ -80,7 +87,12 @@ const Pdf = (function(){
       doc.setDrawColor(22,24,26); doc.setLineWidth(0.5); doc.line(M, Y_REGLA, W - M, Y_REGLA);
       doc.setTextColor(22,24,26);
     }
-    function nuevaPagina(){ doc.addPage(); cabecera(); y = TOP; }
+    function nuevaPagina(o){ if (o) ori = o; doc.addPage(); cabecera(); y = TOP; }
+    /** Una sección que pide hoja propia o cambia de orientación empieza hoja, salvo que la actual esté vacía con la misma orientación. */
+    function hojaPara(o, nueva){
+      const vacia = y <= TOP + 0.01;
+      if ((o && o !== ori) || (nueva && !vacia)) nuevaPagina(o || ori);
+    }
     function espacio(alto){ if (y + alto > H - BOT){ nuevaPagina(); return true; } return false; }
 
     const indice = [];
@@ -119,6 +131,7 @@ const Pdf = (function(){
 
     function seccion(b){
       const nivel = b.nivel || 1;
+      if (b.orientacion || b.nueva) hojaPara(b.orientacion, b.nueva);
       y += nivel === 1 ? 2 : 0.8;
       doc.setFont('helvetica','bold'); doc.setFontSize(nivel === 1 ? 9.2 : 8.2);
       const ls = doc.splitTextToSize(nivel === 1 ? String(b.txt||'').toUpperCase() : String(b.txt||''), W - 2*M);
@@ -177,6 +190,16 @@ const Pdf = (function(){
       }
       y += 2;
     }
+    /** Imagen (una gráfica): ocupa el ancho útil, con su proporción; si no cabe, va a la hoja siguiente. */
+    function imagen(b){
+      const anchoUtil = W - 2*M;
+      let w = Math.min(anchoUtil, b.anchoMm || anchoUtil), h = w * (b.alto / b.ancho);
+      const maxH = H - TOP - BOT - 4;
+      if (h > maxH){ h = maxH; w = h * (b.ancho / b.alto); }
+      espacio(h + 2);
+      try { doc.addImage(b.src, 'PNG', M + (anchoUtil - w) / 2, y, w, h, undefined, 'FAST'); } catch(err){ texto({ txt:'(No se pudo dibujar la imagen.)', gris:true }); return; }
+      y += h + 3;
+    }
     function tabla(b){
       const anchoUtil = W - 2*M;
       const totalAnchos = (b.anchos||[]).reduce((t, x) => t + x, 0) || 1;
@@ -222,13 +245,14 @@ const Pdf = (function(){
         case 'lista': lista(b); break;
         case 'kv': kv(b); break;
         case 'tabla': tabla(b); break;
-        case 'salto': nuevaPagina(); break;
+        case 'imagen': imagen(b); break;
+        case 'salto': nuevaPagina(b.orientacion); break;
       }
     });
 
     /* Índice con números de página: va en la hoja reservada. */
     if (paginaIndice){
-      doc.setPage(paginaIndice);
+      doc.setPage(paginaIndice); medir();
       let yi = TOP;
       doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(22,24,26); doc.text('Índice', M, yi); yi += 8;
       const entradas = indice.length > 48 ? indice.filter(x => x.nivel === 1) : indice;
@@ -248,7 +272,7 @@ const Pdf = (function(){
     /* Pie, marca de agua y «Página x de y» en todas las hojas. */
     const total = doc.internal.getNumberOfPages();
     for (let p = 1; p <= total; p++){
-      doc.setPage(p);
+      doc.setPage(p); medir();
       if (cfg.marcaAgua){
         doc.saveGraphicsState && doc.saveGraphicsState();
         try { doc.setGState(new doc.GState({ opacity:0.12 })); } catch(err){}

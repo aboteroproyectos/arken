@@ -109,7 +109,7 @@ try {
   }
   m.ok(errores.length === 0, `18 módulos, administración y configuración sin un solo error${errores.length ? ': ' + errores.slice(0, 3).join(' | ') : ''}`);
   const fase = await pg.evaluate(() => Array.from(document.querySelectorAll('#railList .nav-item.off')).map((b) => b.dataset.m + ' ' + b.title));
-  m.ok(fase.filter((x) => /Fase 4/.test(x)).length === 2 && !fase.some((x) => /^1[1-4] .*Fase/.test(x)), 'Los módulos 15 y 16 se ven atenuados con la fase en que llegan; del 11 al 14 ya funcionan');
+  m.ok(!fase.some((x) => /Fase/.test(x)), 'Ningún módulo queda atenuado por fase: del 11 al 16 ya funcionan');
 
   const ledger = await pg.textContent('#ledger');
   m.ok(/969,008,207/.test(ledger) && /5 \/ 0/.test(ledger), 'Cinta de totales: presupuesto base $ 969,008,207 e invitados 5 / 0');

@@ -78,6 +78,7 @@ const App = (function(){
     ['#topbar', '#ledger', '#shell'].forEach(s => $(s).style.display = '');
     $('#gPass').value = '';
     Inactividad.iniciar();
+    await ClaveIA.iniciar();
     await Auditoria.registrar('ingresar', 'sesión', u.usuario);
     let ultimo = null;
     try { ultimo = localStorage.getItem('arken-analytica-proceso'); } catch(e){}
@@ -88,6 +89,7 @@ const App = (function(){
   function salir(mensaje){
     if (Sesion.usuario) Auditoria.registrar('salir', 'sesión', Sesion.usuario.usuario + (mensaje ? ' · ' + mensaje : ''));
     Sesion.usuario = null; Sesion.pestanas = {}; Sesion.llaves = {};
+    ClienteIA.olvidar();
     Inactividad.detener();
     $('#modales').innerHTML = '';
     ['#topbar', '#ledger', '#shell'].forEach(s => $(s).style.display = 'none');
@@ -185,11 +187,14 @@ const App = (function(){
   }
 
   /* ── Riel ── */
-  const REQUIERE_PROCESO = ['00','02','04','05','06','07','08','09','10','11','12','13','14'];
+  const REQUIERE_PROCESO = ['00','02','04','05','06','07','08','09','10','11','12','13','14','15','16'];
+  /* En el celular solo se consulta (§6): el tablero, los procesos, el comparativo, el informe y la ayuda. */
+  const EN_CONSULTA = ['00','01','15','16','17'];
   function pintarRail(){
     const p = Modelo.activo();
     $('#railList').innerHTML = MODULOS.map(m => {
-      const motivo = m.fase ? 'Llega en la Fase ' + m.fase : (!p && REQUIERE_PROCESO.indexOf(m.id) >= 0 && m.id !== '00') ? 'Abra un proceso primero' : '';
+      const motivo = m.fase ? 'Llega en la Fase ' + m.fase : Permisos.soloConsulta() && EN_CONSULTA.indexOf(m.id) < 0 ? 'En el celular solo se consulta: esto se hace en el computador'
+        : (!p && REQUIERE_PROCESO.indexOf(m.id) >= 0 && m.id !== '00') ? 'Abra un proceso primero' : '';
       return '<button class="nav-item' + (m.id === Sesion.modulo ? ' active' : '') + (motivo ? ' off' : '') + '" data-m="' + m.id + '" type="button"' + (motivo ? ' title="' + esc(motivo) + '"' : '') +
         (m.id === Sesion.modulo ? ' aria-current="page"' : '') + '><span class="nav-n">' + m.id + '</span><span class="nav-t">' + esc(m.nombre) + '</span></button>';
     }).join('');
@@ -239,6 +244,7 @@ const App = (function(){
     $('#cintaDemo').classList.toggle('hide', !Modelo.hayDemo());
   }
   function ir(modulo){
+    if (Permisos.soloConsulta() && EN_CONSULTA.indexOf(modulo) < 0){ UI.toast('En el celular y la tableta solo se consulta: el tablero, el comparativo y el informe.', 'warn'); return; }
     Sesion.modulo = modulo;
     render();
     const s = $('#stage'); if (s) s.scrollTop = 0;

@@ -6,7 +6,10 @@ name: ARKEN ANALYTICA
 # la criptografía; el núcleo de la Fase 2 (pliego sin precios, manifiesto, sobre, adendas, actas); los
 # sobres maliciosos contra la recepción real; la ida y vuelta con el programa/ARKEN_CONTROL.html real de
 # este repositorio; la prueba de humo del principal y la de ARKEN OFERTA, y la prueba de punta a punta
-# con cinco ofertas en Chromium. Corren también cuando cambia ARKEN CONTROL, porque el contrato
+# con cinco ofertas en Chromium; desde la Fase 4, el núcleo y la prueba de punta a punta de la
+# decisión (comparativo, gerencial, gráficas, concepto, informe, asistente de IA con la API simulada y
+# presupuesto adjudicado), que el SDK de Anthropic incrustado es el oficial sin cambios, y la capa
+# de las apps. Las apps se compilan en compilar-apps-analytica.yml. Corren también cuando cambia ARKEN CONTROL, porque el contrato
 # del Excel vive allí. El HTML probado queda como artefacto de la ejecución.
 
 on:
@@ -43,19 +46,28 @@ jobs:
         working-directory: analytica
     env:
       CHROME_PATH: /usr/bin/google-chrome
+      # Estas pruebas no abren Electron: las apps se compilan en compilar-apps-analytica.yml.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: analytica/package-lock.json
+          cache-dependency-path: |
+            analytica/package-lock.json
+            analytica/herramientas/sdk/package-lock.json
       # Sin las dependencias opcionales de pdf.js (canvas): las pruebas solo leen el texto de los PDF.
       - run: npm ci --omit=optional
+      # El SDK oficial y esbuild, con sus versiones fijas, para rehacer el bloque del SDK y compararlo.
+      # Aquí sí van las dependencias opcionales: el binario de esbuild es una de ellas.
+      - run: npm run sdk:instalar
       - name: Ningún archivo trae datos, claves, llaves privadas, paquetes, sobres ni respaldos
         run: npm run verificar-sin-datos
       - name: El HTML de programa/ es el que sale de fuente/
         run: npm run comprobar
+      - name: El SDK incrustado es el oficial de Anthropic, sin cambios
+        run: npm run sdk:comprobar
       - name: Núcleo (presupuesto, NIT, festivos, Excel de ARKEN y PRECIOS, Anexo B, acuerdo, cronograma, revisión)
         run: npm run prueba:unitarias
       - name: Criptografía (huellas, contraseñas, llaves del proceso, su respaldo y el sobre cerrado)
@@ -64,6 +76,8 @@ jobs:
         run: npm run prueba:nucleo-fase-2
       - name: Núcleo de la Fase 3 (estadística, recálculo, desbalance, AIU, APU, indicadores, métodos económicos, desempate, alertas)
         run: npm run prueba:nucleo-fase-3
+      - name: Núcleo de la Fase 4 (comparativo, gerencial, 15 gráficas, concepto, informe, asistente de IA y presupuesto adjudicado)
+        run: npm run prueba:nucleo-fase-4
       - name: Sobres maliciosos contra la recepción y la apertura
         run: npm run prueba:sobres-maliciosos
       - name: Ida y vuelta con ARKEN CONTROL real
@@ -76,6 +90,10 @@ jobs:
         run: npm run prueba:punta-a-punta
       - name: Punta a punta de la Fase 3 (cinco ofertas de demostración, bandeja de alertas, verificación, subsanación y orden de elegibilidad)
         run: npm run prueba:punta-a-punta-fase-3
+      - name: Punta a punta de la Fase 4 (módulos 15 y 16, concepto firmado, informe PDF y Excel, asistente con la API simulada, ARKEN CONTROL)
+        run: npm run prueba:punta-a-punta-fase-4
+      - name: Capa de las apps en Chromium (navegador, escritorio y Android simulados)
+        run: npm run preparar && npm run prueba:app
       - uses: actions/upload-artifact@v7
         with:
           name: ARKEN_ANALYTICA
