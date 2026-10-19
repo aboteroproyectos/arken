@@ -3199,7 +3199,9 @@ const Store = (function(){
     const datos = JSON.parse(txt);
     if (!datos || !datos.meta || datos.meta.app !== 'ARKEN CONTROL')
       throw new Error('El archivo no corresponde a un respaldo de ARKEN CONTROL.');
+    const licAntes = S && S.licenciaUso, vistoAntes = S && S.licenciaVisto;
     S = Modelo.migrar(datos);
+    LicenciaUso.conservarAlRestaurar(licAntes, vistoAntes);
     guardar(true);
     return S;
   }
@@ -3327,6 +3329,8 @@ const Modelo = (function(){
       parametrosTributarios:{ vigencias:[] },
       puc:[],
       auditoria:[],
+      licenciaUso:null,      // licencia de uso firmada (ver LicenciaUso)
+      licenciaVisto:0,       // referencia del reloj para licencias con vencimiento
       proyectos:[]
     };
   }
@@ -4606,6 +4610,7 @@ const Reglas = (function(){
   function veModulo(idModulo, idProyecto){
     const u = Sesion.usuario;
     if (!u) return false;
+    if (!LicenciaUso.permiteModulo(idModulo)) return false;   // fuera de la licencia, para todos
     if (esAdmin(u)) return true;
     if (idModulo === '00' || idModulo === '16') return true;   // proyectos y ayuda: siempre visibles
     const pid = idProyecto || Sesion.proyectoActivo;
@@ -5705,6 +5710,7 @@ const Documentos = (function(){
       if (!conCabecera.has(i)){ conCabecera.add(i); dibujarCabecera(); }
       pie(i, total);
     }
+    if (LicenciaUso.marca(cfg)) LicenciaUso.estamparPDF(doc);
     return doc;
   }
 
@@ -5766,6 +5772,7 @@ const Documentos = (function(){
     // se resuelven al final, cuando el HTML ya está armado
     const enc = encabezadoDatos(cfg);
     let h = '<div class="p-doc">';
+    if (LicenciaUso.marca(cfg)) h += '<div class="p-marca" aria-hidden="true">' + LicenciaUso.marca(cfg) + '</div>';
     h += '<div class="p-head"><div class="l"><img class="mk" src="' + LOGO_ARKEN + '" alt="">' +
          '<div><div class="ttl">ARKEN CONTROL</div><div class="sb">Sistema de gestión de obra</div>' +
          '<div class="sb" style="letter-spacing:0;text-transform:none">Proyecto: ' + esc(enc.proyecto) + '</div></div></div>' +
@@ -5966,7 +5973,7 @@ const Documentos = (function(){
     const wb = XLSX.utils.book_new();
     hojas.forEach(h => {
       const enc = [
-        ['ARKEN CONTROL — ' + (S.empresa.razonSocial || 'Empresa constructora')],
+        ['ARKEN CONTROL — ' + (S.empresa.razonSocial || 'Empresa constructora') + (LicenciaUso.esDemo() ? ' · DEMOSTRACIÓN' : '')],
         [h.titulo || nombreArchivo],
         ['Generado', fmtSello(Date.now()), 'Usuario', Sesion.usuario ? Sesion.usuario.usuario : ''],
         []
@@ -6803,6 +6810,12 @@ const App = (function(){
 
   /* ═══════════ Navegación ═══════════ */
   function ir(idModulo){
+    if (!LicenciaUso.permiteModulo(idModulo)){
+      UI.aviso('Módulo no incluido en la licencia',
+        '<p>El módulo <b>' + esc(idModulo) + '</b> no forma parte de la licencia de esta empresa.</p>' +
+        '<p class="muted small">Solicite a su proveedor una licencia que lo incluya.</p>');
+      return;
+    }
     if (!Reglas.veModulo(idModulo)){
       UI.aviso('Módulo no habilitado',
         '<p>Su usuario no tiene permiso sobre el módulo <b>' + esc(idModulo) + '</b> en este proyecto.</p>' +
@@ -7128,6 +7141,7 @@ function tagEstado(e){
 }
 
 async function nuevoProyecto(){
+  if (!LicenciaUso.puedeCrearProyecto()){ LicenciaUso.avisoLimite('proyectos'); return; }
   const d = await UI.pedir({
     titulo:'Nuevo proyecto', eyebrow:'Módulo 00 · Proyectos', ancho:'wide', cols:2,
     campos:[
@@ -7182,6 +7196,7 @@ function menuProyecto(id){
         if (a === 'abrir') App.abrirProyecto(id);
         if (a === 'editar') editarProyecto(id);
         if (a === 'duplicar'){
+          if (!LicenciaUso.puedeCrearProyecto()){ LicenciaUso.avisoLimite('proyectos'); return; }
           const cp = JSON.parse(JSON.stringify(p));
           cp.id = uid('pr'); cp.nombre = p.nombre + ' (copia)'; cp.creado = Date.now();
           cp.financiero = { presupuestoInicial:null };
@@ -22573,6 +22588,7 @@ function pdfCarnes(p, lista){
     const cy = 14 + Math.floor(k / cols) * (ch + gy);
     dibujarCarne(doc, p, t, cx, cy, cw, ch);
   });
+  if (LicenciaUso.marca({ proyecto:p })) LicenciaUso.estamparPDF(doc);
   doc.save('ARKEN_carnes_' + (p.codigo||'obra') + '.pdf');
   Modelo.auditar('exportar','carnés', l.length + ' carné(s)', p.id);
   Store.guardar();
@@ -23920,7 +23936,7 @@ function borrarFormatoBiblioteca(p, id){
    PANEL DE ADMINISTRACIÓN — fuera del rail, sólo para administradores.
    ══════════════════════════════════════════════════════════════════════════ */
 const TABS_ADMIN = [
-  { k:'empresa', n:'Empresa' }, { k:'usuarios', n:'Usuarios y permisos' },
+  { k:'empresa', n:'Empresa' }, { k:'licencia', n:'Licencia' }, { k:'usuarios', n:'Usuarios y permisos' },
   { k:'alertas', n:'Reglas de alerta' }, { k:'bandeja', n:'Bandeja de salida' },
   { k:'tributario', n:'Parámetros tributarios' }, { k:'puc', n:'Plan Único de Cuentas' },
   { k:'auditoria', n:'Auditoría' }, { k:'datos', n:'Datos y respaldos' }
@@ -23949,7 +23965,7 @@ const Admin = (function(){
     if (!modal) return;
     $('#adTabs', modal.el).innerHTML = UI.tabs(TABS_ADMIN, Sesion.tabAdmin, k => { Sesion.tabAdmin = k; pintar(); });
     const c = $('#adBody', modal.el);
-    ({ empresa:adEmpresa, usuarios:adUsuarios, alertas:adAlertas, bandeja:adBandeja,
+    ({ empresa:adEmpresa, licencia:adLicencia, usuarios:adUsuarios, alertas:adAlertas, bandeja:adBandeja,
        tributario:adTributario, puc:adPUC, auditoria:adAuditoria, datos:adDatos })[Sesion.tabAdmin](c);
   }
   return { abrir, pintar, get modal(){ return modal; } };
@@ -23973,11 +23989,14 @@ function adEmpresa(c){
   '<b>El nombre «ARKEN CONTROL» y su logotipo no son editables</b>' +
   '<div class="small">El logo de la empresa aparece junto a ellos en todo documento impreso, PDF y Excel.</div></div></div>' +
   '<div class="btn-row" style="margin-top:14px"><button class="btn primary" id="adEmpOk" type="button">Guardar datos de la empresa</button></div>';
-  $('#adEmpOk').onclick = () => {
-    Object.assign(S.empresa, UI.leerForm(c));
+  $('#adEmpOk').onclick = async () => {
+    const nuevo = UI.leerForm(c);
+    if (!(await LicenciaUso.confirmarCambioNIT(nuevo.nit))) return;
+    Object.assign(S.empresa, nuevo);
     if (!S.empresa.dv && S.empresa.nit) S.empresa.dv = calcularDV(S.empresa.nit);
     Modelo.auditar('editar','empresa', S.empresa.razonSocial);
     App.guardar(); Admin.pintar(); UI.toast('Datos guardados', 'ok');
+    LicenciaUso.revisar().then(() => { Admin.pintar(); App.pintarRail(); }).catch(() => {});
   };
   $('#adLogo').onclick = () => UI.pedirArchivo('image/*', f => {
     S.empresa.logo = f.datos; App.guardar(); App.pintarLogoEmpresa(); Admin.pintar(); UI.toast('Logo cargado', 'ok');
@@ -24038,6 +24057,7 @@ function adUsuarios(c){
 }
 
 async function crearUsuarioUI(){
+  if (!LicenciaUso.puedeCrearUsuario()){ LicenciaUso.avisoLimite('usuarios'); return; }
   const d = await UI.pedir({
     titulo:'Crear usuario', eyebrow:'Datos exigidos por el sistema', ancho:'wide', cols:2,
     campos:[
@@ -24078,6 +24098,8 @@ async function editarUsuario(id){
     { k:'correo', lab:'Correo electrónico', tipo:'text', val:u.correo },
     { k:'activo', lab:'Usuario activo', tipo:'check', val:u.activo, col:2 } ]});
   if (!d) return;
+  // Reactivar un usuario inactivo ocupa un cupo igual que crear uno nuevo.
+  if (d.activo && !u.activo && !LicenciaUso.puedeCrearUsuario()){ LicenciaUso.avisoLimite('usuarios'); return; }
   // Object.assign primero, y soloLectura se fija DESPUES: si el orden fuera
   // al reves, el texto crudo del formulario ('si'/'no') pisaria el booleano,
   // y como cualquier texto no vacio es verdadero en JavaScript, todo usuario
@@ -26428,6 +26450,7 @@ const Ayuda = (function(){
     { k:'m14',      n:'14 · Recursos humanos' },
     { k:'m15',      n:'15 · Nómina' },
     { k:'admin',    n:'Panel de administración' },
+    { k:'licencia', n:'Licencia de uso' },
     { k:'alertas',  n:'Alertas: qué tiene y qué le falta' },
     { k:'planner',  n:'Integración con ARKEN PLANNER' },
     { k:'glosario', n:'Glosario operativo' }
@@ -26440,6 +26463,8 @@ const Ayuda = (function(){
     '<ol>' +
     '<li><b>Registre la empresa.</b> Panel de administración → Empresa: razón social, NIT, dirección y logo. ' +
     'Ese logo aparecerá en todos los documentos impresos junto al de ARKEN CONTROL.</li>' +
+    '<li><b>Active su licencia.</b> Panel de administración → Licencia → Cargar licencia…, con el archivo que le entregó su ' +
+    'proveedor. Sin ella el programa funciona en modo demostración.</li>' +
     '<li><b>Cree los usuarios.</b> Panel de administración → Usuarios: usuario, contraseña, nombre, apellidos, ' +
     'número de contacto y correo. El contacto y el correo son los canales de alerta de esa persona.</li>' +
     '<li><b>Asigne permisos.</b> A qué obras entra cada usuario, a qué módulos de cada obra, qué acciones ' +
@@ -26785,8 +26810,32 @@ const Ayuda = (function(){
     'El administrador no puede quitarse a sí mismo el permiso de gestionar usuarios si es el único que lo tiene.</p>' +
     '<h4>Acciones sensibles</h4><p>Autorizar pagos, fijar el presupuesto inicial, revertirlo, eliminar registros, ' +
     'crear contratos, aprobar cortes y gestionar usuarios se asignan una por una.</p>' +
+    '<h4>Licencia</h4><p>La pestaña <b>Licencia</b> carga, muestra y renueva la licencia de uso (ver «Licencia de uso» en esta ayuda).</p>' +
     '<h4>Auditoría</h4><p>Todo evento que cree, modifique, elimine, autorice o revierta queda registrado con fecha ' +
     'y hora, usuario, acción, entidad, proyecto y detalle. Se conservan los últimos 5.000 eventos.</p>';
+
+  T.licencia =
+    '<h3>Licencia de uso</h3>' +
+    '<p>ARKEN CONTROL se usa bajo licencia: un archivo firmado digitalmente a nombre de su empresa. El programa lo ' +
+    'verifica sin conexión; no puede fabricar licencias.</p>' +
+    '<h4>Cómo se activa</h4>' +
+    '<ol><li>Registre el NIT en Administración → Empresa (o deje que la licencia lo traiga).</li>' +
+    '<li>Administración → Licencia → <b>Cargar licencia…</b> y elija el archivo que le entregó su proveedor.</li>' +
+    '<li>El panel muestra el titular, la edición, el vencimiento y el uso de proyectos y de usuarios.</li></ol>' +
+    '<h4>Qué comprueba el programa</h4>' +
+    '<ul><li>La firma digital: que nadie haya modificado el archivo.</li>' +
+    '<li>Que sea para ARKEN CONTROL y que sus límites sean válidos.</li>' +
+    '<li>Que el NIT sea el de la empresa registrada (con o sin dígito de verificación).</li>' +
+    '<li>Que no esté vencida —vale hasta el final del día de vencimiento— y que la fecha del equipo no esté atrasada ' +
+    'respecto de la última vez que se usó con la licencia vigente.</li></ul>' +
+    '<h4>Modo demostración</h4>' +
+    '<p>Sin licencia válida el programa sigue funcionando completo y <b>nunca bloquea sus datos</b>; los PDF, las ' +
+    'impresiones y los Excel llevan la marca «DEMOSTRACIÓN» y no se pueden crear más de 5 proyectos ni 6 usuarios ' +
+    'activos. Los proyectos y usuarios de demostración no cuentan.</p>' +
+    '<h4>Renovar o ampliar</h4>' +
+    '<p>Pulse <b>Descargar solicitud de licencia</b> y envíela a su proveedor. Una licencia más reciente reemplaza a ' +
+    'la vigente; una más antigua se rechaza. La licencia viaja con «Guardar archivo» y con los respaldos.</p>' +
+    '<p class="muted small">Más detalle en el módulo 16 · Ayudas → Licencia de uso.</p>';
 
   T.alertas =
     '<h3>Alertas: qué tiene y qué le falta — la frontera honesta</h3>' +
@@ -26851,6 +26900,10 @@ const Ayuda = (function(){
     '<tr><td><b>Presupuesto inicial</b></td><td>Copia congelada e inmutable del presupuesto, base del análisis financiero.</td></tr>' +
     '<tr><td><b>Bandeja de salida</b></td><td>Cola de alertas emitidas con su estado de envío.</td></tr>' +
     '<tr><td><b>Vigencia tributaria</b></td><td>Conjunto de parámetros tributarios aplicable a un rango de fechas.</td></tr>' +
+    '<tr><td><b>Licencia de uso</b></td><td>Archivo firmado que autoriza a una empresa (por su NIT) a usar el programa, con sus límites de proyectos y usuarios y su vencimiento.</td></tr>' +
+    '<tr><td><b>Modo demostración</b></td><td>Estado sin licencia válida: todo funciona, los documentos llevan la marca DEMOSTRACIÓN y hay tope de 5 proyectos y 6 usuarios al crear.</td></tr>' +
+    '<tr><td><b>Solicitud de licencia</b></td><td>Archivo que se descarga en Administración → Licencia para pedir o renovar una licencia.</td></tr>' +
+    '<tr><td><b>Huella de la clave</b></td><td>Código corto que identifica la clave pública en la que confía el programa («Clave del emisor»).</td></tr>' +
     '</tbody></table>';
 
   function abrir(seccion){
@@ -26958,7 +27011,7 @@ const Demo = (function(){
       const sal = uid('sal');
       const u = { id: uid('us'), usuario: d[0], sal, clave: sha256Hex(sal + '::arken2026'),
         nombre: d[2], apellidos: d[3], contacto:'300' + String(1000000 + i*111111).slice(0,7),
-        correo: d[0] + '@sinco-cb.com', rol: d[4], activo:true, debeCambiarClave:false,
+        correo: d[0] + '@sinco-cb.com', rol: d[4], activo:true, demo:true, debeCambiarClave:false,
         permisos:{ proyectos:[], modulos:{}, acciones:{} }, alertasSuscritas:[], canalPreferido:{}, ultimoAcceso:0 };
       ACCIONES.forEach(a => u.permisos.acciones[a.k] = d[5].indexOf(a.k) >= 0);
       // Permisos diferenciados: no todos entran a todo
@@ -29395,6 +29448,7 @@ const TABS_16 = [
   { k:'bitacora',    n:'Módulo 06 · Bitácora' },
   { k:'otros',       n:'Otros módulos' },
   { k:'roles',       n:'Roles y permisos' },
+  { k:'licencia',    n:'Licencia de uso' },
   { k:'info',        n:'Información del software' }
 ];
 
@@ -29472,6 +29526,10 @@ const AYUDA_CONTENIDO = {
         'y ábralo. Desde ahí los demás módulos —del 01 al 15— quedan vinculados exclusivamente a esa obra.</p>' +
         '<p>El orden natural de arranque es: <b>01</b> ficha del proyecto → <b>03</b> presupuesto → <b>05</b> causaciones ' +
         'a medida que compra y contrata → <b>06</b> bitácora todos los días.</p>' },
+    { q:'¿Cómo activo mi licencia?',
+      a:'<p>Entre a <b>Administración → Licencia → Cargar licencia…</b> y elija el archivo que le entregó su ' +
+        'proveedor. Sin licencia el programa funciona en <b>modo demostración</b> (marca de agua y hasta 5 proyectos y ' +
+        '6 usuarios activos). Todo el detalle está en la pestaña <b>Licencia de uso</b> de esta misma ayuda.</p>' },
     { q:'¿Cómo se guarda la información?',
       a:'<p>Sola. Cada cambio se escribe automáticamente; no existe un botón «Guardar todo» que haya que recordar. ' +
         'Si instaló la versión de escritorio, se guarda en un archivo de su computador con respaldos automáticos ' +
@@ -29694,7 +29752,25 @@ const AYUDA_CONTENIDO = {
         'sistema propone por defecto al asignar salario a un trabajador nuevo.</p>' },
     { q:'Vigencia tributaria',
       a:'<p>El conjunto de tarifas de retención, IVA y demás parámetros legales aplicable a un rango de fechas. Cada ' +
-        'documento se calcula con la vigencia de <b>su propia fecha</b>, no con la vigente hoy.</p>' }
+        'documento se calcula con la vigencia de <b>su propia fecha</b>, no con la vigente hoy.</p>' },
+    { q:'Licencia de uso',
+      a:'<p>El archivo firmado que autoriza a una empresa —identificada por su NIT— a usar ARKEN CONTROL, con sus ' +
+        'límites de proyectos y usuarios, su vencimiento y, si aplica, sus módulos. Se carga en <b>Administración → ' +
+        'Licencia</b>.</p>' },
+    { q:'Modo demostración',
+      a:'<p>El estado del programa sin licencia válida: funciona completo, pero los documentos salen con la marca ' +
+        '«DEMOSTRACIÓN» y no se pueden crear más de 5 proyectos ni 6 usuarios activos. Nunca bloquea los datos ya ' +
+        'registrados.</p>' },
+    { q:'Solicitud de licencia',
+      a:'<p>Archivo pequeño que se descarga en <b>Administración → Licencia</b> con los datos de la empresa y su uso ' +
+        'actual; se envía al proveedor para pedir o renovar una licencia.</p>' },
+    { q:'Huella de la clave',
+      a:'<p>Código corto —cinco grupos de cuatro caracteres— que identifica la clave pública en la que confía el ' +
+        'programa. Permite comprobar a simple vista que el programa y la licencia hablan de la misma clave. Aparece ' +
+        'en Administración → Licencia como «Clave del emisor».</p>' },
+    { q:'Serie y edición de una licencia',
+      a:'<p>La <b>serie</b> es el número único de cada licencia emitida; la <b>edición</b> es el nombre comercial del ' +
+        'paquete (Prueba, Profesional, Empresarial, Ilimitada o una personalizada).</p>' }
   ],
 
   documentos: [
@@ -29929,6 +30005,81 @@ const AYUDA_CONTENIDO = {
       a:'<p>El botón «Formulario digital» abre una versión llenable del Formulario Único Nacional del Ministerio de Vivienda, fiel al oficial en sus cuatro páginas y el anexo de construcción sostenible. Se llena en pantalla, se guarda solo y se imprime o exporta a PDF diligenciado, con el escudo del Ministerio.</p>' }
   ],
 
+  licencia: [
+    { q:'¿Qué es la licencia de uso de ARKEN CONTROL?',
+      a:'<p>Un archivo firmado digitalmente que ARKEN 360 emite a nombre de su empresa. Dice quién es el titular y su ' +
+        'NIT, cuántos proyectos y cuántos usuarios activos permite, hasta cuándo vale (o si no vence) y, cuando aplica, ' +
+        'qué módulos incluye. El programa comprueba la firma por sí mismo, sin conexión a internet: no puede fabricar ' +
+        'licencias, sólo verificar que una sea auténtica.</p>' +
+        '<p>Se carga <b>una sola vez</b>: queda guardada dentro de sus datos y viaja con «Guardar archivo» y con los ' +
+        'respaldos.</p>' },
+    { q:'¿Cómo cargo mi licencia?',
+      a:'<ol><li>Entre al panel de <b>Administración → Licencia</b>.</li>' +
+        '<li>Pulse <b>Cargar licencia…</b> y elija el archivo <code>LICENCIA_ARKEN-CONTROL_….json</code> que le entregó ' +
+        'su proveedor.</li>' +
+        '<li>Si la empresa todavía no tiene NIT registrado, el sistema propone tomar el NIT y la razón social de la ' +
+        'licencia: acepte.</li></ol>' +
+        '<p>Al terminar, el panel muestra «Licencia vigente», el titular, la edición, el vencimiento y cuánto lleva ' +
+        'usado de proyectos y de usuarios. Si el archivo no sirve, un aviso dice exactamente por qué.</p>' },
+    { q:'¿Qué es el modo demostración y qué limita?',
+      a:'<p>Es el estado del programa cuando no hay una licencia válida: nunca se cargó, venció, no corresponde al NIT ' +
+        'de la empresa o la fecha del equipo quedó atrasada. <b>Todo sigue funcionando</b> y sus datos nunca se ' +
+        'bloquean. Lo que cambia es:</p>' +
+        '<ul><li>Los PDF, las vistas de impresión y los Excel salen marcados con <b>DEMOSTRACIÓN</b>.</li>' +
+        '<li>No se pueden <b>crear</b> más de 5 proyectos ni más de 6 usuarios activos (cuenta también duplicar un ' +
+        'proyecto o reactivar un usuario).</li></ul>' +
+        '<p>Los proyectos y usuarios de demostración que trae el programa no cuentan para esos topes. Si usted ya tiene ' +
+        'más registros que el tope, no se borra ni se desactiva nada: sólo se impide crear más.</p>' },
+    { q:'¿Qué pasa cuando mi licencia vence?',
+      a:'<p>La licencia vale <b>hasta el final del día</b> de su fecha de vencimiento. Treinta días antes el programa ' +
+        'lo avisa al ingresar y el panel de Licencia lo resalta. Pasada la fecha vuelve el modo demostración: puede ' +
+        'seguir consultando, imprimiendo y exportando todo lo suyo, pero con la marca y los topes de la demostración. ' +
+        'Al cargar la licencia renovada todo queda como estaba, sin perder nada.</p>' +
+        '<p class="muted small">Una licencia emitida sin fecha de vencimiento no vence.</p>' },
+    { q:'Dice que la fecha del equipo está atrasada — ¿qué hago?',
+      a:'<p>Para que atrasar el reloj del computador no sirva de atajo para estirar una licencia con vencimiento, el ' +
+        'programa recuerda la fecha más reciente en que se usó con la licencia vigente. Si hoy el equipo marca una ' +
+        'fecha anterior (por más de un día y medio), suspende la licencia y se lo dice.</p>' +
+        '<p><b>Solución:</b> corrija la fecha y la hora del equipo —lo más fácil es activar la hora automática del ' +
+        'sistema— y recargue la página. Si la fecha del equipo era la correcta y la registrada estaba adelantada, ' +
+        'pida a su proveedor una renovación: al cargar una licencia con fecha de emisión posterior, la referencia se ' +
+        'reinicia.</p>' +
+        '<p class="muted small">Las licencias sin vencimiento no dependen del reloj.</p>' },
+    { q:'¿Por qué la licencia exige el NIT de la empresa?',
+      a:'<p>Porque se emite a nombre de una empresa y sólo sirve para ella. El NIT de la licencia debe ser el que ' +
+        'está registrado en <b>Administración → Empresa</b> (con o sin el dígito de verificación). Si cambia el NIT ' +
+        'teniendo una licencia vigente, el sistema se lo advierte antes de guardar: con otro NIT la licencia deja de ' +
+        'aplicar y el programa pasa a modo demostración hasta que cargue la licencia del NIT nuevo.</p>' },
+    { q:'¿Cómo renuevo o amplío mi licencia?',
+      a:'<p>En <b>Administración → Licencia</b> pulse <b>Descargar solicitud de licencia</b>. Es un archivo pequeño con ' +
+        'el nombre y el NIT de la empresa, cuántos proyectos y usuarios usa hoy, los datos de la licencia actual y la ' +
+        'clave en la que confía el programa. Envíeselo a su proveedor; recibirá un archivo nuevo para cargar en el ' +
+        'mismo lugar.</p>' +
+        '<p>Una licencia más reciente reemplaza a la vigente; una más antigua se rechaza, para que nadie reactive por ' +
+        'error una licencia vieja.</p>' },
+    { q:'¿Qué pasa con la licencia si restauro un respaldo o guardo el archivo?',
+      a:'<p>La licencia viaja con sus datos: «Guardar archivo» la lleva dentro del HTML y los respaldos <code>.json</code> ' +
+        'también. Al restaurar un respaldo, el programa conserva la licencia <b>más reciente</b> entre la que ya ' +
+        'tenía y la que trae el respaldo; restaurar una copia antigua no deja a la empresa sin licencia.</p>' },
+    { q:'«Esta licencia fue firmada con otra clave» — ¿qué significa?',
+      a:'<p>Cada programa ARKEN lleva sellada la <b>clave pública</b> en la que confía y sólo acepta licencias firmadas ' +
+        'con la clave privada que le corresponde. Ese aviso sale cuando la licencia se firmó con una clave distinta de ' +
+        'la del programa (el mensaje muestra las dos huellas). Casi siempre quiere decir que el archivo del programa ' +
+        'no es la versión que corresponde a esa licencia: pida a su proveedor el programa sellado con su clave.</p>' +
+        '<p>La <b>huella</b> de la clave que su programa reconoce aparece en Administración → Licencia, en «Clave ' +
+        'del emisor».</p>' },
+    { q:'¿Funciona si abro el programa desde la red de la oficina (http://)?',
+      a:'<p>Sí. Algunos navegadores ocultan la verificación criptográfica cuando el programa se abre por ' +
+        '<code>http://</code> desde otro equipo de la red; por eso ARKEN trae su propio verificador y valida la ' +
+        'licencia igual. El panel indica cuál de los dos se usó («navegador» o «verificador propio del programa»).</p>' },
+    { q:'¿Qué módulos incluye mi licencia?',
+      a:'<p>Lo dice el panel, en <b>Administración → Licencia → Módulos incluidos</b>. Una licencia puede cubrir todos ' +
+        'los módulos o sólo algunos; el <b>00 · Proyectos</b> y el <b>16 · Ayudas</b> siempre están incluidos. Los ' +
+        'módulos que su licencia no incluye no aparecen en el menú, y si intenta abrir uno por otra vía el sistema le ' +
+        'explica que no forma parte de la licencia y que debe pedir una que lo cubra. Los datos de ese módulo no se ' +
+        'pierden.</p>' }
+  ],
+
   roles: [
     { q:'¿Qué roles existen?',
       a:'<p>Administrador general, Gerencia, Ingeniero residente, Almacenista, SISO, <b>Dirección de obra</b>, ' +
@@ -29939,6 +30090,11 @@ const AYUDA_CONTENIDO = {
         'puede consultar e imprimir cualquier módulo al que tenga acceso, pero no puede registrar, editar ni ' +
         'eliminar nada — ni siquiera si su rol normalmente lo permitiría. Se activa en <b>Administración → ' +
         'Usuarios</b>.</p>' },
+    { q:'¿Quién puede cargar o renovar la licencia?',
+      a:'<p>Quien tenga acceso al panel de Administración: el Administrador general o quien él autorice a gestionar ' +
+        'usuarios. Todos los demás ven el estado en la pantalla de ingreso («Licenciado a …» o «Versión de ' +
+        'demostración») y, en modo demostración, en la etiqueta «Demostración» de la barra superior; al pulsarla, ' +
+        'el sistema les indica que pidan al administrador cargar la licencia.</p>' },
     { q:'¿Quién puede eliminar registros?',
       a:'<p>Sólo el Administrador general, o quien él autorice explícitamente. Es una sola puerta para todo el ' +
         'sistema: no hay un módulo donde la regla sea distinta.</p>' },
@@ -29978,9 +30134,13 @@ function ayudaInfoSoftware(){
       // ── El rótulo: la disciplina de un plano técnico — una fila, un dato.
       '<div class="ay-rotulo">' +
         fila('Creador', 'ARKEN 360') +
-        fila('Versión', '<span class="num">1.8.23</span>') +
+        fila('Versión', '<span class="num">1.9.0</span>') +
         fila('Copyright', '© ' + anio + ' ARKEN 360 — todos los derechos reservados') +
         fila('Naturaleza', 'Software de propiedad privada, bajo licencia de uso') +
+        fila('Licencia', LicenciaUso.esDemo() ? 'Modo demostración — sin licencia vigente' :
+          'Licenciado a <b>' + esc(S.licenciaUso.titular) + '</b> · NIT ' + esc(String(S.licenciaUso.nit).replace(/\D/g, '')) +
+          (S.licenciaUso.edicion ? ' · ' + esc(S.licenciaUso.edicion) : '') +
+          (S.licenciaUso.vence ? ' · vence el ' + esc(fmtFecha(S.licenciaUso.vence)) : ' · sin vencimiento')) +
       '</div>' +
 
       // ── La cláusula: enmarcada aparte, con el peso de un documento firmado.
@@ -31557,6 +31717,7 @@ function imprimirFormularioUnico(p){
     '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">' +
     '<title>Formulario Único Nacional - ' + esc(p.nombre) + '</title>' +
     '<style>' + FUN_CSS_IMPRESION + '</style></head><body>' +
+    (LicenciaUso.marca({ proyecto:p }) ? '<div style="position:fixed;top:40%;left:0;right:0;text-align:center;font:800 70px system-ui,sans-serif;letter-spacing:.06em;color:rgba(110,116,122,.16);transform:rotate(-35deg);pointer-events:none;z-index:9">' + LicenciaUso.marca({ proyecto:p }) + '</div>' : '') +
     funImprimiblePagina(funPagina1(fun), fun) +
     funImprimiblePagina(funPagina2(fun), fun) +
     funImprimiblePagina(funPagina3(fun), fun) +
@@ -32395,6 +32556,565 @@ function imprimirActaVecindad(p, acta, enBlanco){
 }
 
 
+/* ══════════════════════════════════════════════════════════════════════════
+   LICENCIA DE USO
+   La licencia es un archivo JSON firmado con ECDSA P-256 / SHA-256. El
+   programa sólo trae la clave PÚBLICA del emisor: puede VERIFICAR una
+   licencia, nunca fabricarla. La clave privada la guarda el titular de la
+   marca, fuera de este archivo, y se usa desde ARKEN_GENERADOR_LICENCIAS.html.
+
+   Qué dice una licencia
+     · A quién se le otorgó (titular y NIT) y qué edición es.
+     · Cuántos proyectos y cuántos usuarios activos permite.
+     · Opcionalmente, hasta cuándo vale y qué módulos incluye.
+
+   Sin licencia válida —nunca cargada, vencida o inválida— el programa queda
+   en modo DEMOSTRACIÓN: todo funciona, los documentos salen con marca de agua
+   y no se pueden crear más de 5 proyectos ni 6 usuarios activos. Jamás se
+   bloquea el acceso a los datos ya registrados: una empresa con la licencia
+   vencida sigue pudiendo consultar, imprimir y exportar lo suyo.
+
+   Alcance honesto: un programa que viaja como un archivo HTML no puede impedir
+   que alguien con conocimientos edite su propio código. La licencia es una
+   barrera comercial seria contra la copia entre empresas, el uso vencido y el
+   uso casual; la protección absoluta exige un servidor. Por eso se apoya,
+   además, en el contrato de licencia.
+   ══════════════════════════════════════════════════════════════════════════ */
+const LICENCIA_PRODUCTO = 'ARKEN CONTROL';
+/* Los dos marcadores que rodean la clave permiten que el generador de
+   licencias selle OTRA clave pública sin tocar una línea más del programa.
+   No los edite a mano. */
+const LICENCIA_CLAVE_PUBLICA = /*ARKEN-LIC-PUBKEY>*/{"kty":"EC","crv":"P-256","x":"DOva5wz5J-0YH2bMwt4zqDhFGl9ph_WZ1fuR8r1DEbI","y":"vg-ZAiW0z5YxYxWnanxmZsiOtv4ioAxR1yHXAhOv618"}/*<ARKEN-LIC-PUBKEY*/;
+const LIMITES_DEMO = { proyectos: 5, usuarios: 6 };
+
+/* ── Respaldo: ECDSA P-256 en JavaScript puro (BigInt) ──────────────────────
+   crypto.subtle sólo existe en contextos seguros (archivo local, localhost o
+   https). Si la empresa sirve el programa por http:// desde otro equipo de la
+   red, el navegador lo oculta y la licencia no podría verificarse. Este
+   verificador da el mismo veredicto sin depender de él. Verificar sólo maneja
+   datos públicos, así que no necesita ser de tiempo constante. */
+const ECDSA_P256_JS = (function(){
+  if (typeof BigInt !== 'function') return null;
+  const B = BigInt;
+  const P  = B('0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff');
+  const N  = B('0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551');
+  const CB = B('0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b');
+  const GX = B('0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296');
+  const GY = B('0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5');
+  const Z0 = B(0), U1 = B(1), D2 = B(2), T3 = B(3), C4 = B(4), O8 = B(8);
+  const INF = [U1, U1, Z0];                       // punto en el infinito (Z = 0)
+  const mod = (a, m) => { const r = a % m; return r >= Z0 ? r : r + m; };
+  function inv(a, m){                              // inverso modular, Euclides extendido
+    let r0 = mod(a, m), r1 = m, s0 = U1, s1 = Z0;
+    while (r1 !== Z0){ const q = r0 / r1; const r2 = r0 - q * r1; r0 = r1; r1 = r2; const s2 = s0 - q * s1; s0 = s1; s1 = s2; }
+    if (r0 !== U1) throw new Error('sin inverso');
+    return mod(s0, m);
+  }
+  function dbl(p){                                 // duplicación jacobiana (a = −3)
+    const X = p[0], Y = p[1], Z = p[2];
+    if (Z === Z0 || Y === Z0) return INF;
+    const delta = mod(Z * Z, P), gamma = mod(Y * Y, P), beta = mod(X * gamma, P);
+    const alpha = mod(T3 * (X - delta) * (X + delta), P);
+    const X3 = mod(alpha * alpha - O8 * beta, P);
+    const Z3 = mod((Y + Z) * (Y + Z) - gamma - delta, P);
+    const Y3 = mod(alpha * (C4 * beta - X3) - O8 * gamma * gamma, P);
+    return [X3, Y3, Z3];
+  }
+  function sum(p, q){                              // suma de puntos jacobianos
+    if (p[2] === Z0) return q;
+    if (q[2] === Z0) return p;
+    const X1 = p[0], Y1 = p[1], Z1 = p[2], X2 = q[0], Y2 = q[1], Z2 = q[2];
+    const Z1Z1 = mod(Z1 * Z1, P), Z2Z2 = mod(Z2 * Z2, P);
+    const A1 = mod(X1 * Z2Z2, P), A2 = mod(X2 * Z1Z1, P);
+    const S1 = mod(Y1 * Z2 * Z2Z2, P), S2 = mod(Y2 * Z1 * Z1Z1, P);
+    const H = mod(A2 - A1, P), R = mod(S2 - S1, P);
+    if (H === Z0) return R === Z0 ? dbl(p) : INF;
+    const HH = mod(H * H, P), HHH = mod(H * HH, P), V = mod(A1 * HH, P);
+    const X3 = mod(R * R - HHH - D2 * V, P);
+    const Y3 = mod(R * (V - X3) - S1 * HHH, P);
+    const Z3 = mod(Z1 * Z2 * H, P);
+    return [X3, Y3, Z3];
+  }
+  function mul(k, x, y){                           // k·(x, y) duplicando y sumando
+    const Q = [x, y, U1];
+    let R = INF;
+    const bits = k.toString(2);
+    for (let i = 0; i < bits.length; i++){ R = dbl(R); if (bits.charAt(i) === '1') R = sum(R, Q); }
+    return R;
+  }
+  const aEntero = u8 => B('0x' + Array.prototype.map.call(u8, b => ('0' + b.toString(16)).slice(-2)).join(''));
+
+  /** jwk: clave pública {x, y} · firma: 64 bytes r‖s · hash: 32 bytes (SHA-256 del mensaje)
+      b64: decodificador base64url → Uint8Array. */
+  function verificar(jwk, firma, hash, b64){
+    try {
+      if (!jwk || !firma || firma.length !== 64 || !hash || hash.length !== 32) return false;
+      const r = aEntero(firma.subarray(0, 32)), s = aEntero(firma.subarray(32, 64));
+      if (r <= Z0 || r >= N || s <= Z0 || s >= N) return false;
+      const bx = b64(jwk.x), by = b64(jwk.y);
+      if (bx.length !== 32 || by.length !== 32) return false;
+      const qx = aEntero(bx), qy = aEntero(by);
+      if (qx >= P || qy >= P) return false;
+      if (mod(qy * qy - (qx * qx * qx - T3 * qx + CB), P) !== Z0) return false;   // Q debe estar sobre la curva
+      const e = aEntero(hash);
+      const w = inv(s, N), u1 = mod(e * w, N), u2 = mod(r * w, N);
+      const X = sum(mul(u1, GX, GY), mul(u2, qx, qy));
+      if (X[2] === Z0) return false;
+      const zi = inv(X[2], P);
+      return mod(mod(X[0] * zi * zi, P), N) === r;
+    } catch(e){ return false; }
+  }
+  return { verificar: verificar };
+})();
+
+const LicenciaUso = (function(){
+  const MARCA_RELOJ = 'arken_licuso_visto';        // localStorage: la fecha más reciente vista con licencia válida
+  const TOLERANCIA_RELOJ_MS = 36 * 3600 * 1000;    // husos horarios, cambios de hora, relojes desajustados
+  const AVISO_VENCE_DIAS = 30;
+  let verificada = null, temporizador = null;
+
+  /* ── Utilidades ── */
+  /** JSON con claves ordenadas: lo que se firma y lo que se verifica es, bit a
+      bit, el mismo texto aunque el archivo reordene sus campos. */
+  function jsonEstable(v){
+    if (v === null || typeof v !== 'object') return JSON.stringify(v === undefined ? null : v);
+    if (Array.isArray(v)) return '[' + v.map(jsonEstable).join(',') + ']';
+    return '{' + Object.keys(v).sort().filter(k => v[k] !== undefined)
+      .map(k => JSON.stringify(k) + ':' + jsonEstable(v[k])).join(',') + '}';
+  }
+  function b64aBytes(b64){
+    const s = atob(String(b64).replace(/-/g, '+').replace(/_/g, '/'));
+    const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u;
+  }
+  function hexABytes(h){ const u = new Uint8Array(h.length / 2); for (let i = 0; i < u.length; i++) u[i] = parseInt(h.substr(i * 2, 2), 16); return u; }
+  const digitos = x => String(x == null ? '' : x).replace(/\D/g, '');
+  const fechaOk = iso => typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso) && isoDe(fechaDe(iso)) === iso;
+  function canonico(lic){ const d = Object.assign({}, lic); delete d.firma; return jsonEstable(d); }
+  /** Límite válido: entero positivo o la palabra «ilimitado». Cero NO significa «sin límite». */
+  function limite(v){
+    if (v === 'ilimitado') return Infinity;
+    return (typeof v === 'number' && Number.isInteger(v) && v > 0) ? v : null;
+  }
+  const textoLimite = n => n === Infinity ? 'Ilimitado' : String(n);
+  /** Huella de una clave pública: sirve para comprobar, a simple vista, que el
+      programa y el generador de licencias hablan de la misma clave. */
+  function huellaClave(jwk){
+    const k = jwk || LICENCIA_CLAVE_PUBLICA;
+    const h = sha256Hex(jsonEstable({ crv: k.crv, kty: k.kty, x: k.x, y: k.y })).slice(0, 20).toUpperCase();
+    return h.match(/.{4}/g).join('-');
+  }
+
+  /* ── Referencia del reloj ──
+     Si la licencia vence, la fecha de este equipo manda. Para que atrasar el
+     reloj no sirva de atajo, se recuerda la fecha más reciente vista con la
+     licencia vigente: en el navegador y dentro del propio archivo de datos.
+     Una licencia perpetua no usa el reloj para nada. */
+  function piso(){
+    let a = 0; try { a = Number(localStorage.getItem(MARCA_RELOJ)) || 0; } catch(e){}
+    const b = (typeof S !== 'undefined' && S) ? (Number(S.licenciaVisto) || 0) : 0;
+    return Math.max(a, b);
+  }
+  function marcarVisto(reiniciar){
+    const ahora = Date.now();
+    const nuevo = reiniciar ? ahora : Math.max(piso(), ahora);
+    try { localStorage.setItem(MARCA_RELOJ, String(nuevo)); } catch(e){}
+    if (S && (reiniciar || nuevo - (Number(S.licenciaVisto) || 0) >= 3600000)){
+      S.licenciaVisto = nuevo;
+      try { Store.guardar(); } catch(e){}
+    }
+  }
+
+  /* ── Verificación de la firma ── */
+  async function firmaValida(lic){
+    const texto = canonico(lic);
+    const firma = b64aBytes(lic.firma);
+    if (typeof crypto !== 'undefined' && crypto.subtle){
+      try {
+        const clave = await crypto.subtle.importKey('jwk', LICENCIA_CLAVE_PUBLICA,
+          { name:'ECDSA', namedCurve:'P-256' }, false, ['verify']);
+        const ok = await crypto.subtle.verify({ name:'ECDSA', hash:'SHA-256' }, clave, firma, new TextEncoder().encode(texto));
+        return { ok, metodo:'navegador' };
+      } catch(e){ /* sigue con el respaldo en JavaScript */ }
+    }
+    if (ECDSA_P256_JS)
+      return { ok: ECDSA_P256_JS.verificar(LICENCIA_CLAVE_PUBLICA, firma, hexABytes(sha256Hex(texto)), b64aBytes), metodo:'javascript' };
+    return { ok:false, sinCripto:true };
+  }
+
+  /** Verifica una licencia. opc.sinNIT / opc.sinReloj omiten esas dos comprobaciones
+      (se usan al cargar una licencia nueva, que las hace en su propio orden). */
+  async function verificar(lic, opc){
+    opc = opc || {};
+    if (!lic || typeof lic !== 'object' || Array.isArray(lic) || typeof lic.firma !== 'string' || !lic.firma)
+      return { ok:false, codigo:'sin_licencia', motivo:'No hay una licencia cargada' };
+    let f;
+    try { f = await firmaValida(lic); }
+    catch(e){ return { ok:false, codigo:'error', motivo:'No se pudo leer la licencia: ' + e.message }; }
+    if (f.sinCripto)
+      return { ok:false, codigo:'sin_cripto', motivo:'Este navegador no puede verificar firmas digitales. Abra el programa con una versión actual de Chrome, Edge, Firefox o Safari.' };
+    if (!f.ok){
+      /* Si la licencia declara con qué clave se firmó y no es la de este programa, se dice con todas las letras:
+         es el caso típico de un programa sin sellar con la clave del emisor. */
+      const decl = (typeof lic.emisor === 'string' && /^[0-9A-F]{4}(-[0-9A-F]{4}){4}$/.test(lic.emisor)) ? lic.emisor : '';
+      if (decl && decl !== huellaClave())
+        return { ok:false, codigo:'firma', otraClave:true, motivo:'Esta licencia fue firmada con otra clave (' + decl + ') y este programa confía en la clave ' + huellaClave() +
+          '. Pida a su proveedor la versión del programa que corresponde a su licencia' };
+      return { ok:false, codigo:'firma', motivo:'La firma de la licencia no es válida: el archivo fue modificado o lo firmó otro emisor' };
+    }
+    if (lic.producto !== LICENCIA_PRODUCTO)
+      return { ok:false, codigo:'producto', motivo:'Esta licencia no es para ' + LICENCIA_PRODUCTO + (lic.producto ? ' (es de ' + lic.producto + ')' : ' (no indica el producto)') };
+    if (typeof lic.titular !== 'string' || !lic.titular.trim() || digitos(lic.nit).length < 5 || !fechaOk(lic.emitida))
+      return { ok:false, codigo:'incompleta', motivo:'La licencia está incompleta: faltan el titular, el NIT o la fecha de emisión' };
+    if (limite(lic.maxProyectos) === null || limite(lic.maxUsuarios) === null)
+      return { ok:false, codigo:'limites', motivo:'La licencia trae límites de proyectos o de usuarios que no son válidos' };
+    if (lic.vence != null && !fechaOk(lic.vence))
+      return { ok:false, codigo:'incompleta', motivo:'La fecha de vencimiento de la licencia no es válida' };
+    if (lic.modulos != null && !(Array.isArray(lic.modulos) && lic.modulos.every(m => typeof m === 'string')))
+      return { ok:false, codigo:'modulos', motivo:'La lista de módulos de la licencia no es válida' };
+    if (!opc.sinNIT){
+      const nitLic = digitos(lic.nit), nitEmp = digitos(S && S.empresa && S.empresa.nit);
+      if (!nitEmp)
+        return { ok:false, codigo:'sin_nit', motivo:'Registre primero el NIT de la empresa (Administración → Empresa): esta licencia es del NIT ' + nitLic };
+      if (nitEmp !== nitLic && nitEmp !== nitLic + calcularDV(nitLic))
+        return { ok:false, codigo:'nit', motivo:'La licencia es del NIT ' + nitLic + ' y esta empresa tiene registrado el NIT ' + nitEmp };
+    }
+    let dias = null;
+    if (lic.vence){
+      dias = diasEntre(hoyISO(), lic.vence);
+      if (dias < 0)
+        return { ok:false, codigo:'vencida', vencida:true, dias, motivo:'La licencia venció el ' + fmtFecha(lic.vence) };
+      if (!opc.sinReloj && piso() - Date.now() > TOLERANCIA_RELOJ_MS)
+        return { ok:false, codigo:'reloj', relojAtrasado:true, dias,
+          motivo:'La fecha de este equipo está atrasada respecto de la última vez que se usó el programa (' + fmtSello(piso()) + '). Corrija la fecha y la hora del equipo' };
+    }
+    return { ok:true, codigo:'ok', motivo:'', dias, metodo:f.metodo };
+  }
+
+  /* ── Estado ── */
+  function estado(){ return verificada || { ok:false, codigo:'sin_verificar', motivo:'Sin verificar' }; }
+  function esDemo(){ return !estado().ok; }
+  function limites(){
+    const l = (typeof S !== 'undefined' && S) ? S.licenciaUso : null;
+    if (esDemo() || !l) return { proyectos: LIMITES_DEMO.proyectos, usuarios: LIMITES_DEMO.usuarios };
+    return { proyectos: limite(l.maxProyectos), usuarios: limite(l.maxUsuarios) };
+  }
+  /** Los proyectos y usuarios de demostración que trae el programa no cuentan. */
+  function uso(){
+    return { proyectos: (S.proyectos || []).filter(p => !p.demo).length,
+             usuarios:  (S.usuarios  || []).filter(u => u.activo && !u.demo).length };
+  }
+  function puedeCrearProyecto(){ return uso().proyectos < limites().proyectos; }
+  function puedeCrearUsuario(){ return uso().usuarios < limites().usuarios; }
+  function permiteModulo(id){
+    if (id === '00' || id === '16' || esDemo()) return true;
+    const m = S.licenciaUso && S.licenciaUso.modulos;
+    return !Array.isArray(m) || m.indexOf(id) >= 0;
+  }
+  /** Rótulo de los módulos incluidos, para el panel. */
+  function modulosIncluidos(){
+    const total = MODULOS.length;
+    const m = !esDemo() && S.licenciaUso && S.licenciaUso.modulos;
+    if (!Array.isArray(m)) return { n: total, total, todos:true };
+    return { n: MODULOS.filter(x => permiteModulo(x.id)).length, total, todos:false };
+  }
+
+  async function revisar(){
+    const antes = verificada;
+    verificada = await verificar(S && S.licenciaUso);
+    if (verificada.ok && S.licenciaUso.vence) marcarVisto(false);
+    pintarMarca();
+    if (antes && antes.ok !== verificada.ok && typeof Sesion !== 'undefined' && Sesion.usuario){
+      try { App.pintarRail(); } catch(e){}
+      UI.toast(verificada.ok ? 'La licencia volvió a estar vigente' : 'La licencia dejó de estar vigente: ' + verificada.motivo, verificada.ok ? 'ok' : 'warn');
+    }
+    if (!temporizador){
+      temporizador = setInterval(() => { if (typeof S !== 'undefined' && S) revisar().catch(() => {}); }, 5 * 60000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden && typeof S !== 'undefined' && S) revisar().catch(() => {}); });
+    }
+    return verificada;
+  }
+
+  /** Carga una licencia. opc.confirmarAdopcion(lic) se invoca cuando la empresa
+      todavía no tiene NIT: si responde true, el NIT (y la razón social, si está
+      vacía) se toman de la licencia. */
+  async function cargar(texto, opc){
+    opc = opc || {};
+    let lic;
+    try { lic = JSON.parse(String(texto == null ? '' : texto).replace(/^﻿/, '').trim()); }
+    catch(e){ throw new Error('El archivo no es una licencia de ARKEN: no tiene el formato esperado.'); }
+    // 1 · firma, producto y contenido (el NIT y el reloj se miran después, en orden)
+    const base = await verificar(lic, { sinNIT:true, sinReloj:true });
+    if (!base.ok) throw new Error(base.motivo);
+    // 2 · el NIT debe ser el de la empresa
+    const nitLic = digitos(lic.nit), nitEmp = digitos(S.empresa && S.empresa.nit);
+    let adoptar = false;
+    if (!nitEmp){
+      adoptar = !!(opc.confirmarAdopcion && await opc.confirmarAdopcion(lic));
+      if (!adoptar) throw new Error('Registre primero el NIT de la empresa (Administración → Empresa): esta licencia es del NIT ' + nitLic + '.');
+    } else if (nitEmp !== nitLic && nitEmp !== nitLic + calcularDV(nitLic)){
+      throw new Error('Esta licencia es del NIT ' + nitLic + ' y esta empresa tiene registrado el NIT ' + nitEmp +
+        '. Una licencia sólo sirve para la empresa a cuyo NIT se emitió.');
+    }
+    // 3 · una licencia anterior no reemplaza a la vigente
+    const act = S.licenciaUso;
+    if (act && act.emitida && estado().ok && lic.emitida < act.emitida)
+      throw new Error('Ya hay cargada una licencia más reciente (emitida el ' + fmtFecha(act.emitida) + '). Una licencia anterior no la reemplaza.');
+    // 4 · una renovación (emitida después) reinicia la referencia del reloj; cargar de nuevo la misma, no
+    const renovacion = !act || !act.emitida || lic.emitida > act.emitida;
+    if (!renovacion){
+      const r = await verificar(lic, { sinNIT:true });
+      if (!r.ok) throw new Error(r.motivo);
+    }
+    // 5 · se aplica; si algo saliera mal, todo vuelve a como estaba
+    const copia = { lic: act, visto: S.licenciaVisto, nit: S.empresa.nit, dv: S.empresa.dv, rs: S.empresa.razonSocial, marca: piso() };
+    if (adoptar){
+      S.empresa.nit = nitLic; S.empresa.dv = calcularDV(nitLic);
+      if (!String(S.empresa.razonSocial || '').trim()) S.empresa.razonSocial = lic.titular;
+    }
+    if (renovacion) marcarVisto(true);
+    S.licenciaUso = lic;
+    const v = await verificar(lic);
+    if (!v.ok){
+      S.licenciaUso = copia.lic; S.licenciaVisto = copia.visto;
+      S.empresa.nit = copia.nit; S.empresa.dv = copia.dv; S.empresa.razonSocial = copia.rs;
+      try { localStorage.setItem(MARCA_RELOJ, String(copia.marca)); } catch(e){}
+      throw new Error(v.motivo);
+    }
+    verificada = v;
+    Modelo.auditar('cargar licencia', 'licencia',
+      (lic.serie ? lic.serie + ' · ' : '') + lic.titular + ' · ' + (lic.edicion || 'sin edición') + ' · vence ' + (lic.vence || 'sin vencimiento'));
+    pintarMarca();
+    return v;
+  }
+
+  /** Al restaurar un respaldo no se pierde la licencia: se conserva la más reciente. */
+  function conservarAlRestaurar(licAntes, vistoAntes){
+    if (licAntes && (!S.licenciaUso || String(licAntes.emitida) > String(S.licenciaUso.emitida || '')))
+      S.licenciaUso = licAntes;
+    S.licenciaVisto = Math.max(Number(vistoAntes) || 0, Number(S.licenciaVisto) || 0);
+  }
+
+  /** Antes de cambiar el NIT de la empresa: con licencia vigente, avisa que dejará de aplicar. */
+  async function confirmarCambioNIT(nuevoNit){
+    const l = S.licenciaUso;
+    if (!l || !estado().ok) return true;
+    const a = digitos(l.nit), b = digitos(nuevoNit);
+    if (b === a || b === a + calcularDV(a)) return true;
+    return await UI.confirmar({ titulo:'Cambiar el NIT de la empresa',
+      cuerpo:'<p>La licencia cargada es del NIT <b>' + esc(a) + '</b>. Con otro NIT la licencia deja de aplicar y el programa pasa a modo demostración.</p>',
+      textoAceptar:'Cambiar de todos modos', claseAceptar:'danger' });
+  }
+
+  /* ── Avisos ── */
+  function avisoLimite(que){
+    const lim = limites(), u = uso(), demo = esDemo();
+    const esP = que === 'proyectos';
+    const n = esP ? lim.proyectos : lim.usuarios, usado = esP ? u.proyectos : u.usuarios;
+    const cosa = esP ? 'proyectos' : 'usuarios activos';
+    UI.aviso('Límite de la licencia',
+      '<div class="alert warn"><div class="ic">!</div><div class="bd"><b>' +
+        (esP ? 'Se alcanzó el máximo de proyectos' : 'Se alcanzó el máximo de usuarios activos') + '</b>' +
+        '<div class="small">' + (demo
+          ? 'El programa está en <b>modo demostración</b>, que admite hasta ' + n + ' ' + cosa + '. '
+          : 'Su licencia permite ' + textoLimite(n) + ' ' + cosa + '. ') + 'Hoy hay ' + usado + '.</div></div></div>' +
+      '<p class="muted small">' + (demo
+        ? 'Cargue su licencia en <b>Administración → Licencia</b> para trabajar sin esta restricción.'
+        : 'Para ampliar el máximo, solicite una licencia con mayor capacidad.' +
+          (esP ? '' : ' También puede desactivar un usuario que ya no utilice el sistema.')) + '</p>');
+  }
+  /** Mensaje de arranque: modo demostración o vencimiento próximo. */
+  function avisoInicial(){
+    const e = estado();
+    if (!e.ok){
+      const txt = e.codigo === 'sin_licencia' || e.codigo === 'sin_verificar'
+        ? 'Modo demostración — cargue su licencia en Administración → Licencia'
+        : 'Modo demostración — ' + e.motivo;
+      setTimeout(() => UI.toast(txt, 'warn'), 1400);
+    } else if (e.dias !== null && e.dias <= AVISO_VENCE_DIAS){
+      setTimeout(() => UI.toast('Su licencia vence ' + (e.dias === 0 ? 'hoy' : 'en ' + e.dias + ' día' + (e.dias === 1 ? '' : 's')) +
+        ' (' + fmtFecha(S.licenciaUso.vence) + ')', 'warn'), 1400);
+    }
+  }
+
+  /* ── Marca de DEMOSTRACIÓN en los documentos ── */
+  /** Texto de la marca de agua: la del modo demostración, o la de un proyecto de ejemplo. */
+  function marca(cfg){
+    if (esDemo()) return 'DEMOSTRACIÓN';
+    if (cfg && cfg.proyecto && cfg.proyecto.demo) return 'DEMOSTRACIÓN';
+    return '';
+  }
+  /** Sella en cada página de un PDF (jsPDF) la marca diagonal, translúcida. */
+  function estamparPDF(doc, texto){
+    texto = texto || 'DEMOSTRACIÓN';
+    const n = doc.internal.getNumberOfPages();
+    const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+    for (let i = 1; i <= n; i++){
+      doc.setPage(i);
+      doc.saveGraphicsState();
+      let translucido = true;
+      try { doc.setGState(new doc.GState({ opacity: 0.13 })); } catch(e){ translucido = false; }
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(64);
+      if (translucido) doc.setTextColor(110, 116, 122); else doc.setTextColor(224, 226, 227);
+      // jsPDF centra el texto antes de girarlo y lo deja corrido: se calcula el punto de
+      // partida para que el centro del rótulo caiga exactamente en el centro de la hoja.
+      const ang = 35 * Math.PI / 180, w = doc.getTextWidth(texto), alto = 64 * 0.3528 * 0.72;
+      const sx = W / 2 - Math.cos(ang) * w / 2 + Math.sin(ang) * alto / 2;
+      const sy = H / 2 + Math.sin(ang) * w / 2 + Math.cos(ang) * alto / 2;
+      doc.text(texto, sx, sy, { angle: 35 });
+      doc.restoreGraphicsState();
+    }
+    doc.setPage(n);
+    doc.setTextColor(22, 24, 26);
+  }
+
+  /* ── Indicadores en pantalla ── */
+  function pintarMarca(){
+    if (typeof document === 'undefined') return;
+    if (!document.getElementById('licUsoCss')){
+      const st = document.createElement('style'); st.id = 'licUsoCss';
+      st.textContent =
+        '.p-doc{position:relative}' +
+        '.p-marca{position:absolute;top:36%;left:0;right:0;text-align:center;font:800 54px system-ui,sans-serif;' +
+          'letter-spacing:.06em;color:rgba(110,116,122,.14);transform:rotate(-35deg);pointer-events:none;user-select:none;z-index:5}' +
+        '@media print{.p-marca{position:fixed;top:40%}}' +
+        '.lic-pill{flex:none;border:1px solid var(--brass);background:transparent;color:#E9D9B3;font:600 10px/1 var(--font-body,system-ui,sans-serif);' +
+          'letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:99px;cursor:pointer}' +
+        '.lic-pill:hover{background:rgba(169,139,84,.18)}' +
+        '.gate-lic{font-size:11px;color:var(--slate);margin-bottom:10px;line-height:1.5}' +
+        '.gate-lic b{color:var(--ink)}' +
+        '.gate-lic.demo{color:var(--warn)}' +
+        '.lic-barra{height:5px;border-radius:99px;background:var(--mist);margin-top:9px;overflow:hidden}' +
+        '.lic-barra i{display:block;height:100%;background:var(--ok);border-radius:99px}' +
+        '.lic-barra i.alto{background:var(--warn)} .lic-barra i.lleno{background:var(--bad)}';
+      document.head.appendChild(st);
+    }
+    const e = estado(), demo = !e.ok;
+    // Etiqueta en la barra superior
+    let pill = document.getElementById('marcaAgua');
+    const acc = document.querySelector('.topbar-actions');
+    if (demo && acc){
+      if (!pill){
+        pill = document.createElement('button'); pill.type = 'button'; pill.id = 'marcaAgua'; pill.className = 'lic-pill';
+        pill.onclick = () => {
+          if (Reglas.esAdmin(Sesion.usuario) || Reglas.puede('gestionarUsuarios')) Admin.abrir('licencia');
+          else UI.aviso('Modo demostración', '<p>' + esc(estado().motivo) + '.</p><p class="muted small">Pida al administrador del sistema que cargue la licencia.</p>');
+        };
+        acc.insertBefore(pill, acc.firstChild);
+      }
+      pill.textContent = e.vencida ? 'Licencia vencida' : 'Demostración';
+      pill.title = e.codigo === 'sin_licencia' || e.codigo === 'sin_verificar'
+        ? 'Modo demostración: cargue su licencia en Administración → Licencia' : e.motivo;
+    } else if (pill){ pill.remove(); }
+    // Línea en la pantalla de ingreso
+    const pie = document.querySelector('.gate-foot');
+    if (pie){
+      let g = document.getElementById('gLic');
+      if (!g){ g = document.createElement('div'); g.id = 'gLic'; pie.insertBefore(g, pie.firstChild); }
+      g.className = 'gate-lic' + (demo ? ' demo' : '');
+      g.innerHTML = demo
+        ? 'Versión de <b>demostración</b>' + (e.codigo === 'sin_licencia' || e.codigo === 'sin_verificar' ? '' : ' · ' + esc(e.motivo))
+        : 'Licenciado a <b>' + esc(S.licenciaUso.titular) + '</b> · NIT ' + esc(digitos(S.licenciaUso.nit)) +
+          (S.licenciaUso.edicion ? ' · ' + esc(S.licenciaUso.edicion) : '');
+    }
+  }
+
+  /* ── Datos para pedir o renovar la licencia ── */
+  function solicitud(){
+    const u = uso(), l = S.licenciaUso;
+    return { tipo:'solicitud-licencia', producto: LICENCIA_PRODUCTO,
+      empresa: S.empresa.razonSocial || '', nit: digitos(S.empresa.nit),
+      proyectos: u.proyectos, usuariosActivos: u.usuarios,
+      licenciaActual: l ? { serie: l.serie || '', edicion: l.edicion || '', vence: l.vence || '' } : null,
+      huellaClave: huellaClave(), generada: new Date().toISOString() };
+  }
+
+  /* ── Panel de Administración → Licencia ── */
+  function barra(usado, tope){
+    if (tope === Infinity || !tope) return '';
+    const p = Math.min(100, Math.round(usado * 100 / tope));
+    return '<div class="lic-barra"><i class="' + (usado >= tope ? 'lleno' : p >= 80 ? 'alto' : '') + '" style="width:' + p + '%"></i></div>';
+  }
+  function panelHTML(){
+    const e = estado(), l = S.licenciaUso, lim = limites(), u = uso(), mi = modulosIncluidos();
+    let alerta;
+    if (e.ok){
+      const cerca = e.dias !== null && e.dias <= AVISO_VENCE_DIAS;
+      alerta = '<div class="alert ' + (cerca ? 'warn' : 'ok') + '"><div class="ic">' + (cerca ? '!' : '✓') + '</div><div class="bd">' +
+        '<b>' + (cerca ? 'Licencia vigente — vence pronto' : 'Licencia vigente') + '</b>' +
+        '<div class="small">Licenciado a <strong>' + esc(l.titular) + '</strong>' + (l.edicion ? ' · edición ' + esc(l.edicion) : '') +
+        (l.vence ? ' · vence el ' + esc(fmtFecha(l.vence)) + (e.dias !== null ? ' (' + (e.dias === 0 ? 'hoy' : 'faltan ' + e.dias + ' día' + (e.dias === 1 ? '' : 's')) + ')' : '') : ' · sin fecha de vencimiento') +
+        '.</div></div></div>';
+    } else {
+      const sin = e.codigo === 'sin_licencia' || e.codigo === 'sin_verificar';
+      alerta = '<div class="alert warn"><div class="ic">!</div><div class="bd"><b>Modo demostración</b>' +
+        '<div class="small">' + (sin ? 'Todavía no hay una licencia cargada.' : esc(e.motivo) + '.') +
+        ' El sistema funciona completo, pero los documentos salen con marca de agua y se admiten hasta ' + LIMITES_DEMO.proyectos +
+        ' proyectos y ' + LIMITES_DEMO.usuarios + ' usuarios activos.</div></div></div>';
+    }
+    const stat = (lab, val, foot, extra) => '<div class="stat' + (extra || '') + '"><div class="lab">' + lab + '</div><div class="val" style="font-size:' +
+      (String(val).length > 22 ? '13' : '16') + 'px">' + val + '</div>' + (foot ? '<div class="foot">' + foot + '</div>' : '') + '</div>';
+    const vig = e.ok;
+    return alerta +
+      '<div class="grid g4" style="margin:14px 0 10px">' +
+        stat('Titular', vig ? esc(l.titular) : '—') +
+        stat('NIT', vig ? esc(digitos(l.nit)) + '-' + calcularDV(l.nit) : '—') +
+        stat('Edición', vig ? esc(l.edicion || '—') : 'Demostración') +
+        stat('Vence', vig ? (l.vence ? esc(fmtFecha(l.vence)) : 'Sin vencimiento') : '—',
+             vig && l.vence && e.dias !== null ? (e.dias === 0 ? 'vence hoy' : e.dias + ' día' + (e.dias === 1 ? '' : 's') + ' restantes') : '') +
+      '</div>' +
+      '<div class="grid g3">' +
+        '<div class="stat"><div class="lab">Proyectos</div><div class="val">' + u.proyectos + ' de ' + textoLimite(lim.proyectos) + '</div>' + barra(u.proyectos, lim.proyectos) + '</div>' +
+        '<div class="stat"><div class="lab">Usuarios activos</div><div class="val">' + u.usuarios + ' de ' + textoLimite(lim.usuarios) + '</div>' + barra(u.usuarios, lim.usuarios) + '</div>' +
+        '<div class="stat"><div class="lab">Módulos incluidos</div><div class="val">' + (mi.todos ? 'Todos (' + mi.total + ')' : mi.n + ' de ' + mi.total) + '</div></div>' +
+      '</div>' +
+      '<div class="p-sec" style="margin-top:18px">Detalle</div>' +
+      '<div class="p-kv" style="grid-template-columns:200px 1fr;font-size:12px">' +
+        '<div class="k">Serie</div><div class="mono">' + esc(vig && l.serie ? l.serie : '—') + '</div>' +
+        '<div class="k">Emitida</div><div>' + (vig ? esc(fmtFecha(l.emitida)) : '—') + '</div>' +
+        '<div class="k">Clave del emisor (huella)</div><div class="mono">' + esc(huellaClave()) + '</div>' +
+        '<div class="k">Verificación</div><div>' + (vig ? 'Firma digital correcta (' + (e.metodo === 'javascript' ? 'verificador propio del programa' : 'navegador') + ')' : '—') + '</div>' +
+      '</div>' +
+      '<div class="btn-row" style="margin:16px 0">' +
+        '<button class="btn primary" id="lcCargar" type="button">Cargar licencia…</button>' +
+        '<button class="btn" id="lcSolicitud" type="button">Descargar solicitud de licencia</button>' +
+      '</div>' +
+      '<div class="nota-tab"><span class="clave">Licencia</span> La licencia es un archivo firmado digitalmente que emite el titular de ARKEN CONTROL a nombre de su empresa. ' +
+        'Cárguela una sola vez: queda guardada dentro de sus datos y viaja con el archivo y con los respaldos. ' +
+        'Para renovarla o ampliarla, descargue la <b>solicitud</b> y envíela a su proveedor; recibirá un archivo nuevo para cargar aquí. ' +
+        'Sin licencia vigente el programa sigue funcionando en <b>modo demostración</b>: sus datos nunca se bloquean.</div>';
+  }
+
+  return { verificar, revisar, estado, esDemo, limites, uso, puedeCrearProyecto, puedeCrearUsuario, permiteModulo,
+           cargar, conservarAlRestaurar, confirmarCambioNIT, avisoLimite, avisoInicial, marca, estamparPDF, pintarMarca,
+           solicitud, huellaClave, panelHTML, canonico, jsonEstable };
+})();
+
+/** Administración → Licencia */
+function adLicencia(c){
+  c.innerHTML = LicenciaUso.panelHTML();
+  $('#lcCargar', c).onclick = () => UI.pedirArchivo('.json,.lic,application/json,text/plain', async f => {
+    try {
+      const v = await LicenciaUso.cargar(f.datos, {
+        confirmarAdopcion: lic => UI.confirmar({ titulo:'Completar los datos de la empresa',
+          cuerpo:'<p>La empresa todavía no tiene NIT registrado. ¿Tomar los datos de la licencia?</p>' +
+            '<div class="p-kv" style="grid-template-columns:130px 1fr"><div class="k">NIT</div><div>' + esc(lic.nit) + '</div>' +
+            '<div class="k">Razón social</div><div>' + esc(lic.titular) + '</div></div>',
+          textoAceptar:'Sí, usar estos datos' })
+      });
+      App.guardar(); Admin.pintar(); App.pintarRail();
+      UI.toast('Licencia cargada' + (v.dias !== null ? ' — vence en ' + v.dias + ' día' + (v.dias === 1 ? '' : 's') : ''), 'ok');
+    } catch(e){
+      UI.aviso('No se pudo cargar la licencia', '<p>' + esc(e.message) + '</p>');
+    }
+  }, true);
+  $('#lcSolicitud', c).onclick = () => {
+    const sol = LicenciaUso.solicitud();
+    UI.descargar('SOLICITUD_LICENCIA_ARKEN-CONTROL_' + (sol.nit || 'sin-nit') + '.json', JSON.stringify(sol, null, 2), 'application/json');
+    Modelo.auditar('descargar', 'solicitud de licencia', sol.empresa || sol.nit);
+  };
+}
+
+
 const Arranque = (function(){
 
   async function iniciar(){
@@ -32426,6 +33146,9 @@ const Arranque = (function(){
     }
     Calculo.invalidar();
     App.aplicarConfig();
+
+    // 1b · Licencia: se verifica antes de mostrar la pantalla de ingreso
+    try { await LicenciaUso.revisar(); } catch(e){}
 
     // 2 · Pantalla de ingreso
     const primeraVez = (S.usuarios||[]).some(u => u.usuario === 'admin' && u.debeCambiarClave);
@@ -32502,6 +33225,7 @@ const Arranque = (function(){
       else if (Documentos.haySoporte() && !S.config.noPedirEnlace) setTimeout(() => ofrecerEnlace(false), 1400);
     });
     UI.toast('Bienvenido, ' + ((Sesion.usuario.nombre || Sesion.usuario.usuario)), 'ok');
+    LicenciaUso.avisoInicial();
   }
 
   /* El sistema vive en un archivo. Lo natural es que cada registro quede
