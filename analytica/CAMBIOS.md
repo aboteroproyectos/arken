@@ -1,5 +1,63 @@
 # ARKEN ANALYTICA · Registro de cambios
 
+## 0.4.0 · Fase 4 · Decisión, informe y apps (19 de octubre de 2026)
+
+Con esta entrega, la evaluación termina en un concepto firmado por el comité y un informe en PDF y Excel. El presupuesto adjudicado pasa a ARKEN CONTROL, y el programa llega como app de escritorio y como app de consulta para el celular.
+
+### Comparativo y cuadro gerencial (módulo 15)
+
+- **Cuadro comparativo** por capítulo, subcapítulo o actividad, con el presupuesto base, cada oferta, su desviación frente a la base y frente a la mediana, coloreado por tamaño. Se filtra por capítulo, por peso mínimo y por «solo con alertas»; las actividades con alerta llevan un punto.
+- **Cuadro gerencial** en una página: valor, diferencia frente a la base, plazo, AIU, habilitación con su causal, puntaje por grupo, total, experiencia, indicadores financieros, alertas críticas y un semáforo por proponente. Dice «En evaluación» hasta que el concepto esté firmado y entonces «Recomendado: …». Un clic en el puntaje lleva a su cálculo en el módulo 14.
+- **Matriz de requisitos** con el cumplimiento y los puntos de cada proponente, también los requisitos que usted creó. Cada celda abre la verificación.
+- Los tres se exportan a Excel y a PDF.
+
+### Las 15 gráficas
+
+Valor total frente a la base, cascada por capítulo, mapa de calor, caja y bigotes, Pareto de la base, composición por insumo, AIU, radar de puntajes, técnico frente a valor, curvas S, Gantt comparativo, indicadores financieros, experiencia en SMMLV, desbalance en el tiempo y sensibilidad (tornado).
+
+- Pasar el cursor por un proponente lo resalta en la gráfica; un clic en un capítulo baja a sus subcapítulos.
+- Cada una se ve en pantalla completa, se exporta en PNG, SVG o PDF y se marca para el informe.
+- Los colores de cada proponente son los mismos en todas.
+
+### Concepto e informe (módulo 16)
+
+- **Concepto de adjudicación** generado a partir de la evaluación: resumen, análisis por grupo de requisitos, fortalezas y debilidades de cada proponente con su evidencia, orden de elegibilidad, recomendación, condiciones y riesgos del primero y el segundo. El comité edita cada texto.
+- **Firmas:** se firma con dos miembros del comité y su contraseña. El PDF lleva las firmas y la huella. Si algo cambia después de firmar (una verificación, un texto), el concepto vuelve a borrador con un aviso y hay que firmarlo de nuevo.
+- **Informe final** con las 23 secciones de §20 en casillas, reordenables arrastrando o con flechas, más una sección por cada requisito que usted creó. Se eligen las gráficas que entran. Sale en PDF carta (portada, índice, encabezado, pie y «Página x de y») y en Excel, una hoja por tabla.
+- Mientras el concepto no esté firmado, el informe lleva la marca de agua «BORRADOR: NO ES UNA DECISIÓN».
+- **Versiones:** cada informe generado queda guardado con su fecha, su huella y quién lo generó, y se puede volver a bajar.
+- **Presupuesto adjudicado para ARKEN CONTROL:** con el concepto firmado, el presupuesto del proponente recomendado sale en el Excel de importación de ARKEN CONTROL, con sus APU e insumos. Los APU repetidos y los insumos con la misma descripción y otro precio se renombran para que ARKEN CONTROL no los junte.
+- El tablero del proceso muestra el cuadro gerencial corto y tres gráficas después de la apertura.
+
+### Asistente de IA (opcional, §18.13)
+
+- **Apagado por defecto.** Lo enciende el administrador en el módulo 16 › Asistente, con su clave de API de Anthropic, el modelo y un tope de gasto por mes. Se puede apagar en un proceso.
+- **Antes de cada llamada** una ventana dice qué se envía, a quién, el costo estimado y lo que va del tope. Nada sale sin «Enviar a la API».
+- **Lectura de documentos** desde la ventana de verificación: la IA propone el valor de cada campo con el texto literal y la página. El programa lo descarta si ese texto no está en el documento, y nada se escribe solo: el evaluador decide qué usar.
+- **Redacción del concepto:** la IA propone el resumen, la recomendación, las condiciones y los riesgos a partir de los hechos de la evaluación. Cada parte se acepta o se descarta, y una parte con una cifra o un proponente que no estén en la evaluación no se puede aceptar.
+- **La IA no da puntajes ni decide** el cumplimiento: no tiene cómo.
+- **La clave** se cifra en el equipo: con la bóveda del sistema operativo en la app de escritorio, o con una llave del navegador que no se puede exportar. No va en los respaldos ni en el HTML.
+- Cada llamada queda en la auditoría con el modelo, los tokens y el costo.
+
+### Apps (§6)
+
+- **Escritorio (Windows, macOS y Linux),** recomendada para la empresa: una ventana propia, la clave de API en la bóveda del sistema operativo y una copia de los datos por día, de los últimos 10 días (Ayuda › Abrir la carpeta de copias diarias). Fuera de la app, solo sale a internet el asistente, hacia la API de Anthropic.
+- **Celular y tableta (Android e iOS), solo consulta:** el tablero, los procesos, el comparativo, el informe y la ayuda. Los datos llegan restaurando un respaldo hecho en el computador. Lo que se descarga se abre en el menú Compartir.
+- En la app, la política de seguridad permite cada script del programa por su huella: un script inyectado en la página no corre.
+- GitHub Actions compila las cinco (`compilar-apps-analytica.yml`); una etiqueta `analytica-vX.Y.Z` publica los instaladores.
+
+### Seguridad
+
+- `herramientas/verificar-sin-datos.mjs` bloquea también los informes, conceptos, cuadros, gráficas y presupuestos de un proceso, las copias diarias y la bóveda de la app de escritorio.
+- Borrar la demostración también borra sus conceptos, informes, lecturas y uso de la IA.
+
+### Pruebas
+
+- **`pruebas/nucleo-fase-4.mjs` (47):** el comparativo suma lo mismo que el cálculo en cada nivel, el gerencial, las 15 gráficas sin NaN, el concepto, el informe con un requisito creado por el usuario, la validación de la IA (lectura y redacción), el costo y el tope, y el presupuesto adjudicado leído como lo lee ARKEN CONTROL.
+- **`pruebas/punta-a-punta-fase-4.mjs` (51), en Chromium:** módulos 15 y 16 sobre el proceso evaluado, la evidencia a dos clics, las exportaciones, la firma con dos del comité y el cambio después de firmar, el informe en PDF y Excel, el asistente con la API simulada y la importación del presupuesto adjudicado en el `programa/ARKEN_CONTROL.html` real.
+- **`pruebas/app.mjs` (16):** la capa de las apps con escritorio y Android simulados.
+- La de humo ya no deja ningún módulo atenuado.
+
 ## 0.3.0 · Fase 3 · Verificación y análisis (19 de octubre de 2026)
 
 Con esta entrega, las ofertas abiertas se verifican, se analizan y se ordenan. Cada hallazgo llega a una bandeja de alertas con su porqué y su evidencia.

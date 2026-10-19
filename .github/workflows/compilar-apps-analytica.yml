@@ -1,0 +1,260 @@
+name: Compilar ARKEN ANALYTICA
+
+# Cada cambio de ARKEN ANALYTICA (carpeta analytica/) en main compila sus apps (§6): la de escritorio
+# para Windows, macOS y Linux, recomendada para la empresa, y la de celular y tableta para Android e
+# iOS, que solo consulta el tablero, el comparativo y el informe. Los instaladores quedan en la
+# pestaña Actions (sección «Artifacts» de cada ejecución). Una etiqueta analytica-vX.Y.Z publica
+# además una versión en «Releases». Las etiquetas vX.Y.Z siguen siendo de ARKEN CONTROL y las
+# precios-vX.Y.Z de ARKEN PRECIOS.
+#
+# Los proyectos de Android e iOS no viven en el repositorio: se generan aquí con Capacitor a partir
+# de www/ (npm run preparar), que es el mismo programa con la capa de la app.
+
+on:
+  push:
+    branches: [main]
+    # Los filtros de carpeta no aplican a las etiquetas: una etiqueta analytica-v* siempre compila.
+    tags: ['analytica-v*']
+    paths:
+      - 'analytica/**'
+      - '.github/workflows/compilar-apps-analytica.yml'
+  pull_request:
+    paths:
+      - 'analytica/**'
+      - '.github/workflows/compilar-apps-analytica.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: compilar-analytica-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: analytica
+
+jobs:
+  # ─── La capa de la app en Chromium y la app de escritorio empacada para Linux ───
+  pruebas:
+    name: Pruebas de las apps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: analytica/package-lock.json
+      # Sin las dependencias opcionales de pdf.js (canvas): la app solo lee el texto de los PDF.
+      - run: npm ci --omit=optional
+      - name: Ningún archivo trae datos, claves, llaves privadas, paquetes, sobres ni respaldos
+        run: npm run verificar-sin-datos
+      - name: www/ sin datos y con la política de seguridad por huellas
+        run: npm run preparar
+      - name: Capa de la app en Chromium (navegador, escritorio y Android simulados)
+        run: npm run prueba:app
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+      - name: Empaquetar la app de escritorio para Linux
+        run: npm run dist:linux
+      - name: La app empacada no trae datos ni claves
+        run: |
+          npx --yes @electron/asar@4.0.1 extract dist/linux-unpacked/resources/app.asar "$RUNNER_TEMP/asar"
+          test -f "$RUNNER_TEMP/asar/www/index.html"
+          if grep -rlE 'sk-ant-[A-Za-z0-9_-]{20,}|BEGIN (RSA |EC )?PRIVATE KEY' "$RUNNER_TEMP/asar"; then echo "::error::La app empacada trae algo con forma de clave"; exit 1; fi
+          node -e "const h=require('fs').readFileSync(process.argv[1],'utf8');const m=h.match(/<script id=\"arken-datos\"[^>]*>([\s\S]*?)<\/script>/);if(m&&m[1].trim()!=='null'){console.error('La app empacada trae datos');process.exit(1)}" "$RUNNER_TEMP/asar/www/index.html"
+
+  android:
+    name: Android (solo consulta)
+    needs: pruebas
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: analytica/package-lock.json
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - name: Versión
+        id: version
+        run: echo "nombre=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Generar el proyecto de Android
+        run: |
+          npm run preparar
+          npx cap add android
+          npx cap sync android
+          sed -i -E "s/versionCode [0-9]+/versionCode ${{ github.run_number }}/; s/versionName \"[^\"]*\"/versionName \"${{ steps.version.outputs.nombre }}\"/" android/app/build.gradle
+      - name: Compilar el APK
+        working-directory: analytica/android
+        run: ./gradlew assembleRelease --no-daemon
+      # La misma clave de firma de ARKEN CONTROL y ARKEN PRECIOS (android/firma en la raíz).
+      - name: Firmar el APK
+        id: firma
+        env:
+          ARKEN_FIRMA_CLAVE: ${{ secrets.ARKEN_FIRMA_CLAVE }}
+        run: |
+          if [ -z "$ARKEN_FIRMA_CLAVE" ]; then
+            echo "::warning title=Falta la clave de firma::Sin el secreto ARKEN_FIRMA_CLAVE se compila Android para verificar, pero no se entrega el APK. Vea analytica/README.md."
+            echo "hay=no" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in ../android/firma/arken.jks.enc -out "$RUNNER_TEMP/arken.jks" -pass env:ARKEN_FIRMA_CLAVE
+          HERR="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          mkdir -p salida
+          "$HERR/zipalign" -p -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/alineado.apk"
+          "$HERR/apksigner" sign --ks "$RUNNER_TEMP/arken.jks" --ks-key-alias "${ARKEN_FIRMA_ALIAS:-arken}" \
+            --ks-pass env:ARKEN_FIRMA_CLAVE --key-pass env:ARKEN_FIRMA_CLAVE \
+            --out "salida/ARKEN-ANALYTICA-${{ steps.version.outputs.nombre }}-Android.apk" "$RUNNER_TEMP/alineado.apk"
+          "$HERR/apksigner" verify "salida/ARKEN-ANALYTICA-${{ steps.version.outputs.nombre }}-Android.apk"
+          rm -f "$RUNNER_TEMP/arken.jks"
+          echo "hay=si" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        if: steps.firma.outputs.hay == 'si'
+        with:
+          archive: false
+          path: analytica/salida/*.apk
+          if-no-files-found: error
+      - name: Resumen
+        if: steps.firma.outputs.hay != 'si'
+        run: |
+          {
+            echo "### Android compilado, pero sin APK para instalar"
+            echo "Falta el secreto **ARKEN_FIRMA_CLAVE**. Créelo en *Settings › Secrets and variables › Actions*"
+            echo "con la clave de firma (vea analytica/README.md) y vuelva a ejecutar esta compilación."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  ios:
+    name: iOS (solo consulta, sin firma)
+    needs: pruebas
+    runs-on: macos-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: analytica/package-lock.json
+      - run: npm ci
+      - name: Versión
+        id: version
+        run: echo "nombre=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Generar el proyecto de iOS
+        run: npm run preparar && npx cap add ios && npx cap sync ios
+      - name: Compilar
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/ios \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            MARKETING_VERSION=${{ steps.version.outputs.nombre }} CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            build
+      - name: Empaquetar (.ipa sin firma)
+        run: |
+          mkdir -p Payload salida
+          cp -R build/ios/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry "salida/ARKEN-ANALYTICA-${{ steps.version.outputs.nombre }}-iOS-sin-firma.ipa" Payload
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: analytica/salida/*.ipa
+          if-no-files-found: error
+
+  windows:
+    name: Windows
+    needs: pruebas
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: analytica/package-lock.json
+      - run: npm ci
+      - name: Instalador
+        run: npm run dist:windows
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: analytica/dist/*.exe
+          if-no-files-found: error
+
+  mac:
+    name: macOS
+    needs: pruebas
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: analytica/package-lock.json
+      - run: npm ci
+      - name: Instalador (Apple Silicon e Intel)
+        run: npm run dist:mac
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: analytica/dist/*.dmg
+          if-no-files-found: error
+
+  linux:
+    name: Linux
+    needs: pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: analytica/package-lock.json
+      - run: npm ci
+      - name: AppImage
+        run: npm run preparar && npx electron-builder --linux AppImage --x64 --publish never
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: analytica/dist/*.AppImage
+          if-no-files-found: error
+
+  # ─── Publicación: solo con una etiqueta de versión (analytica-vX.Y.Z) ───
+  publicar:
+    name: Publicar versión
+    if: startsWith(github.ref, 'refs/tags/analytica-v')
+    needs: [android, ios, windows, mac, linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: instaladores
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v3
+        with:
+          name: ARKEN ANALYTICA ${{ github.ref_name }}
+          files: |
+            instaladores/**/*.apk
+            instaladores/**/*.exe
+            instaladores/**/*.dmg
+            instaladores/**/*.AppImage
+            instaladores/**/*.ipa
+          fail_on_unmatched_files: true
+          body: |
+            **Computador (recomendado para la empresa):** Windows …-Windows.exe · macOS …-macOS.dmg · Linux …-Linux.AppImage
+            **Celular y tableta, solo consulta:** Android …-Android.apk · iOS …-iOS-sin-firma.ipa (requiere firmarse para instalarse; vea analytica/README.md).

@@ -290,7 +290,7 @@ const Modelo = (function(){
   async function borrarDemo(){
     Permisos.exigir('demostracion');
     const ids = new Set((S.procesos||[]).filter(p => p.demo).map(p => p.id));
-    for (const n of ['presupuestosBase','requisitos','invitados','documentosProceso','llaves','preguntas','adendas','sobres','ofertas','documentosOferta','actas','evaluaciones','subsanaciones','alertas','conceptos','informes']){
+    for (const n of ['presupuestosBase','requisitos','invitados','documentosProceso','llaves','preguntas','adendas','sobres','ofertas','documentosOferta','actas','evaluaciones','subsanaciones','alertas','conceptos','informes','lecturasIA','usoIA']){
       for (const r of (S[n]||[]).filter(x => ids.has(x.procesoId) || x.demo)) await Almacen.borrar(n, r.id);
     }
     for (const id of ids) await Almacen.borrar('procesos', id);

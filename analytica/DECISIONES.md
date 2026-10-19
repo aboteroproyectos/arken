@@ -160,3 +160,51 @@ Decisiones tomadas donde el documento maestro deja lugar a criterio. Numeradas y
 93. **Las ofertas de demostración se generan en el principal** como sobres cerrados de verdad, cifrados con la llave del proceso, y entran por la recepción y la apertura de siempre. Se generan con una hora tres minutos antes de ahora, así son anteriores al cierre adelantado.
 94. **Solo en un proceso de demostración se puede adelantar el cierre**, a un minuto antes de ahora en hora de Colombia, para seguir con el acta de cierre y la apertura sin esperar.
 95. **Los módulos 11 a 14 dejan de estar atenuados**; el 15 y el 16 siguen con la Fase 4.
+
+## Comparativo y gráficas (Fase 4)
+
+96. **El comparativo sigue la estructura del presupuesto base.** Cada renglón es un capítulo, subcapítulo o actividad de la base, y cada oferta se lee con su recálculo (las cantidades del pliego), no con lo que declaró. Una actividad que una oferta no trae queda vacía, no en cero.
+97. **La desviación se muestra frente a la base y frente a la mediana** de las ofertas. Los colores van por tamaño de la desviación frente a la base (±5 %, ±15 %, ±30 %), los mismos del módulo 12.
+98. **El cuadro gerencial no dice «Recomendado» hasta que el concepto esté firmado.** Antes dice «En evaluación», aunque el orden de elegibilidad ya tenga un primero.
+99. **Las gráficas son SVG hechos por el programa, sin librería.** Así funcionan sin internet, se exportan a PNG, SVG y PDF iguales a lo que se ve, y el informe usa las mismas. Al exportar, los colores del tema quedan fijos en el tema claro.
+100. **Cada proponente tiene un color en todas las gráficas**, el mismo de su carpeta en el módulo 10, para que se reconozca de una a otra.
+101. **La sensibilidad (tornado)** sube y baja un 10 % el peso de cada grupo y dice si cambia el primero del orden; es la misma tabla del módulo 14, en gráfica.
+
+## Concepto e informe
+
+102. **El concepto se genera, el comité lo edita y lo firma.** Lo generado queda guardado; lo que edita el comité reemplaza cada campo, y el PDF muestra el texto final.
+103. **Se firma con dos miembros distintos del rol Comité**, con su contraseña, como la apertura. La huella SHA-256 del contenido firmado queda en el concepto y en el PDF.
+104. **Un cambio después de firmar devuelve el concepto a borrador.** El programa compara el contenido de hoy (textos, recomendado, orden con sus totales, condiciones, riesgos) con el firmado. Si difiere, avisa y pide firmar de nuevo.
+105. **El informe tiene las 23 secciones de §20, cada una en una casilla**, en el orden que el usuario arrastre. Cada requisito creado por el usuario tiene su sección después de la programación (§27.10). La configuración se guarda por proceso; si aparecen secciones nuevas, entran marcadas.
+106. **Mientras el concepto no esté firmado, el informe lleva la marca de agua «BORRADOR: NO ES UNA DECISIÓN»** en cada página.
+107. **Cada informe generado se guarda** (PDF y Excel, con su huella), y entra en los respaldos. Generar otro no borra el anterior.
+108. **El Excel del informe tiene una hoja por tabla**, con los números como números. Los nombres de hoja se recortan a 31 caracteres y se numeran si se repiten.
+
+## Presupuesto adjudicado
+
+109. **El presupuesto adjudicado sale en el Excel de importación de ARKEN CONTROL**, el mismo del módulo 02, solo con el concepto firmado y para el recomendado.
+110. **ARKEN CONTROL junta los insumos por descripción y los APU por código.** Una oferta puede cotizar el mismo insumo a precios distintos en APU distintos, o repetir un código de APU. Por eso, al exportar, el segundo insumo con la misma descripción y otro precio se llama «… · precio 2», y un código de APU repetido se numera (`-2`). Así, el costo directo que lee ARKEN CONTROL es el de la oferta.
+111. **El AIU no viaja en ese libro** (ARKEN CONTROL no lo lee de allí): el libro lo dice en su hoja de instrucciones, con los porcentajes para digitarlos.
+
+## Asistente de IA
+
+112. **El asistente está apagado por defecto** y lo enciende solo el administrador. Sin la clave, el programa hace todo igual.
+113. **Cada llamada se confirma** en una ventana con lo que se envía, a dónde, el modelo, el costo estimado por lo alto y lo que va del tope del mes. Si la llamada pasaría el tope, no se hace.
+114. **La lectura de documentos solo propone.** Cada dato trae el texto literal y la página. El programa busca ese texto en el documento: si no está, o si el valor no está dentro de él, lo descarta. Si está en otra página, la corrige. Nada se escribe en la verificación sin que el evaluador lo use.
+115. **La redacción solo usa los hechos de la evaluación.** Se le envía lo que generó el programa (orden, totales, fortalezas, debilidades, alertas confirmadas). Una parte con una cifra que no esté en esos hechos, o con un proponente que no esté en el orden, no se puede aceptar.
+116. **La IA no puntúa ni decide el cumplimiento:** no tiene herramienta para hacerlo, y el puntaje se calcula igual con o sin ella (§27.15).
+117. **Las respuestas se piden por herramientas estrictas** (`registrar_dato`, `proponer_redaccion`), no como texto libre, para leerlas sin adivinar.
+118. **El modelo por defecto es Claude Opus 5.5**, con Sonnet 5.5 y Haiku 4.5 como opciones más baratas. El costo se calcula con los precios por millón de tokens que trae el programa; conviene revisarlos con la lista vigente de Anthropic.
+119. **El SDK oficial de Anthropic va dentro del HTML**, con versión fija (`@anthropic-ai/sdk` 0.131.0, armado con esbuild). `npm run sdk:comprobar` falla si el bloque incrustado no es el que sale de esa versión.
+120. **La clave de API no va en el HTML, en los respaldos ni en la base de datos en claro.** En la app de escritorio la cifra el sistema operativo (safeStorage). En el navegador se cifra con AES-GCM y una llave que el navegador no deja exportar, en un almacén que no entra en los respaldos. «Recordar en este equipo» es opcional; si no se marca, la clave dura hasta salir.
+121. **Se puede apagar el asistente en un proceso** aunque esté encendido en el programa, para un proceso cuyo pliego no permita enviar documentos a terceros.
+
+## Apps
+
+122. **La app de escritorio es la recomendada para la empresa.** Es el mismo HTML servido desde la app (`app://analytica`), con la bóveda del sistema operativo y una copia diaria. Fuera de la app solo deja salir las llamadas a `api.anthropic.com`.
+123. **La copia diaria es el mismo respaldo de Administración › Respaldos**, sin la bóveda de secretos. Se guarda al entrar si hoy no hay una, y se conservan las últimas 10. No llena la auditoría. Si llegara a traer algo con forma de clave de API, no se guarda.
+124. **El celular y la tableta solo consultan** (tablero, procesos, comparativo, informe y ayuda). Evaluar con el teléfono es poco práctico, y así la evaluación queda en un solo equipo. Los datos llegan restaurando un respaldo. La lógica también lo exige: una acción que cambia datos se rechaza aunque se llame directo.
+125. **En las apps, la política de seguridad permite cada script del programa por su huella SHA-256**, no `unsafe-inline`. Un script o un atributo `on…` que se colara en la página no corre. El HTML para el navegador conserva su política, porque se abre desde `file://`.
+126. **Los proyectos de Android e iOS se generan en GitHub Actions** con Capacitor, no viven en el repositorio. El APK se firma con la misma clave de ARKEN CONTROL (secreto `ARKEN_FIRMA_CLAVE`). El de iOS sale sin firma.
+127. **Pendiente: archivos muy grandes en la app de escritorio.** §6 pide leer en trozos los documentos de varios cientos de MB. La app usa el mismo almacenamiento del navegador que el HTML; no se probó con documentos de ese tamaño.
+128. **Los módulos 15 y 16 dejan de estar atenuados.** Ningún módulo queda atenuado.

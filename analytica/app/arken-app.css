@@ -1,0 +1,8 @@
+/* ARKEN ANALYTICA · ajustes de la capa de la app (§6). */
+/* En el celular: respeta las zonas seguras de la pantalla (muesca y barra de gestos). */
+html[data-app="android"] body, html[data-app="ios"] body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+/* En consulta, los módulos que no se usan en el celular se ven atenuados en el riel. */
+html[data-app="android"] #railList .nav-item.off, html[data-app="ios"] #railList .nav-item.off { opacity: .35; }

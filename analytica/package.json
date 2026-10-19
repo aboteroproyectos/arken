@@ -1,7 +1,7 @@
 {
   "name": "arken-analytica",
   "productName": "ARKEN ANALYTICA",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "ARKEN ANALYTICA · Evaluación de propuestas de obra, app hermana de ARKEN CONTROL y ARKEN PRECIOS.",
   "private": true,
   "type": "module",
@@ -10,24 +10,119 @@
     "construir": "node herramientas/construir.mjs",
     "comprobar": "node herramientas/construir.mjs --comprobar",
     "verificar-sin-datos": "node ../herramientas/verificar-sin-datos.mjs",
+    "preparar": "node herramientas/preparar-web.mjs",
+    "escritorio": "npm run preparar && electron .",
+    "android": "npm run preparar && cap sync android",
+    "ios": "npm run preparar && cap sync ios",
+    "dist:windows": "npm run preparar && electron-builder --win nsis --x64 --publish never",
+    "dist:mac": "npm run preparar && electron-builder --mac dmg --universal --publish never",
+    "dist:linux": "npm run preparar && electron-builder --linux dir --publish never",
+    "sdk:instalar": "npm ci --prefix herramientas/sdk",
+    "sdk:armar": "node herramientas/armar-sdk.mjs",
+    "sdk:comprobar": "node herramientas/armar-sdk.mjs --comprobar",
     "prueba:unitarias": "node pruebas/unitarias.mjs",
     "prueba:cripto": "node pruebas/cripto.mjs",
     "prueba:ida-y-vuelta": "node pruebas/ida-y-vuelta.mjs",
     "prueba:humo": "node pruebas/humo.mjs",
-    "prueba": "npm run verificar-sin-datos && npm run comprobar && npm run prueba:unitarias && npm run prueba:cripto && npm run prueba:nucleo-fase-2 && npm run prueba:nucleo-fase-3 && npm run prueba:sobres-maliciosos && npm run prueba:ida-y-vuelta && npm run prueba:humo && npm run prueba:oferta && npm run prueba:punta-a-punta && npm run prueba:punta-a-punta-fase-3",
+    "prueba": "npm run verificar-sin-datos && npm run comprobar && npm run prueba:unitarias && npm run prueba:cripto && npm run prueba:nucleo-fase-2 && npm run prueba:nucleo-fase-3 && npm run prueba:nucleo-fase-4 && npm run prueba:sobres-maliciosos && npm run prueba:ida-y-vuelta && npm run prueba:humo && npm run prueba:oferta && npm run prueba:punta-a-punta && npm run prueba:punta-a-punta-fase-3 && npm run prueba:punta-a-punta-fase-4 && npm run prueba:app",
     "prueba:nucleo-fase-2": "node pruebas/nucleo-fase-2.mjs",
     "prueba:nucleo-fase-3": "node pruebas/nucleo-fase-3.mjs",
     "prueba:sobres-maliciosos": "node pruebas/sobres-maliciosos.mjs",
     "prueba:oferta": "node pruebas/oferta.mjs",
     "prueba:punta-a-punta": "node pruebas/punta-a-punta.mjs",
-    "prueba:punta-a-punta-fase-3": "node pruebas/punta-a-punta-fase-3.mjs"
+    "prueba:punta-a-punta-fase-3": "node pruebas/punta-a-punta-fase-3.mjs",
+    "prueba:nucleo-fase-4": "node pruebas/nucleo-fase-4.mjs",
+    "prueba:punta-a-punta-fase-4": "node pruebas/punta-a-punta-fase-4.mjs",
+    "prueba:app": "node pruebas/app.mjs"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
     "jspdf": "2.5.1",
     "jspdf-autotable": "3.8.2",
     "jszip": "3.10.1",
     "pdfjs-dist": "3.11.174",
     "playwright-core": "^1.63.0",
     "xlsx": "0.18.5"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/filesystem": "^8.1.3",
+    "@capacitor/ios": "^8.5.2",
+    "@capacitor/share": "^8.0.2"
+  },
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "com.aboteroproyectos.arkenanalytica",
+    "productName": "ARKEN ANALYTICA",
+    "executableName": "arken-analytica",
+    "copyright": "© ARKEN ANALYTICA",
+    "directories": {
+      "output": "dist",
+      "buildResources": "recursos"
+    },
+    "files": [
+      "electron/**",
+      "www/**",
+      "package.json",
+      "!**/*.{map,d.ts,md}"
+    ],
+    "asar": true,
+    "npmRebuild": false,
+    "icon": "recursos/icono.png",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "ARKEN-ANALYTICA-${version}-Windows.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ARKEN ANALYTICA",
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": [
+        "es_ES"
+      ],
+      "language": "3082"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.business",
+      "artifactName": "ARKEN-ANALYTICA-${version}-macOS.${ext}",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "CFBundleDevelopmentRegion": "es"
+      }
+    },
+    "dmg": {
+      "title": "ARKEN ANALYTICA"
+    },
+    "linux": {
+      "target": [
+        "dir"
+      ],
+      "category": "Office",
+      "artifactName": "ARKEN-ANALYTICA-${version}-Linux.${ext}"
+    },
+    "publish": null
   }
 }

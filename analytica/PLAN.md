@@ -6,7 +6,9 @@
 - **Sin internet.** Las librerías (jsPDF 2.5.1, jspdf-autotable 3.8.2, SheetJS 0.18.5, pdf.js 3.11.174 y JSZip 3.10.1) van **dentro** del HTML, tomadas de `node_modules` con versión fija. `npm run comprobar` falla si el HTML del repositorio no es exactamente el que sale de `fuente/`.
 - **Patrón ARKEN.** Módulos con nombre propio (`const Calculo = (function(){ … })();`). El núcleo corre igual en el navegador y en Node (`node:vm`), que es como lo prueban las pruebas unitarias.
 - **Pesado fuera del hilo de la pantalla.** Las huellas SHA-256 de archivos se calculan en un Web Worker. El análisis de la Fase 3 (`Motor.analizar`) es una función pura sobre los datos del proceso; corre en el hilo de la pantalla con caché y se puede llevar a un Worker sin cambiarla (decisión 82).
-- **Escritorio y móvil** (Electron, Capacitor) llegan en la Fase 4, como dice §26.
+- **Decisión (Fase 4).** `Comparativo`, `Graficas`, `Concepto` e `Informe` son funciones puras sobre el resultado de `Motor.analizar`; la pantalla (`Decision`, vistas 15 y 16) solo guarda, firma y exporta. Las gráficas son SVG del programa.
+- **Asistente de IA.** `AsistenteIA` (puro) arma cada solicitud y valida cada respuesta; `ClienteIA` llama con el SDK oficial incrustado; la clave vive en una bóveda (`secretos`), fuera de los respaldos.
+- **Escritorio y móvil.** El mismo HTML, con una capa (`app/arken-app.js`) y una política de seguridad por huellas (`herramientas/preparar-web.mjs`). Electron sirve `www/` desde `app://analytica` con la bóveda del sistema operativo y copias diarias; Capacitor la empaqueta para Android e iOS en modo solo consulta. Pendiente: leer por trozos los documentos muy grandes en la app de escritorio (decisión 127).
 
 ## Estructura de archivos
 
@@ -17,21 +19,25 @@ analytica/
   fuente/nucleo/*.js              ← Util, Calculo, Nit, Festivos, ExcelArken, ExcelPrecios, Parametros,
                                      PlantillaCondiciones, Confidencialidad, Revision, Cripto, Demo
   fuente/nucleo/8x-*.js           ← Paquete, Sobre, Adendas, Actas (Fase 2)
-  fuente/evaluacion/*.js          ← Estadistica, Presupuestal, Tecnico, Puntaje, Alertas, Motor, DemoOfertas (Fase 3;
-                                     solo en el principal)
+  fuente/evaluacion/*.js          ← Estadistica, Presupuestal, Tecnico, Puntaje, Alertas, Motor, DemoOfertas (Fase 3),
+                                     Comparativo, Graficas, Concepto, Informe, AsistenteIA (Fase 4); solo en el principal
+  fuente/sdk/anthropic-sdk.js     ← SDK oficial de Anthropic (generado por herramientas/armar-sdk.mjs)
+  app/ · electron/ · capacitor.config.json  ← apps (Fase 4); www/ y dist/ se generan y no se suben
   fuente/app/*.js                 ← Almacen (IndexedDB), Sesion y Permisos, UI, Pdf, Documentos,
-                                     Respaldo, Paquetes, Consultas, Recepcion, Evaluacion, Bandeja, Vistas, App
+                                     Respaldo, Paquetes, Consultas, Recepcion, Evaluacion, Bandeja, Decision,
+                                     Asistente, Vistas, App
   fuente/oferta/*                 ← ARKEN OFERTA: cuerpo, estilos, almacén, verificación, borrador,
                                      intercambio, vistas y App
-  herramientas/construir.mjs
+  herramientas/construir.mjs · armar-sdk.mjs · preparar-web.mjs
   pruebas/ unitarias · cripto · nucleo-fase-2 · sobres-maliciosos · ida-y-vuelta (con el ARKEN_CONTROL.html real)
-           · nucleo-fase-3 · humo · oferta · punta-a-punta · punta-a-punta-fase-3
+           · nucleo-fase-3 · nucleo-fase-4 · humo · oferta · punta-a-punta · punta-a-punta-fase-3
+           · punta-a-punta-fase-4 · app
   PLAN · DECISIONES · CAMBIOS · GUIA_DE_PRUEBA · README
 ```
 
-## Modelo de datos (IndexedDB `arken-analytica`, esquema 1)
+## Modelo de datos (IndexedDB `arken-analytica`, esquema 2)
 
-Almacenes de §7: `empresa`, `procesos`, `presupuestosBase` (por proceso y versión, estructura exacta de ARKEN CONTROL más `cantidadIncierta`, `obligatorioApu`, `notas`), `basePrecios` (con historial), `requisitos`, `plantillasCondiciones`, `documentosProceso`, `archivos` (Blob por SHA-256), `invitados`, `confidencialidad`, `parametros`, `usuarios`, `auditoria` (solo agrega), `configuracion`, `llaves`. Los de las fases 2 a 4 (`sobres`, `ofertas`, `documentosOferta`, `evaluaciones`, `subsanaciones`, `alertas`, `conceptos`, `informes`, `actas`, `preguntas`, `adendas`) se crean ya vacíos, con sus índices, para no migrar después.
+Almacenes de §7: `empresa`, `procesos`, `presupuestosBase` (por proceso y versión, estructura exacta de ARKEN CONTROL más `cantidadIncierta`, `obligatorioApu`, `notas`), `basePrecios` (con historial), `requisitos`, `plantillasCondiciones`, `documentosProceso`, `archivos` (Blob por SHA-256), `invitados`, `confidencialidad`, `parametros`, `usuarios`, `auditoria` (solo agrega), `configuracion`, `llaves`. Los de las fases 2 a 4 (`sobres`, `ofertas`, `documentosOferta`, `evaluaciones`, `subsanaciones`, `alertas`, `conceptos`, `informes`, `actas`, `preguntas`, `adendas`) se crean ya vacíos, con sus índices. El esquema 2 (Fase 4) agrega `lecturasIA` y `usoIA`, que entran en los respaldos, y `secretos`, que no entra.
 
 ## Riesgos
 

@@ -139,6 +139,7 @@ Vistas['15'] = function(){
 };
 
 /* ─────────────── 16 · Concepto e informe ─────────────── */
+const AVISO_CAMBIO = '<div class="nota bad">La evaluación cambió después de firmar: el texto firmado ya no corresponde a ella. El concepto vuelve a ser un borrador hasta que el comité lo firme de nuevo.</div>';
 function listaTexto(L){ return (L || []).join('\n'); }
 function deTexto(t){ return String(t || '').split('\n').map(x => x.trim()).filter(Boolean); }
 
@@ -151,7 +152,7 @@ function vistaConcepto(p, R, k){
       (k.estado !== 'firmado' && Permisos.puede('decidirComite') ? boton('concepto-firmar', 'Firmar (comité)', 'xs brass') : '') +
       (k.estado === 'firmado' && Permisos.puede('decidirComite') ? boton('concepto-anular', 'Anular las firmas', 'xs ghost') : '') +
       (k.estado === 'firmado' && Permisos.puede('exportarAdjudicado') ? boton('exportar-adjudicado', 'Presupuesto adjudicado para ARKEN CONTROL', 'xs brass') : '') + '</div></div><div class="card-body">' +
-    '<div id="avisoFirma"></div>' +
+    '<div id="avisoFirma">' + (k.cambio ? AVISO_CAMBIO : '') + '</div>' +
     (c.provisional ? '<div class="nota warn">El puntaje es provisional: el concepto se puede redactar, pero no firmar.</div>' : '') +
     '<div class="field"><label for="cc_resumen">Resumen del proceso y de las ofertas</label>' + ta('cc_resumen', c.resumen, 4) + '</div>' +
     '<h4 class="chk-grupo">Por requisito y grupo: quién fue el mejor y por qué</h4><div class="tw scroll"><table class="t"><thead><tr><th>Grupo</th><th>Requisito</th>' + R.ofertas.map(o => '<th>' + pastilla(p, o) + esc(o.nombre) + '</th>').join('') + '<th>Mejor</th></tr></thead><tbody>' +
@@ -223,15 +224,15 @@ Vistas['16'] = function(){
   const pest = UI.pestanas('c16', [['concepto', 'Concepto de adjudicación'], ['informe', 'Informe'], ['versiones', 'Versiones del informe'], ['asistente', 'Asistente de IA']], tab);
   const reg = (S.conceptos || []).find(x => x.procesoId === p.id) || { textos:{}, firmas:[] };
   const final = Concepto.aplicarTextos(Concepto.generar(R, { alertas:Evaluacion.alertas(p.id) }), reg.textos);
-  const firmado = Concepto.estado(reg) === 'firmado';
-  const k = { final, estado:firmado ? 'firmado' : 'borrador', firmas:firmado ? reg.firmas : [], huella:firmado ? reg.huella : null };
+  const er = Decision.estadoRapido(p), firmado = er.estado === 'firmado';
+  const k = { final, estado:er.estado, firmas:firmado ? reg.firmas : [], huella:firmado ? reg.huella : null, cambio:!!er.cambioDespuesDeFirmar };
   let cuerpo = tab === 'concepto' ? vistaConcepto(p, R, k) : tab === 'informe' ? vistaInforme(p, R) : tab === 'versiones' ? vistaVersiones(p) : (typeof VistaAsistente !== 'undefined' ? VistaAsistente.html(p, R) : '');
   const html = cabecera('16', 'Concepto e informe', c.sub) + pest + cuerpo;
   return { html, alPintar:() => {
     if (tab === 'informe') conectarInforme(p, R);
     if (tab === 'asistente' && typeof VistaAsistente !== 'undefined') VistaAsistente.conectar(p, R);
     // La huella de lo firmado se comprueba contra la evaluación de hoy: si cambió, el concepto vuelve a borrador.
-    if (tab === 'concepto' && firmado) Decision.concepto(p).then(x => { const el = $('#avisoFirma'); if (el && x && x.cambioDespuesDeFirmar) el.innerHTML = '<div class="nota bad">La evaluación cambió después de firmar: el texto firmado ya no corresponde a ella. El concepto vuelve a ser un borrador hasta que el comité lo firme de nuevo.</div>'; }).catch(e => RegistroTecnico.anotar('huella del concepto', e));
+    if (tab === 'concepto' && firmado) Decision.concepto(p).then(x => { const el = $('#avisoFirma'); if (el && x && x.cambioDespuesDeFirmar) el.innerHTML = AVISO_CAMBIO; }).catch(e => RegistroTecnico.anotar('huella del concepto', e));
   }, acciones:Object.assign(accionesVerificar(p, R), {
     'concepto-guardar':async () => { await Decision.guardarTextos(p, leerTextosConcepto(final)); UI.toast('Textos del concepto guardados.', 'ok'); App.render(); },
     'concepto-firmar':async () => {

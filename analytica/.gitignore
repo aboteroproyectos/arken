@@ -10,3 +10,11 @@ sobre*.json
 *respaldo*.zip
 *respaldo*.json
 *llaves*.json
+
+# Lo que se genera para las apps (npm run preparar, electron-builder y Capacitor en GitHub Actions)
+www/
+dist/
+android/
+ios/
+# Copias diarias de la app de escritorio: llevan los datos de la empresa
+ARKEN_ANALYTICA_copia_*.zip

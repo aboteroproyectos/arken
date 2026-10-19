@@ -32,7 +32,15 @@ const Decision = (function(){
     return { R, final, estado, firmas:estado === 'firmado' ? c.firmas : [], firmasAnteriores:cambio ? c.firmas : [], huella:estado === 'firmado' ? c.huella : null, cambioDespuesDeFirmar:cambio, registro:c };
   }
   /** Lo que se puede saber sin esperar la huella (para pintar rápido el tablero y el cuadro gerencial). */
-  function estadoRapido(p){ const c = registro(p); return c && Concepto.estado(c) === 'firmado' ? { estado:'firmado', recomendado:c.recomendado } : { estado:'borrador' }; }
+  function estadoRapido(p){
+    const c = registro(p);
+    if (!c || Concepto.estado(c) !== 'firmado') return { estado:'borrador' };
+    // Sin esperar la huella: se compara el texto firmado con el de hoy (la huella es de ese mismo texto).
+    const R = Evaluacion.analisis(p);
+    const hoy = R ? Concepto.contenidoFirmado(Concepto.aplicarTextos(Concepto.generar(R, { alertas:Evaluacion.alertas(p.id) }), c.textos)) : null;
+    if (c.contenido && hoy !== c.contenido) return { estado:'borrador', cambioDespuesDeFirmar:true };
+    return { estado:'firmado', recomendado:c.recomendado };
+  }
 
   async function guardar(p, cambio, accion, detalle){
     const c = Util.copia(registro(p) || { id:'cp-' + p.id, procesoId:p.id, textos:{}, firmas:[], historia:[], creado:new Date().toISOString() });
@@ -46,7 +54,7 @@ const Decision = (function(){
   async function guardarTextos(p, textos){
     Permisos.exigir('redactarConcepto');
     const c = registro(p);
-    if (c && Concepto.estado(c) === 'firmado') throw new Error('El concepto está firmado. Para cambiarlo, el comité anula las firmas primero.');
+    if (c && estadoRapido(p).estado === 'firmado') throw new Error('El concepto está firmado. Para cambiarlo, el comité anula las firmas primero.');
     const limpio = {};
     ['resumen', 'recomendacion', 'notas'].forEach(k => { if (textos[k] !== undefined && String(textos[k]).trim()) limpio[k] = String(textos[k]).trim(); });
     if (Array.isArray(textos.condiciones)) limpio.condiciones = textos.condiciones.map(x => String(x).trim()).filter(Boolean);
@@ -66,13 +74,13 @@ const Decision = (function(){
     const rec = k.R.ofertas.find(o => o.id === k.final.recomendado);
     return guardar(p, x => {
       if ((x.firmas || []).length) x.historia = (x.historia || []).concat([{ firmas:x.firmas, huella:x.huella, anulado:new Date().toISOString(), motivo:'Reemplazado por una nueva firma' }]);
-      x.firmas = F; x.huella = huella; x.recomendado = k.final.recomendado; x.firmado = new Date().toISOString();
+      x.firmas = F; x.huella = huella; x.contenido = Concepto.contenidoFirmado(k.final); x.recomendado = k.final.recomendado; x.firmado = new Date().toISOString();
     }, 'firmar', 'Concepto firmado por ' + F.map(f => f.usuario).join(' y ') + ' · recomienda ' + (rec ? rec.nombre : '') + ' · ' + huella);
   }
   async function anularFirmas(p, motivo){
     Permisos.exigir('decidirComite');
     if (!String(motivo || '').trim()) throw new Error('Escriba el motivo para anular las firmas.');
-    return guardar(p, x => { x.historia = (x.historia || []).concat([{ firmas:x.firmas, huella:x.huella, anulado:new Date().toISOString(), motivo }]); x.firmas = []; x.huella = null; x.recomendado = null; },
+    return guardar(p, x => { x.historia = (x.historia || []).concat([{ firmas:x.firmas, huella:x.huella, anulado:new Date().toISOString(), motivo }]); x.firmas = []; x.huella = null; x.contenido = null; x.recomendado = null; },
       'anular', 'Firmas del concepto anuladas: ' + motivo);
   }
   /** El concepto solo, en PDF, con la marca de borrador en cada página mientras no esté firmado. */

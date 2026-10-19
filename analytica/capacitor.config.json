@@ -1,0 +1,14 @@
+{
+  "appId": "com.aboteroproyectos.arkenanalytica",
+  "appName": "ARKEN ANALYTICA",
+  "webDir": "www",
+  "backgroundColor": "#16181A",
+  "android": {
+    "backgroundColor": "#16181A",
+    "allowMixedContent": false
+  },
+  "ios": {
+    "backgroundColor": "#16181A",
+    "contentInset": "never"
+  }
+}

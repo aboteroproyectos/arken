@@ -144,6 +144,8 @@ const UI = (function(){
   }
   function descargar(nombre, contenido, tipo){
     const blob = contenido instanceof Blob ? contenido : new Blob([contenido], { type:tipo || 'application/octet-stream' });
+    // En el celular (Capacitor) la capa de la app lo abre en el visor o en el menú Compartir.
+    if (window.ArkenApp && typeof window.ArkenApp.descargar === 'function') return window.ArkenApp.descargar(nombre, blob);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = nombre; a.rel = 'noopener';

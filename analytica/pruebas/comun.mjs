@@ -28,7 +28,7 @@ export function nucleo() {
   const leerCarpeta = (c) => { const carpeta = join(ANALYTICA, 'fuente', c); return readdirSync(carpeta).filter((n) => n.endsWith('.js')).sort().map((n) => readFileSync(join(carpeta, n), 'utf8')).join('\n'); };
   const codigo = leerCarpeta('nucleo') + '\n' + leerCarpeta('evaluacion');
   const ctx = vm.createContext({ crypto: webcrypto, Intl, console, XLSX, TextEncoder, TextDecoder, btoa, atob, URL });
-  vm.runInContext(codigo + '\n;this.N = { Util, Calculo, Nit, Festivos, ExcelArken, ExcelPrecios, Parametros, PlantillaCondiciones, Confidencialidad, Cronograma, Revision, Cripto, Pliego, Demo, Paquete, Sobre, Adendas, Actas, Estadistica, Presupuestal, Tecnico, Puntaje, Alertas, Motor, DemoOfertas, Comparativo, Graficas, Concepto, Informe };', ctx);
+  vm.runInContext(codigo + '\n;this.N = { Util, Calculo, Nit, Festivos, ExcelArken, ExcelPrecios, Parametros, PlantillaCondiciones, Confidencialidad, Cronograma, Revision, Cripto, Pliego, Demo, Paquete, Sobre, Adendas, Actas, Estadistica, Presupuestal, Tecnico, Puntaje, Alertas, Motor, DemoOfertas, Comparativo, Graficas, Concepto, Informe, AsistenteIA };', ctx);
   return ctx.N;
 }
 
@@ -194,4 +194,24 @@ export function marcador(titulo) {
     },
     get fallas() { return fallas; },
   };
+}
+
+/* ── Texto de un PDF descargado (pdf.js en Node, sin canvas) ── */
+let pdfjsNode = null;
+export async function leerPDF(ruta) {
+  if (!pdfjsNode) {
+    const [a, b] = [console.warn, console.log];
+    console.warn = console.log = () => {};          // pdf.js avisa que en Node no hay canvas: aquí solo se lee texto
+    pdfjsNode = require('pdfjs-dist/legacy/build/pdf.js');
+    [console.warn, console.log] = [a, b];
+  }
+  const fuentes = join(dirname(require.resolve('pdfjs-dist/package.json')), 'standard_fonts') + '/';
+  const doc = await pdfjsNode.getDocument({ data: new Uint8Array(readFileSync(ruta)), isEvalSupported: false, standardFontDataUrl: fuentes, verbosity: 0 }).promise;
+  const paginas = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const p = await doc.getPage(i);
+    const t = await p.getTextContent();
+    paginas.push({ ancho: Math.round(p.view[2]), alto: Math.round(p.view[3]), texto: t.items.map((x) => x.str).join(' ') });
+  }
+  return paginas;
 }

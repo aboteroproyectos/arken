@@ -62,15 +62,21 @@ const Roles = (function(){
 const Sesion = { usuario:null, procesoActivo:null, modulo:'01', pestanas:{}, llaves:{} };
 
 const Permisos = (function(){
-  function puede(accion){ return Roles.puede(Sesion.usuario, accion); }
+  /* En el celular y la tableta (Capacitor, §6) el programa solo consulta: ver el tablero, el
+     comparativo y el informe, descargarlos y restaurar el respaldo que trae los datos. La capa
+     de la app (app/arken-app.js) lo dice con window.ArkenApp.soloConsulta. */
+  const EN_CONSULTA = ['exportar', 'administrar'];
+  function soloConsulta(){ return !!(window.ArkenApp && window.ArkenApp.soloConsulta); }
+  function puede(accion){ return (!soloConsulta() || EN_CONSULTA.indexOf(accion) >= 0) && Roles.puede(Sesion.usuario, accion); }
   /** Lanza un error con el mensaje para el usuario si no tiene el permiso. */
   function exigir(accion){
     if (puede(accion)) return;
-    const err = new Error('Su usuario no tiene permiso para esta acción. Pueden hacerla: ' + Roles.quienPuede(accion).join(', ') + '.');
+    const err = new Error(soloConsulta() && Roles.puede(Sesion.usuario, accion) ? 'En el celular y la tableta ARKEN ANALYTICA solo consulta. Haga esto en el computador.'
+      : 'Su usuario no tiene permiso para esta acción. Pueden hacerla: ' + Roles.quienPuede(accion).join(', ') + '.');
     err.permiso = true;
     throw err;
   }
-  return { puede, exigir };
+  return { puede, exigir, soloConsulta };
 })();
 
 const Auditoria = (function(){

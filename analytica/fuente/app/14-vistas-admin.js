@@ -1,6 +1,6 @@
 /* ─────────────── Riel ───────────────
-   Los módulos 15 y 16 están desde ya, atenuados, para que el ciclo completo
-   se vea; cada uno dice qué hará y en qué fase llega. */
+   Un módulo con «fase» se muestra atenuado y dice qué hará y en qué fase llega.
+   Desde la Fase 4 ninguno lo está. */
 const MODULOS = [
   { id:'00', nombre:'Tablero del proceso' }, { id:'01', nombre:'Procesos' }, { id:'02', nombre:'Presupuesto base' },
   { id:'03', nombre:'Base de precios' }, { id:'04', nombre:'Condiciones de la oferta' }, { id:'05', nombre:'Documentos del proceso' },
@@ -47,6 +47,13 @@ Vistas['17'] = function(){
     ['Atienda la bandeja de alertas', 'Botón de alertas en la barra. Cada alerta dice qué encontró, por qué importa, la regla y qué hacer, con su evidencia a un clic. Póngala en revisión, confírmela o descártela con motivo.'],
     ['Puntúe y ordene', 'Módulo 14. Puntaje económico con el método del pliego, ponderables, desempate y el orden de elegibilidad. Mientras falte una verificación, el puntaje es provisional.']
   ];
+  const pasos4 = [
+    ['Compare las ofertas', 'Módulo 15. El comparativo por capítulo, subcapítulo o actividad frente a la base y la mediana; el cuadro gerencial en una página; la matriz de requisitos, y las quince gráficas. Todo se exporta a Excel, PDF o imagen.'],
+    ['Firme el concepto', 'Módulo 16 › Concepto. El programa lo genera desde la evaluación y el comité edita cada texto. Lo firman dos miembros del comité; si algo cambia después, vuelve a borrador.'],
+    ['Genere el informe', 'Módulo 16 › Informe. Elija y ordene las secciones y las gráficas. Sale en PDF y en Excel, y cada versión queda guardada. Sin el concepto firmado, lleva la marca de borrador.'],
+    ['Pase el adjudicado a ARKEN CONTROL', 'Módulo 16 › Concepto, con el concepto firmado: «Presupuesto adjudicado para ARKEN CONTROL» produce el Excel que ARKEN importa. El AIU se digita en ARKEN con los porcentajes del libro.'],
+    ['Use el asistente de IA si quiere', 'Módulo 16 › Asistente. Opcional y apagado de entrada: con su clave de API, lee documentos y propone redacción. Cada envío se confirma con su costo; nada se escribe sin que usted lo acepte, y no da puntajes.']
+  ];
   const html = cabecera('17', 'Ayuda', 'Cómo usar ARKEN ANALYTICA · versión ' + esc(VERSION_PROGRAMA)) +
     '<div class="nota-flujo">' + PASOS_FLUJO.map((x, i) => (i ? '<span class="fl">›</span>' : '') + '<span class="paso">' + x + '</span>').join('') + '</div>' +
     '<div class="card"><div class="card-head"><h3>Preparar un proceso (Fase 1)</h3></div><div class="card-body">' +
@@ -55,9 +62,12 @@ Vistas['17'] = function(){
       pasos2.map((p, i) => '<div class="chk ok"><span class="ic" aria-hidden="true">' + (i + 8) + '</span><div class="tx"><b>' + esc(p[0]) + '.</b> ' + esc(p[1]) + '</div></div>').join('') + '</div></div>' +
     '<div class="card"><div class="card-head"><h3>Verificar, analizar y puntuar (Fase 3)</h3></div><div class="card-body">' +
       pasos3.map((p, i) => '<div class="chk ok"><span class="ic" aria-hidden="true">' + (i + 13) + '</span><div class="tx"><b>' + esc(p[0]) + '.</b> ' + esc(p[1]) + '</div></div>').join('') + '</div></div>' +
+    '<div class="card"><div class="card-head"><h3>Decidir e informar (Fase 4)</h3></div><div class="card-body">' +
+      pasos4.map((p, i) => '<div class="chk ok"><span class="ic" aria-hidden="true">' + (i + 19) + '</span><div class="tx"><b>' + esc(p[0]) + '.</b> ' + esc(p[1]) + '</div></div>').join('') + '</div></div>' +
     '<div class="grid g2"><div class="card"><div class="card-head"><h3>Sus datos</h3></div><div class="card-body small">' +
       '<p>Los datos viven en este navegador (IndexedDB), nunca dentro del archivo del programa ni en internet. Descargue un respaldo .zip con frecuencia desde Administración › Respaldos.</p>' +
-      '<p>Las llaves privadas de cada proceso se guardan cifradas con la frase del proceso, que el programa no conoce.</p></div></div>' +
+      '<p>Las llaves privadas de cada proceso se guardan cifradas con la frase del proceso, que el programa no conoce.</p>' +
+      '<p>En el computador, la app de escritorio guarda además una copia por día. En el celular y la tableta, la app solo consulta: los datos llegan restaurando un respaldo.</p></div></div>' +
     '<div class="card"><div class="card-head"><h3>Demostración</h3></div><div class="card-body small">' +
       '<p>«Cargar demostración» crea un proceso ficticio completo, rotulado DEMOSTRACIÓN en cada pantalla y en cada documento. Sus empresas no son reales: los NIT son de la serie 999 y los correos terminan en .invalid.</p>' +
       '<p>Se borra con un botón en Administración › Demostración, sin tocar sus datos reales.</p></div></div></div>';

@@ -26,7 +26,14 @@ export async function prepararEvaluado(pp, frase = 'el comité abre las ofertas'
   await accion('abrir-ofertas');
   await pp.fill('#pd_frase', frase); await pp.fill('#pd_u1', 'comite1'); await pp.fill('#pd_c1', 'clave-comite1-2026'); await pp.fill('#pd_u2', 'comite2'); await pp.fill('#pd_c2', 'clave-comite2-2026');
   await botonModal(pp, 'Abrir los 5 sobre(s)');
-  await pp.waitForFunction(() => Recepcion.ofertas(Modelo.activo().id).length === 5 && Recepcion.actas(Modelo.activo().id, 'apertura').length === 1, null, { timeout: 90000 });
+  try {
+    await pp.waitForFunction(() => Recepcion.ofertas(Modelo.activo().id).length === 5 && Recepcion.actas(Modelo.activo().id, 'apertura').length === 1, null, { timeout: 240000 });
+  } catch (e) {
+    const estado = await pp.evaluate(() => ({ ofertas: Recepcion.ofertas(Modelo.activo().id).length, actas: Recepcion.actas(Modelo.activo().id).map((a) => a.tipo),
+      toasts: Array.from(document.querySelectorAll('#toasts .toast')).map((t) => t.textContent), modales: Array.from(document.querySelectorAll('#modales .overlay')).map((o) => o.textContent.slice(0, 200)),
+      registro: RegistroTecnico.entradas().slice(-3).map((x) => JSON.stringify(x).slice(0, 300)) }));
+    throw new Error('La apertura no terminó: ' + JSON.stringify(estado));
+  }
   return pp.evaluate(async (CALIF) => {
     const p = Modelo.activo(), ofs = Recepcion.ofertas(p.id);
     const R = Evaluacion.analisis(p);

@@ -1,4 +1,4 @@
-# ARKEN ANALYTICA · Guía de prueba (fases 1 a 3)
+# ARKEN ANALYTICA · Guía de prueba (fases 1 a 4)
 
 ## Cómo abrirlo
 
@@ -181,6 +181,53 @@ Parta del proceso de demostración ya emitido (pasos 1 a 8).
 2. Revise el orden con el método económico del pliego y la tabla de sensibilidad, que dice si el orden cambia cuando cada grupo pesa un 10 % más o menos. Épsilon aparece al final, no habilitada, con su causal.
 3. Borre la demostración en Administración › Demostración: también se borran las verificaciones, las subsanaciones y las alertas.
 
+### 22. Fase 4: comparativo y cuadro gerencial (módulo 15)
+
+1. Con el proceso de demostración evaluado (pasos 17 a 21), entre al módulo 15.
+2. En **Comparativo**, cambie el nivel a subcapítulo y a actividad, filtre por un capítulo y marque «solo con alertas». Compruebe que los totales del pie son los del módulo 14.
+3. En **Gerencial**, compruebe que dice «En evaluación», que Épsilon sale en rojo con su causal y que un clic en un puntaje lleva a su cálculo en el módulo 14.
+4. En **Requisitos**, pulse una celda: abre la verificación de ese requisito y ese proponente.
+5. Exporte el comparativo y el gerencial a Excel y a PDF.
+
+### 23. Las 15 gráficas
+
+1. En la pestaña **Gráficas**, pase el cursor por un proponente: queda resaltado. Pulse un capítulo del mapa de calor: baja a sus subcapítulos.
+2. Cambie la oferta de la cascada y la del desbalance.
+3. Abra una en pantalla completa, expórtela en PNG, SVG y PDF, y márquela para el informe.
+
+### 24. Concepto y firmas (módulo 16)
+
+1. En **Concepto**, revise lo generado y edite el resumen. Guarde.
+2. Firme con dos miembros del comité (`comite1` y `comite2`). Baje el PDF del concepto: trae las firmas y la huella.
+3. Vuelva al módulo 15: el gerencial dice «Recomendado: …».
+4. Cambie un puntaje en el módulo 11 y vuelva al concepto: avisa que cambió después de firmar y queda en borrador.
+5. Firme de nuevo.
+
+### 25. Informe final
+
+1. En **Informe**, desmarque una sección, arrastre otra a otro lugar y elija las gráficas.
+2. Genere el informe: sale el PDF (portada, índice, encabezado, pie y «Página x de y») y el Excel con una hoja por tabla.
+3. En un proceso con un requisito creado por usted (módulo 04), ese requisito tiene su sección en el informe y su hoja en el Excel.
+4. Con el concepto en borrador, el informe trae la marca de agua «BORRADOR: NO ES UNA DECISIÓN».
+5. En **Versiones**, baje un informe anterior.
+6. Con el concepto firmado, pulse **Presupuesto adjudicado para ARKEN CONTROL** e impórtelo en ARKEN CONTROL (módulo 02 › Importar Excel). El costo directo es el de la oferta adjudicada; el AIU se digita con los porcentajes de la hoja de instrucciones.
+
+### 26. Asistente de IA (opcional)
+
+Necesita una clave de API de Anthropic. Sin ella, el programa hace todo lo demás igual.
+
+1. Como administrador, en **Asistente**, enciéndalo, elija el modelo y el tope del mes, y guarde la clave con **Escribir la clave**. Pulse **Probar**.
+2. En la verificación (módulo 11) de un requisito con documento, pulse **Leer con el asistente de IA**. La ventana dice qué se envía, a dónde y cuánto cuesta. Envíe.
+3. Revise lo propuesto: cada dato trae el texto literal y la página. Use uno: llena el documento, la página y el texto, y usted decide el cumplimiento.
+4. En **Asistente**, pida la redacción del concepto. Acepte o descarte cada parte.
+5. Ponga un tope de US$ 0,01 e intente otra llamada: no se hace.
+6. Apague el asistente en el proceso: los botones desaparecen.
+
+### 27. Apps
+
+1. **Escritorio:** instale la de su sistema desde GitHub Actions, o en la carpeta `analytica/` ejecute `npm ci` y `npm run escritorio`. Entre: a los pocos segundos se guarda la copia del día (Ayuda › Abrir la carpeta de copias diarias).
+2. **Android:** instale el APK, restaure un respaldo del computador y compruebe que solo se consulta: los módulos de trabajo están atenuados y un PDF se abre en el menú Compartir.
+
 ## Pruebas automáticas
 
 En la carpeta `analytica/`:
@@ -198,14 +245,17 @@ npm run prueba
 - la de criptografía, con el sobre cerrado (29);
 - la del núcleo de la Fase 2 (68): pliego sin precios, manifiesto, ZIP y PDF maliciosos, cabecera del sobre, recálculo, adendas y actas;
 - la del núcleo de la Fase 3 (85): estadística, costo empresa mínimo, cada método económico contra un ejemplo a mano, TRM, desempate, habilitación, indicadores financieros, consorcio, experiencia, personal, días hábiles, ruta crítica, las alertas de las ofertas de demostración y una evaluación completa;
+- la del núcleo de la Fase 4 (47): el comparativo suma lo mismo que el cálculo en cada nivel, el gerencial, las 15 gráficas sin NaN, el concepto, el informe con un requisito creado por el usuario, la validación de la IA, el costo y el tope, y el presupuesto adjudicado leído como lo lee ARKEN CONTROL;
 - la de sobres maliciosos contra la recepción y la apertura reales (22);
 - la de ida y vuelta con el `programa/ARKEN_CONTROL.html` real (18);
 - la de humo del principal (53);
 - la de humo de ARKEN OFERTA (16): autenticidad, dieciséis módulos, temas, 360 px, borrador en archivo, sesión y cierre;
 - la de punta a punta (50), con cinco ARKEN OFERTA en su propio navegador. Recorre los paquetes, el camino de la confidencialidad, las preguntas, la adenda, los sobres, la recepción, el cierre con el reloj adelantado, la apertura con el comité y la carpeta de cada proponente;
-- la de punta a punta de la Fase 3 (42): cinco sobres de demostración, cierre y apertura, la bandeja con cada alerta y su evidencia, los roles, la verificación desde la matriz, la subsanación, la justificación decidida por el comité, el orden de elegibilidad con cada método frente al calculado a mano y el borrado de la demostración.
+- la de punta a punta de la Fase 3 (42): cinco sobres de demostración, cierre y apertura, la bandeja con cada alerta y su evidencia, los roles, la verificación desde la matriz, la subsanación, la justificación decidida por el comité, el orden de elegibilidad con cada método frente al calculado a mano y el borrado de la demostración;
+- la de punta a punta de la Fase 4 (51): módulos 15 y 16 sobre el proceso evaluado, la evidencia a dos clics, las exportaciones, las firmas y el cambio después de firmar, el informe en PDF y Excel, el asistente con la API simulada (nunca con una clave real) y el presupuesto adjudicado importado en el `programa/ARKEN_CONTROL.html` real;
+- la de la capa de las apps (16): `www/` con la política por huellas, un script inyectado que no corre, la copia diaria y la bóveda en el escritorio simulado, y el modo de consulta y el menú Compartir en Android simulado.
 
-Resultado de esta entrega: **468 de 468 comprobaciones pasaron**.
+Resultado de esta entrega: **532 de 532 comprobaciones pasaron en este equipo**, sin contar la de punta a punta de la Fase 2 (50). Esa prueba se detuvo en este equipo por tiempo de espera durante la apertura, igual que con la versión 0.3.0, que sí pasa en GitHub Actions; el resultado que vale es el de GitHub Actions.
 
 Para Chromium, las pruebas buscan `/opt/pw-browsers` o la variable `CHROME_PATH`.
 
@@ -219,15 +269,15 @@ Para Chromium, las pruebas buscan `/opt/pw-browsers` o la variable `CHROME_PATH`
 | 4 | Cada sobre queda con su invitado, en su carpeta | **Probado:** cinco sobres a la vez, asignados por el código de invitación aunque el archivo esté renombrado; el repetido, el ajeno y el reemplazado; una carpeta por proponente. |
 | 5 | Un sobre no se abre antes del cierre, sin la frase ni sin dos del comité; un byte alterado se detecta | **Probado:** antes del cierre se rechaza, también llamando a la lógica; exige dos miembros distintos del rol Comité; un byte alterado se detecta al recibir y al abrir (`pruebas/cripto.mjs`, `pruebas/sobres-maliciosos.mjs`, `pruebas/punta-a-punta.mjs`). |
 | 6 | Totales recalculados y diferencias por renglón | **Probado:** cada oferta se recalcula con las cantidades del pliego y el módulo 12 muestra cada diferencia por renglón, con la de Épsilon detectada en la prueba (`pruebas/nucleo-fase-3.mjs`, `pruebas/punta-a-punta-fase-3.mjs`). |
-| 7 | A dos clics del dato, del documento y de la regla | **Probado para las alertas:** desde la bandeja, un clic en la evidencia lleva al renglón resaltado o abre el documento en el visor; la regla está en la misma tarjeta. Desde cada puntaje, el módulo 14 muestra el cálculo. Desde el informe, en la Fase 4. |
+| 7 | A dos clics del dato, del documento y de la regla | **Probado:** desde la bandeja, un clic en la evidencia lleva al renglón resaltado o abre el documento; desde el gerencial, un clic en el puntaje lleva a su cálculo; desde la matriz de requisitos del módulo 15, un clic abre la verificación con el documento declarado, las reglas de verificación y la vigente (`pruebas/punta-a-punta-fase-4.mjs`). |
 | 8 | Alertas de la prueba punta a punta | **Probado:** las nueve alertas esperadas aparecen, todas con evidencia, porqué, regla y qué hacer, y Alfa no tiene ninguna. Ver el supuesto sobre las ofertas de demostración. |
 | 9 | Orden de elegibilidad calculado a mano | **Probado** con los cinco métodos económicos, en el núcleo y en el navegador. |
-| 10 | Requisitos creados por el usuario en todos los módulos | **Parcial:** aparecen en el pliego, en ARKEN OFERTA, en la carpeta del proponente y en la evaluación (módulos 11, 13 y 14). El comparativo, el concepto y el informe llegan en la Fase 4. |
-| 11 | Informe en PDF carta con índice, encabezado, pie y «Página x de y» | **Probado en el motor de PDF** con el presupuesto, el pliego, el acuerdo y las actas. El informe llega en la Fase 4. |
+| 10 | Requisitos creados por el usuario en todos los módulos | **Probado:** aparecen en el pliego, en ARKEN OFERTA, en la carpeta del proponente, en la evaluación, en la matriz del módulo 15, en el concepto y con su sección y su hoja en el informe (`pruebas/nucleo-fase-4.mjs`). En el navegador se probó la matriz del módulo 15 con los requisitos del Anexo B, no con uno creado por el usuario. |
+| 11 | Informe en PDF carta con índice, encabezado, pie y «Página x de y» | **Probado:** el PDF del informe trae la portada, el índice con cada sección, el encabezado, el pie y «Página x de y» en cada página después de la portada, y la marca de agua mientras no esté firmado (`pruebas/punta-a-punta-fase-4.mjs`). |
 | 12 | No se emite sin acuerdo aprobado por abogado ni sin respaldo de llaves | **Probado** desde la Fase 1 (`pruebas/humo.mjs`, `pruebas/unitarias.mjs`). |
 | 13 | Sistema visual de ARKEN en claro y oscuro, tres densidades, 360 px | **Probado en Chromium**, en el principal y en los dieciséis módulos de ARKEN OFERTA. No se probó en Firefox ni en Safari. |
-| 14 | Textos escapados; ninguna clave ni llave privada en claro | **Probado:** una razón social con HTML no rompe el pliego incrustado; un nombre de archivo con HTML en un sobre se rechaza sin pintarse; ningún paquete ni sobre trae una llave privada, y el verificador bloquea en el repositorio los paquetes, sobres y pliegos incrustados. |
-| 15 | La IA no crea datos ni puntajes | No probado: Fase 4. |
+| 14 | Textos escapados; ninguna clave ni llave privada en claro | **Probado:** una razón social con HTML no rompe el pliego incrustado; un nombre de archivo con HTML en un sobre se rechaza sin pintarse; ningún paquete ni sobre trae una llave privada; la clave de API no queda en la base del navegador en claro, ni en los respaldos, ni en la solicitud a la API; en las apps, un script inyectado no corre. El verificador bloquea en el repositorio los paquetes, sobres, informes, conceptos y copias. |
+| 15 | La IA no crea datos ni puntajes | **Probado con la API simulada:** una lectura cuyo texto no está en el documento se descarta, lo que se usa lo decide el evaluador y la lectura no escribe ninguna verificación; una redacción con una cifra o un proponente que no estén en la evaluación no se puede aceptar; la herramienta de lectura no tiene campos de cumplimiento ni de puntaje. **No se probó con la API real** (no hay clave en las pruebas). |
 
 ## Supuestos de esta entrega
 
@@ -241,4 +291,6 @@ Para Chromium, las pruebas buscan `/opt/pw-browsers` o la variable `CHROME_PATH`
 - **Reloj.** El cierre lo marca el reloj de cada equipo. ARKEN OFERTA no genera sobres después del cierre según su reloj, y el principal rechaza los que digan haberse generado después según la hora del sobre. Un reloj del proponente atrasado a propósito podría poner una hora falsa en el sobre; el principal avisa si la hora va adelantada, y el acta registra la hora de recepción de cada sobre.
 - **Sobre sin cifrar.** En un proceso de sobre cerrado se recibe con aviso y no se rechaza (decisión 58).
 - **Búsqueda en los PDF.** Solo encuentra texto en los PDF que lo tienen; los escaneados sin capa de texto no se buscan.
+- **Asistente de IA con la API real.** Las pruebas usan una API simulada. Antes de un proceso real, conviene probar la lectura con documentos reales y revisar los precios por millón de tokens (decisión 118).
+- **Apps.** La capa se probó en Chromium con el escritorio y Android simulados. La app de escritorio y las de celular se compilan en GitHub Actions, pero no se abrieron en un equipo ni en un teléfono reales. Los documentos de varios cientos de MB no se probaron en la app (decisión 127).
 - **Demostración.** Usa NIT de la serie 999, que la DIAN no asigna, y nombres que empiezan por «DEMO».

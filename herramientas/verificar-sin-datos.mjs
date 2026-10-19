@@ -5,6 +5,8 @@
 //   · ningún archivo de analytica/ trae una clave de API ni una llave privada en claro
 //   · en analytica/ no hay paquetes de invitación, ofertas, sobres, borradores, preguntas, respuestas,
 //     adendas, actas, respaldos ni respaldos de llaves
+//   · ni lo que sale de la evaluación (Fase 4): conceptos, informes, cuadros, gráficas, el
+//     presupuesto adjudicado, las copias diarias de la app de escritorio ni su bóveda de secretos
 //   · ningún HTML trae un pliego de ARKEN OFERTA incrustado (<script id="arken-pliego"> lleno), ni
 //     siquiera la plantilla que va comprimida dentro de ARKEN_ANALYTICA.html
 //
@@ -16,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
-const CARPETAS = ['programa', '.', 'analytica', 'analytica/programa'];
+const CARPETAS = ['programa', '.', 'analytica', 'analytica/programa', 'analytica/www'];
 const reDatos = /<script id="arken-datos" type="application\/json">([\s\S]*?)<\/script>/g;
 const rePliego = /(?<!['"+\\])<script id="arken-pliego" type="application\/json">([\s\S]*?)<\/script>/g;
 const rePlantilla = /<script id="plantilla-oferta" type="text\/plain">([\s\S]*?)<\/script>/;
@@ -66,6 +68,11 @@ const PROHIBIDOS = [
   [/respaldo.*\.zip$/i, 'respaldo'],
   [/respaldo.*\.json$/i, 'respaldo'],
   [/llaves.*\.json$/i, 'respaldo de llaves'],
+  [/^ARKEN_ANALYTICA_copia_.*\.zip$/i, 'copia diaria de la app de escritorio'],
+  [/^secretos\.json$/i, 'bóveda de secretos de la app de escritorio'],
+  [/^ARKEN_ANALYTICA_.*_(Informe|Concepto|Comparativo|Cuadro_gerencial)_\d{8}\.(pdf|xlsx?)$/i, 'informe, concepto o cuadro de un proceso'],
+  [/^ARKEN_ANALYTICA_.*_Grafica_\d{2}_.*\.(png|svg|pdf)$/i, 'gráfica de un proceso'],
+  [/^ARKEN_ANALYTICA_.*_presupuesto\.xlsx?$/i, 'presupuesto de un proceso'],
 ];
 const SECRETOS = [
   [/sk-ant-[A-Za-z0-9_-]{16,}/, 'una clave de API'],

@@ -9,7 +9,8 @@ const Respaldo = (function(){
   const FORMATO = 'ARKEN-ANALYTICA-RESPALDO';
   const LIMITES = { entradas:200000, totalMB:8192 };
 
-  async function generar(){
+  /** op.copiaDiaria: la copia que la app de escritorio guarda cada día; no se anota en la auditoría (sería un cambio más que copiar). */
+  async function generar(op){
     if (!window.JSZip) throw new Error('No se pudo cargar JSZip dentro del programa.');
     const zip = new window.JSZip();
     const manifiesto = { formato:FORMATO, version:1, programa:'ARKEN ANALYTICA ' + VERSION_PROGRAMA, esquema:Almacen.VERSION,
@@ -19,7 +20,9 @@ const Respaldo = (function(){
       zip.file('datos/' + n + '.json', texto);
       manifiesto.almacenes[n] = { registros:(S[n]||[]).length, sha256:await Cripto.sha256(texto) };
     }
-    const usados = new Set((S.documentosProceso||[]).map(d => d.sha256).concat(...(S.invitados||[]).map(i => (i.confidencialidad && i.confidencialidad.sha256) ? [i.confidencialidad.sha256] : [])));
+    const usados = new Set((S.documentosProceso||[]).map(d => d.sha256).concat(...(S.invitados||[]).map(i => (i.confidencialidad && i.confidencialidad.sha256) ? [i.confidencialidad.sha256] : []),
+      // Fase 4: los PDF y Excel de cada versión del informe, para consultarlos en el celular.
+      ...(S.informes||[]).map(x => [x.sha256Pdf, x.sha256Xlsx].filter(Boolean))));
     for (const sha of usados){
       const b = await Almacen.leerArchivo(sha); if (!b) continue;
       zip.file('archivos/' + sha, b);
@@ -27,7 +30,7 @@ const Respaldo = (function(){
     }
     zip.file('manifiesto.json', JSON.stringify(manifiesto, null, 2));
     const blob = await zip.generateAsync({ type:'blob', compression:'DEFLATE', compressionOptions:{ level:6 } });
-    await Auditoria.registrar('exportar', 'respaldo', manifiesto.archivos.length + ' archivo(s)');
+    if (!(op && op.copiaDiaria)) await Auditoria.registrar('exportar', 'respaldo', manifiesto.archivos.length + ' archivo(s)');
     return { blob, nombre:'ARKEN_ANALYTICA_respaldo_' + Util.selloArchivo(Date.now(), true) + '.zip', manifiesto };
   }
 
