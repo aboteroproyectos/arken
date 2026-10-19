@@ -47,7 +47,11 @@ async function textoPdf(ruta) {
 const dbg = (...a) => { if (DEBUG) console.log('    ·', ...a); };
 
 async function descargar(pagina, accion, nombre) {
-  const [d] = await Promise.all([pagina.waitForEvent('download', { timeout: 120000 }), accion()]);
+  const [d] = await Promise.all([pagina.waitForEvent('download', { timeout: 120000 }).catch(async (e) => {
+    const estado = await pagina.evaluate(() => ({ toasts: Array.from(document.querySelectorAll('#toasts .toast')).map((t) => t.textContent),
+      modales: Array.from(document.querySelectorAll('#modales .overlay')).map((o) => o.textContent.slice(0, 200)) })).catch(() => ({}));
+    throw new Error('No llegó la descarga: ' + JSON.stringify(estado) + ' · ' + e.message.split('\n')[0]);
+  }), accion()]);
   const ruta = join(carpeta, nombre || d.suggestedFilename());
   await d.saveAs(ruta);
   return { ruta, nombre: d.suggestedFilename() };
@@ -377,7 +381,12 @@ m.ok(cab.cifrado && !!zs.file('oferta.cifrada') && !!zs.file('llave.envuelta') &
 const crudo = readFileSync(sobres[1].ruta).toString('latin1');
 m.ok(!crudo.includes('Materiales de') && !JSON.stringify(cab).includes('precio'), 'Ni el ZIP ni su cabecera dejan ver un precio');
 
+// Cada ARKEN OFERTA abre su propia ventana y deja la del principal en segundo plano. Chromium frena
+// los temporizadores de una página oculta (hasta uno por minuto pasados cinco minutos), y JSZip y
+// las huellas los usan: el principal vuelve al frente antes de recibir y de abrir, como lo tendría
+// quien opera.
 m.seccion('Recepción: todos los sobres a la vez');
+await pp.bringToFront();
 const filasRec = await cargarSobres([...sobres.map((x) => x.ruta), sobre3b.ruta, sobres[0].ruta, paquetes[2].ruta]);
 dbg('recepción', filasRec.map((f) => f.join(' · ')));
 const rec = await pp.evaluate(() => Recepcion.sobres(Modelo.activo().id).map((s) => ({ archivo: s.archivo, estado: s.estado, motivo: s.motivo, avisos: s.avisos, inv: s.invitadoId, version: s.versionPliego })));
@@ -402,6 +411,7 @@ await irA(pp, '09'); await pestana(pp, 'apertura');
 m.ok(await pp.isDisabled('#stage [data-accion="abrir-ofertas"]'), 'El botón de apertura está deshabilitado antes del cierre');
 
 m.seccion('Cierre y apertura');
+await pp.bringToFront();
 await pp.clock.setFixedTime(new Date(antes.cierre).getTime() + 3600000);
 await irA(pp, '00'); await irA(pp, '09'); await pestana(pp, 'apertura');
 const ac = await descargar(pp, () => accion(pp, 'acta-cierre'));
@@ -414,7 +424,8 @@ async function intentarApertura(u1, c1, u2, c2) {
 }
 await intentarApertura('comite1', 'clave-comite1-2026', 'comite1', 'clave-comite1-2026');
 await pp.waitForSelector('#toasts .toast.bad', { timeout: 30000 });
-m.ok(/personas distintas/.test(await toastMalo(pp)), 'La apertura exige dos miembros del comité distintos');
+const tDistintos = await toastMalo(pp);
+m.ok(/personas distintas/.test(tDistintos), 'La apertura exige dos miembros del comité distintos' + (/personas distintas/.test(tDistintos) ? '' : ': ' + tDistintos));
 await intentarApertura('comite1', 'clave-comite1-2026', 'abogada', 'clave-abogada-2026');
 await pp.waitForFunction(() => /rol Comité/.test(document.querySelector('#toasts').textContent), null, { timeout: 30000 });
 m.ok(true, 'Un usuario sin el rol Comité no sirve para abrir');
