@@ -3,7 +3,7 @@
 ## 0.5.1 · La app de escritorio abre (20 de octubre de 2026)
 
 - **La app de escritorio quedaba en blanco** en Windows, macOS y Linux, en la 0.4.0 y la 0.5.0. La app leía los archivos del programa con una petición interna, y su propio bloqueo de internet la cancelaba. Ahora los lee directamente del disco, y el bloqueo sigue igual.
-- **`pruebas/escritorio.mjs` (9), nueva:** abre la app empacada real de cada sistema (Windows, macOS y Linux) en la compilación, ingresa, cambia la contraseña del primer ingreso y comprueba que nada sale a internet. Antes solo se probaba una app simulada en Chromium, que no tenía este bloqueo.
+- **`pruebas/escritorio.mjs` (9 desde la carpeta, 18 con la app empacada), nueva:** abre la app empacada real de cada sistema (Windows, macOS y Linux) en la compilación, ingresa, cambia la contraseña del primer ingreso y comprueba que nada sale a internet. Lo repite con la app en una carpeta con espacios, tildes y «ñ» y los datos en otra así, como en el equipo de un usuario «Peña» (en macOS solo cambia la carpeta de los datos). Antes solo se probaba una app simulada en Chromium, que no tenía este bloqueo.
 
 ## 0.5.0 · Sin internet (19 de octubre de 2026)
 
