@@ -1,5 +1,10 @@
 # ARKEN ANALYTICA · Registro de cambios
 
+## 0.5.1 · La app de escritorio abre (20 de octubre de 2026)
+
+- **La app de escritorio quedaba en blanco** en Windows, macOS y Linux, en la 0.4.0 y la 0.5.0. La app leía los archivos del programa con una petición interna, y su propio bloqueo de internet la cancelaba. Ahora los lee directamente del disco, y el bloqueo sigue igual.
+- **`pruebas/escritorio.mjs` (9), nueva:** abre la app empacada real de cada sistema (Windows, macOS y Linux) en la compilación, ingresa, cambia la contraseña del primer ingreso y comprueba que nada sale a internet. Antes solo se probaba una app simulada en Chromium, que no tenía este bloqueo.
+
 ## 0.5.0 · Sin internet (19 de octubre de 2026)
 
 ARKEN ANALYTICA ya no se conecta a ningún servicio. El asistente de IA de la 0.4, que usaba la API de Anthropic y su clave, sale del programa, y la lectura de documentos la hace ahora el programa solo, sin costo.

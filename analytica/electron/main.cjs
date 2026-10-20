@@ -8,11 +8,10 @@
 //   Linux:   ~/.config/ARKEN ANALYTICA
 // Nada sale a internet: la app bloquea toda conexión fuera de ella.
 
-const { app, BrowserWindow, Menu, dialog, ipcMain, net, protocol, screen, session, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, protocol, screen, session, shell } = require('electron');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
 const path = require('node:path');
-const { pathToFileURL } = require('node:url');
 const { crearCopias } = require('./copias.cjs');
 
 const ESQUEMA = 'app';
@@ -20,6 +19,17 @@ const ORIGEN = 'app://analytica';
 const WWW = path.join(__dirname, '..', 'www');
 const ID_APP = 'com.aboteroproyectos.arkenanalytica';
 const NOMBRE = 'ARKEN ANALYTICA';
+const TIPOS = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.woff2': 'font/woff2',
+  '.wasm': 'application/wasm',
+};
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -48,7 +58,9 @@ const archivoVentana = () => path.join(app.getPath('userData'), 'ventana.json');
 function iniciar() {
   if (process.platform === 'win32') app.setAppUserModelId(ID_APP);
 
-  protocol.handle(ESQUEMA, (req) => {
+  // Los archivos de www/ se leen del disco, no con net.fetch(file://…): esa petición pasa por el
+  // bloqueo de red de configurarSesion, que la cancela, y la ventana quedaba en blanco (0.4.0 y 0.5.0)
+  protocol.handle(ESQUEMA, async (req) => {
     const url = new URL(req.url);
     if (url.host !== 'analytica') return new Response('No encontrado', { status: 404 });
     let ruta = decodeURIComponent(url.pathname);
@@ -56,7 +68,12 @@ function iniciar() {
     const archivo = path.join(WWW, ruta);
     const relativa = path.relative(WWW, archivo);
     if (relativa.startsWith('..') || path.isAbsolute(relativa)) return new Response('Prohibido', { status: 403 });
-    return net.fetch(pathToFileURL(archivo).toString());
+    try {
+      const datos = await fsp.readFile(archivo);
+      return new Response(datos, { headers: { 'content-type': TIPOS[path.extname(archivo).toLowerCase()] || 'application/octet-stream' } });
+    } catch {
+      return new Response('No encontrado', { status: 404 });
+    }
   });
 
   // La 0.4 guardaba aquí, cifrada, la clave de API del asistente de IA, que ya no existe

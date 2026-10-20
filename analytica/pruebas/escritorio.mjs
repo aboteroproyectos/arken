@@ -1,0 +1,73 @@
+// ARKEN ANALYTICA · la app de escritorio real (Electron), no simulada:
+//
+//   · la ventana abre el programa desde app://analytica/ y no queda en blanco
+//   · se puede ingresar y cambiar la contraseña del primer ingreso
+//   · el programa no tiene errores de JavaScript ni de la política de seguridad
+//   · nada sale a internet
+//
+// Sin argumento abre la app desde esta carpeta (npm run preparar antes). Con la ruta de un ejecutable
+// empacado (dist/linux-unpacked/arken-analytica, dist/win-unpacked/arken-analytica.exe…) abre ese.
+// En Linux sin pantalla, con xvfb-run.
+//
+// Uso: npm run prueba:escritorio [-- ruta/al/ejecutable]
+
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createRequire } from 'node:module';
+import { _electron } from 'playwright-core';
+import { ANALYTICA, marcador, ingresar } from './comun.mjs';
+
+const require = createRequire(import.meta.url);
+const m = marcador('App de escritorio de ARKEN ANALYTICA');
+const empacada = process.argv[2];
+const datos = mkdtempSync(join(tmpdir(), 'analytica-escritorio-'));
+const args = [...(process.platform === 'linux' ? ['--no-sandbox'] : []), '--user-data-dir=' + datos];
+
+let app;
+try {
+  app = await _electron.launch({
+    executablePath: empacada || require('electron'),
+    args: empacada ? args : [...args, ANALYTICA],
+    cwd: ANALYTICA,
+    timeout: 60000,
+  });
+  const w = await app.firstWindow({ timeout: 60000 });
+  const errores = [];
+  w.on('pageerror', (e) => errores.push(e.message));
+  w.on('console', (x) => { if (x.type() === 'error' || /Content Security Policy|Refused to/i.test(x.text())) errores.push(x.text()); });
+
+  m.seccion(empacada ? 'App empacada: ' + empacada : 'App desde la carpeta');
+  await w.waitForLoadState('domcontentloaded');
+  m.ok(w.url().startsWith('app://analytica/'), 'La ventana abre el programa desde app://analytica/ (' + w.url() + ')');
+  const ingreso = await w.waitForSelector('#gBtn:not([disabled])', { timeout: 60000 }).then(() => true, () => false);
+  m.ok(ingreso, 'Se ve la pantalla de ingreso: la ventana no queda en blanco');
+  m.ok(await w.isVisible('#gate'), 'La ventana se muestra');
+  const version = await app.evaluate(({ app: a }) => a.getVersion());
+  m.ok(version === require('../package.json').version, 'La app es la versión ' + version);
+
+  m.seccion('Ingreso');
+  await ingresar(w, 'admin', 'arken', 'prueba-escritorio-2026');
+  m.ok(await w.isVisible('#stage .page-head'), 'Se ingresa y se cambia la contraseña del primer ingreso');
+  const plataforma = await w.evaluate(() => document.documentElement.getAttribute('data-app'));
+  const esperada = process.platform === 'darwin' ? 'mac' : process.platform === 'win32' ? 'windows' : 'linux';
+  m.ok(plataforma === esperada, 'El programa sabe que corre en la app de escritorio (' + plataforma + ')');
+  m.ok(!errores.length, 'Sin errores de JavaScript ni de la política de seguridad' + (errores.length ? ': ' + errores.slice(0, 3).join(' | ') : ''));
+
+  m.seccion('Sin internet');
+  const pagina = await w.evaluate(async () => {
+    try { await fetch('https://example.com/', { mode: 'no-cors' }); return 'salió'; } catch { return 'bloqueada'; }
+  });
+  m.ok(pagina === 'bloqueada', 'Una petición del programa a internet no sale');
+  // Aunque la política de la página fallara, la app cancela la petición
+  const app_ = await app.evaluate(async ({ net }) => {
+    try { await net.fetch('https://example.com/'); return 'salió'; } catch { return 'bloqueada'; }
+  });
+  m.ok(app_ === 'bloqueada', 'La app cancela cualquier petición a internet');
+} catch (e) {
+  m.ok(false, 'La app abre: ' + ((e && e.message) || e).split('\n')[0]);
+} finally {
+  if (app) await app.close().catch(() => {});
+  rmSync(datos, { recursive: true, force: true });
+}
+m.terminar();

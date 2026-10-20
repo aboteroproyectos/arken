@@ -65,6 +65,8 @@ jobs:
           CHROME_PATH: /usr/bin/google-chrome
       - name: Empaquetar la app de escritorio para Linux
         run: npm run dist:linux
+      - name: La app empacada abre el programa, deja ingresar y no sale a internet
+        run: xvfb-run -a npm run prueba:escritorio -- dist/linux-unpacked/arken-analytica
       - name: La app empacada no trae datos ni claves
         run: |
           npx --yes @electron/asar@4.0.1 extract dist/linux-unpacked/resources/app.asar "$RUNNER_TEMP/asar"
@@ -192,6 +194,8 @@ jobs:
       - run: npm ci
       - name: Instalador
         run: npm run dist:windows
+      - name: La app empacada abre el programa, deja ingresar y no sale a internet
+        run: npm run prueba:escritorio -- dist/win-unpacked/arken-analytica.exe
       - uses: actions/upload-artifact@v7
         with:
           archive: false
@@ -212,6 +216,8 @@ jobs:
       - run: npm ci
       - name: Instalador (Apple Silicon e Intel)
         run: npm run dist:mac
+      - name: La app empacada abre el programa, deja ingresar y no sale a internet
+        run: npm run prueba:escritorio -- "$(ls -d dist/mac-universal/*.app/Contents/MacOS/* | head -1)"
       - uses: actions/upload-artifact@v7
         with:
           archive: false

@@ -1,7 +1,7 @@
 {
   "name": "arken-analytica",
   "productName": "ARKEN ANALYTICA",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "ARKEN ANALYTICA · Evaluación de propuestas de obra, app hermana de ARKEN CONTROL y ARKEN PRECIOS.",
   "private": true,
   "type": "module",
@@ -31,7 +31,8 @@
     "prueba:nucleo-fase-4": "node pruebas/nucleo-fase-4.mjs",
     "prueba:lector": "node pruebas/lector.mjs",
     "prueba:punta-a-punta-fase-4": "node pruebas/punta-a-punta-fase-4.mjs",
-    "prueba:app": "node pruebas/app.mjs"
+    "prueba:app": "node pruebas/app.mjs",
+    "prueba:escritorio": "node pruebas/escritorio.mjs"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.2",
