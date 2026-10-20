@@ -352,7 +352,7 @@ En `precios/`, con Node 22 y Chrome: `npm ci --omit=optional` y luego `npm run p
 | `prueba:analitica` | 43 de 43, en Chromium, con 14 meses de demostración |
 | `prueba:app` | 65 de 65, la capa de las apps en Chromium (navegador, escritorio y Android simulados) |
 | `prueba:escritorio` | 47 de 47, la app de Linux empacada, con Electron de verdad y un llavero de prueba; también abre un correo de las alertas en el programa de correo del sistema |
-| `prueba:escritorio-abre` | 8 de 8 en Windows y en macOS, en GitHub Actions: la app empacada muestra el programa con sus librerías, deja ingresar y guarda sus datos; en Windows, desde una carpeta con espacios y «ñ» |
+| `prueba:escritorio-abre` | 10 de 10 en Windows y 8 de 8 en macOS, en GitHub Actions: la app empacada muestra el programa con sus librerías, deja ingresar y guarda sus datos; en Windows, también copiada a una carpeta con espacios y «ñ» |
 
 Las apps de Windows y macOS se abren con `prueba:escritorio-abre` en las máquinas de GitHub Actions; las de Android e iOS solo se compilan. Ninguna se ha probado en un equipo ni en un teléfono de un usuario.
 

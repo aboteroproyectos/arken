@@ -7,16 +7,18 @@
 //     política de seguridad
 //   · se ingresa y se cambia la contraseña del primer ingreso; al cerrar, la app guarda su copia
 //     interna, y al abrir otra vez la contraseña nueva sirve: los datos quedaron en el disco
-//   · la app lee sus archivos y guarda sus datos en carpetas con espacios y una «ñ» en el nombre,
-//     como las de un usuario de Windows que se llame así. En Windows y Linux la app se copia antes a
-//     una carpeta así; en macOS ya está dentro de «ARKEN PRECIOS.app».
-// Los datos van a una carpeta temporal (--user-data-dir), nunca a la del usuario de este equipo.
+//   · en Windows y Linux, la app también abre copiada a una carpeta con espacios y una «ñ» en el
+//     nombre, con sus datos en otra igual, como las de un usuario que se llame así. En macOS la app
+//     se instala en Aplicaciones, una ruta que no lleva el nombre del usuario.
+// Los datos van a carpetas temporales (--user-data-dir), nunca a la del usuario de este equipo. Si la
+// app no arranca, la prueba la abre sola con el registro de Chromium y dice cómo se cerró.
 //
 // Uso: npm run dist:windows (o dist:mac, o dist:linux) y luego
 //   npm run prueba:escritorio-abre [-- ruta/al/ejecutable]
 // En Linux sin pantalla, con xvfb-run -a delante.
 
 import { _electron as electron } from 'playwright-core';
+import { spawn } from 'node:child_process';
 import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
@@ -36,15 +38,22 @@ const m = {
   },
 };
 
-/** El ejecutable que deja electron-builder en dist/ para este sistema. */
-function ejecutableDeDist() {
-  const dist = join(PRECIOS, 'dist');
-  if (process.platform === 'win32') return join(dist, 'win-unpacked', 'arken-precios.exe');
-  if (process.platform === 'darwin') {
-    // dist/mac-universal (o mac, mac-arm64…)/ARKEN PRECIOS.app/Contents/MacOS/<ejecutable>
-    for (const d of existsSync(dist) ? readdirSync(dist) : []) {
-      const macos = join(dist, d, 'ARKEN PRECIOS.app', 'Contents', 'MacOS');
-      if (d.startsWith('mac') && existsSync(macos)) return join(macos, readdirSync(macos)[0]);
+/** El ejecutable que deja electron-builder en dist/ para este sistema. En macOS, el que está dentro de la
+    primera app (.app) de dist/mac-universal (o mac, mac-arm64…), sin las carpetas temporales del empaque
+    universal: los nombres de la app y del ejecutable los pone electron-builder. */
+function ejecutableDeDist(dist = join(PRECIOS, 'dist'), sistema = process.platform) {
+  if (sistema === 'win32') return join(dist, 'win-unpacked', 'arken-precios.exe');
+  if (sistema === 'darwin') {
+    const carpetas = (existsSync(dist) ? readdirSync(dist, { withFileTypes: true }) : [])
+      .filter((e) => e.isDirectory() && /^mac/.test(e.name) && !/-temp$/.test(e.name))
+      .map((e) => e.name)
+      .sort((a, b) => (b === 'mac-universal') - (a === 'mac-universal') || a.localeCompare(b));
+    for (const d of carpetas) {
+      for (const a of readdirSync(join(dist, d)).filter((n) => n.endsWith('.app')).sort()) {
+        const macos = join(dist, d, a, 'Contents', 'MacOS');
+        const dentro = existsSync(macos) ? readdirSync(macos).filter((n) => !n.startsWith('.')) : [];
+        if (dentro.length) return join(macos, dentro[0]);
+      }
     }
     return join(dist, 'mac-universal', 'ARKEN PRECIOS.app', 'Contents', 'MacOS', 'ARKEN PRECIOS');
   }
@@ -65,30 +74,67 @@ function mismaCarpeta(a, b) {
   return normal(a) === normal(b);
 }
 
-let ejecutable = process.argv[2] || ejecutableDeDist();
-if (!existsSync(ejecutable)) {
-  console.error('\n✖ No está la app empacada (' + ejecutable + '). Ejecute antes: npm run ' + DIST + '\n');
+const original = process.argv[2] || ejecutableDeDist();
+if (!existsSync(original)) {
+  const dist = join(PRECIOS, 'dist');
+  const hay = existsSync(dist) ? ' En dist/ hay: ' + readdirSync(dist).join(', ') + '.' : '';
+  console.error('\n✖ No está la app empacada (' + original + ').' + hay + ' Ejecute antes: npm run ' + DIST + '\n');
   process.exit(1);
 }
 const base = mkdtempSync(join(tmpdir(), 'arken-precios-abre-'));
-const datos = join(base, 'Datos de ARKEN PRECIOS ñ');
-if (process.platform !== 'darwin') {
-  const origen = dirname(ejecutable);
-  const destino = join(base, CARPETA, basename(origen));
-  cpSync(origen, destino, { recursive: true, verbatimSymlinks: true });
-  ejecutable = join(destino, basename(ejecutable));
-}
-const args = [...(process.platform === 'linux' ? ['--no-sandbox'] : []), '--user-data-dir=' + datos];
 const env = Object.assign({}, process.env);
 // Un escritorio Linux usa un idioma UTF-8. Con el idioma POSIX de algunos contenedores, la app no
 // arranca desde una carpeta con «ñ»: eso es del contenedor, no de la app
 if (process.platform === 'linux' && !/utf-?8/i.test(env.LC_ALL || env.LC_CTYPE || env.LANG || '')) env.LC_ALL = 'C.UTF-8';
-marca.nota('App: ' + ejecutable);
+// Cuando la app se cierra antes de arrancar, Playwright deja sin atender algunas de sus esperas. La
+// falla llega igual a la espera de la prueba, que la cuenta: aquí solo se anota
+process.on('unhandledRejection', (e) => marca.nota('(Playwright: ' + String((e && e.message) || e).split('\n')[0] + ')'));
+
+const argumentos = (datos) => [...(process.platform === 'linux' ? ['--no-sandbox'] : []), '--user-data-dir=' + datos];
+const ultimas = (t) => t.trim().split(/\r?\n/).slice(-12).join(' | ') || '(sin registro)';
+
+/** La app sola, sin Playwright, con el registro de Chromium: dice si se cierra (y con qué código) o si sigue abierta. */
+function sola(exe, datos) {
+  return new Promise((resolver) => {
+    let salida = '';
+    let hijo;
+    try {
+      hijo = spawn(exe, [...argumentos(datos), '--enable-logging=stderr'], { env, windowsHide: true });
+    } catch (e) {
+      return resolver('no se pudo ejecutar (' + e.message + ')');
+    }
+    const guardar = (d) => {
+      salida = (salida + d.toString()).slice(-6000);
+    };
+    hijo.stdout.on('data', guardar);
+    hijo.stderr.on('data', guardar);
+    let abierta = false;
+    // Si a los 20 s sigue abierta, se cierra y se espera a que salga (hasta 10 s más) antes de seguir
+    const reloj = setTimeout(() => {
+      abierta = true;
+      hijo.kill();
+      setTimeout(() => resolver('sola sigue abierta a los 20 s · ' + ultimas(salida)), 10000);
+    }, 20000);
+    hijo.on('error', (e) => {
+      clearTimeout(reloj);
+      resolver('no se pudo ejecutar (' + e.message + ')');
+    });
+    hijo.on('close', (codigo, senal) => {
+      clearTimeout(reloj);
+      resolver(abierta ? 'sola sigue abierta a los 20 s · ' + ultimas(salida) : 'sola se cierra con el código ' + codigo + (senal ? ' (' + senal + ')' : '') + ' · ' + ultimas(salida));
+    });
+  });
+}
 
 /** Abre la app y espera el programa listo. Antes de nada revisa que sus datos vayan a la carpeta de la prueba.
     La primera vez, Windows revisa el ejecutable nuevo antes de dejarlo correr: por eso se espera hasta 2 minutos. */
-async function abrirApp() {
-  const app = await electron.launch({ executablePath: ejecutable, args, env, timeout: 120000 });
+async function abrirApp(exe, datos) {
+  let app;
+  try {
+    app = await electron.launch({ executablePath: exe, args: argumentos(datos), env, timeout: 120000 });
+  } catch (e) {
+    throw new Error('la app no arrancó (' + ((e && e.message) || e).split('\n')[0] + '); ' + (await sola(exe, datos)));
+  }
   const principal = await app.evaluate(({ app: a }) => ({ empacada: a.isPackaged, datos: a.getPath('userData') }));
   if (!mismaCarpeta(principal.datos, datos)) {
     app.process().kill();
@@ -122,8 +168,10 @@ async function cerrarApp(app) {
 
 let abierta = null;
 try {
-  /* ── Primera vez ── */
-  let { app, p, errores, principal } = await abrirApp();
+  /* ════════  Donde la deja electron-builder  ════════ */
+  const datos = join(base, 'datos');
+  marca.nota('App: ' + original);
+  let { app, p, errores, principal } = await abrirApp(original, datos);
   abierta = app;
   const errores1 = errores;
   m.ok(principal.empacada, 'es la app empacada y sus datos van a la carpeta de la prueba', principal);
@@ -164,8 +212,7 @@ try {
   abierta = null;
   m.ok(existsSync(join(datos, 'datos', 'copia.json.gz')), 'al cerrar, la app guarda su copia interna en su carpeta de datos');
 
-  /* ── Otra vez ── */
-  ({ app, p, errores } = await abrirApp());
+  ({ app, p, errores } = await abrirApp(original, datos));
   abierta = app;
   await ingresarPrecios(p, 'admin', CLAVE);
   m.ok(await p.isVisible('#stage .cover-hero'), 'al abrir otra vez, la contraseña nueva sirve: los datos quedaron en el disco');
@@ -173,6 +220,33 @@ try {
   m.ok(todos.length === 0, 'sin errores de JavaScript ni de la política de seguridad', todos.slice(0, 3));
   await cerrarApp(app);
   abierta = null;
+
+  /* ════════  Copiada a una carpeta con espacios y «ñ»  ════════ */
+  if (process.platform !== 'darwin') {
+    const copia = join(base, CARPETA, basename(dirname(original)), basename(original));
+    cpSync(dirname(original), dirname(copia), { recursive: true, verbatimSymlinks: true });
+    const datosN = join(base, 'Datos de ARKEN PRECIOS ñ');
+    marca.nota('App: ' + copia);
+    try {
+      ({ app, p, errores } = await abrirApp(copia, datosN));
+      abierta = app;
+      const r = await p.evaluate(() => ({ url: location.href, version: window.arkenPrecios && window.arkenPrecios.version }));
+      await ingresarPrecios(p, 'admin', 'arken', CLAVE);
+      m.ok(r.url === 'app://precios/index.html' && r.version === VERSION && errores.length === 0,
+        'también abre y deja ingresar desde una carpeta con espacios y «ñ», con sus datos en otra igual', { r, errores: errores.slice(0, 3) });
+      await cerrarApp(app);
+      abierta = null;
+      m.ok(existsSync(join(datosN, 'datos', 'copia.json.gz')), 'y guarda su copia interna en la carpeta de datos con «ñ»');
+    } catch (e) {
+      if (abierta) await abierta.close().catch(() => {});
+      abierta = null;
+      // Cuál de las dos carpetas la detiene
+      const programa = await sola(copia, join(base, 'datos-simple'));
+      const datosConN = await sola(original, join(base, 'Datos con ñ ' + Date.now()));
+      m.ok(false, 'también abre desde una carpeta con espacios y «ñ»: ' + ((e && e.message) || e).split('\n')[0] +
+        ' ║ la app en la carpeta con «ñ» y sus datos en una simple: ' + programa + ' ║ la app donde la deja electron-builder y sus datos en una carpeta con «ñ»: ' + datosConN);
+    }
+  }
 } catch (e) {
   m.ok(false, 'la prueba terminó sin errores inesperados: ' + (e && e.stack ? e.stack.split('\n').slice(0, 4).join(' | ') : e));
 } finally {

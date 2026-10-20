@@ -181,8 +181,8 @@ jobs:
       - run: npm ci
       - name: Instalador
         run: npm run dist:windows
-      # La app empacada se abre de verdad antes de entregar el instalador, desde una carpeta con
-      # espacios y «ñ» como la de un usuario de Windows (pruebas/escritorio-abre.mjs)
+      # La app empacada se abre de verdad antes de entregar el instalador: donde la deja electron-builder
+      # y copiada a una carpeta con espacios y «ñ», como la de un usuario de Windows (pruebas/escritorio-abre.mjs)
       - name: La app empacada abre
         run: npm run prueba:escritorio-abre
       - uses: actions/upload-artifact@v7
