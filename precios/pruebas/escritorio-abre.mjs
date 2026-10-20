@@ -19,7 +19,7 @@
 
 import { _electron as electron } from 'playwright-core';
 import { spawn } from 'node:child_process';
-import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, realpathSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { PRECIOS, vigilarErrores, ingresarPrecios, marcador } from './comun.mjs';
@@ -72,6 +72,20 @@ function mismaCarpeta(a, b) {
     return process.platform === 'linux' ? r : r.toLowerCase();
   };
   return normal(a) === normal(b);
+}
+
+/** Copia una carpeta archivo por archivo. fs.cpSync no sirve: en Windows, Node 22 le pasa la ruta de destino
+    a std::filesystem sin convertirla desde UTF-8, así que la carpeta con «ñ» queda con otro nombre y la app
+    copiada no está donde se pidió. mkdirSync y copyFileSync sí convierten la ruta. */
+function copiarCarpeta(origen, destino) {
+  mkdirSync(destino, { recursive: true });
+  for (const e of readdirSync(origen, { withFileTypes: true })) {
+    const de = join(origen, e.name);
+    const a = join(destino, e.name);
+    if (e.isDirectory()) copiarCarpeta(de, a);
+    else if (e.isSymbolicLink()) symlinkSync(readlinkSync(de), a);
+    else copyFileSync(de, a);
+  }
 }
 
 const original = process.argv[2] || ejecutableDeDist();
@@ -224,7 +238,7 @@ try {
   /* ════════  Copiada a una carpeta con espacios y «ñ»  ════════ */
   if (process.platform !== 'darwin') {
     const copia = join(base, CARPETA, basename(dirname(original)), basename(original));
-    cpSync(dirname(original), dirname(copia), { recursive: true, verbatimSymlinks: true });
+    copiarCarpeta(dirname(original), dirname(copia));
     const datosN = join(base, 'Datos de ARKEN PRECIOS ñ');
     marca.nota('App: ' + copia);
     try {
