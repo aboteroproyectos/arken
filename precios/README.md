@@ -152,6 +152,13 @@ npm run dist:linux
 xvfb-run -a dbus-run-session -- sh pruebas/con-llavero.sh npm run prueba:escritorio
 ```
 
+En Windows y macOS, una prueba más corta abre la app empacada de ese sistema: el programa se ve (la ventana no queda en blanco), se ingresa, y al abrir otra vez los datos siguen. En Windows, además, la app se abre copiada a una carpeta con espacios y «ñ», con sus datos en otra igual, como las de un usuario que se llame así. Los datos de la prueba van a carpetas temporales, nunca a la del usuario del equipo. En GitHub corre en cada compilación, antes de entregar el instalador:
+
+```sh
+npm run dist:windows      # o npm run dist:mac
+npm run prueba:escritorio-abre
+```
+
 Si Chrome no está en la ruta habitual, indíquela con `CHROME_PATH`. En GitHub, el flujo [`precios.yml`](../.github/workflows/precios.yml) corre las pruebas con cada cambio en `precios/` o en `programa/ARKEN_CONTROL.html`, y [`compilar-precios.yml`](../.github/workflows/compilar-precios.yml) prueba y compila las apps.
 
 La guía para probarlo a mano, paso a paso, está en [GUIA_DE_PRUEBA.md](GUIA_DE_PRUEBA.md).
