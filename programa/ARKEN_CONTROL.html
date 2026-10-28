@@ -26582,6 +26582,18 @@ async function aprobarLecturaYCrear(p, doc, modal, contTab){
   });
 }
 
+/** Compatibilidad con el lector anterior (la usan las pruebas de las apps): devuelve las filas de texto
+    de un PDF, cada una con `texto` y sus `celdas`. */
+async function extraerLineasPDF(dataURL){
+  const pdf = await LibsLector.pdf().getDocument({ data: bytesDeDataURL(dataURL) }).promise;
+  let ws = [];
+  for (let i = 1; i <= pdf.numPages; i++){
+    const c = await (await pdf.getPage(i)).getTextContent();
+    ws = ws.concat(LectorMotor.palabrasPDF(c.items, i));
+  }
+  return LectorMotor.construirFilas(ws).map(f => ({ texto: f.t, y: f.y, pagina: f.pg, celdas: f.celdas.map(c => ({ texto: c.t, x: c.x0 })) }));
+}
+
 function docCorte(p, c, borrador){
   const k = Modelo.contrato(p, c.idContrato) || {};
   const pv = Modelo.proveedor(p, k.idProveedor) || {};
