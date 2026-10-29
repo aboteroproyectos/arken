@@ -1903,6 +1903,80 @@ tr.prog-casi > td:nth-child(2){ box-shadow:inset 3px 0 0 #C7782A; }
 #cmL select,#cmL input{font-size:12px}
 
 </style>
+<style id="v9-lujo">
+/* ═══════════ v9 · Acabado premium común ═══════════ */
+.page-head{ position:relative; padding-bottom:14px; margin-bottom:20px; border-bottom:1px solid var(--line-soft); }
+.page-head::after{ content:''; position:absolute; left:0; bottom:-1px; width:64px; height:2px; background:linear-gradient(90deg,var(--brass),rgba(169,139,84,0)); }
+.page-head .eyebrow{ color:var(--brass); display:flex; align-items:center; gap:8px; }
+.page-head .eyebrow::before{ content:''; width:18px; height:1px; background:var(--brass); }
+.page-head h1{ font-family:var(--font-display); font-weight:500; font-size:26px; letter-spacing:.01em; margin-top:4px; }
+.stat{ position:relative; transition:box-shadow .2s, transform .2s, border-color .2s; box-shadow:0 1px 2px rgba(22,24,26,.04); }
+.stat::before{ content:''; position:absolute; left:16px; right:16px; top:-1px; height:2px; border-radius:2px; background:var(--brass); opacity:0; transition:opacity .2s; }
+.stat:hover{ box-shadow:var(--shadow); transform:translateY(-1px); border-color:var(--brass-line); }
+.stat:hover::before{ opacity:1; }
+.card-head h3{ font-family:var(--font-display); font-weight:600; letter-spacing:.02em; }
+table.t tbody tr:hover > td{ background:rgba(169,139,84,.06); }
+.tab{ transition:color .15s, border-color .15s; }
+.tab:hover{ color:var(--ink); border-bottom-color:var(--brass-line); }
+
+/* ═══════════ v9 · Tablero ejecutivo ═══════════ */
+.tbx{ position:relative; overflow:hidden; border-radius:var(--r-lg); margin:0 0 var(--gap); color:#ECEDEE;
+  background:radial-gradient(120% 140% at 100% 0%, #2C3136 0%, #1B1E21 46%, #121416 100%);
+  box-shadow:0 18px 40px -24px rgba(10,12,14,.55), inset 0 1px 0 rgba(255,255,255,.04); border:1px solid #2A2E33; }
+.tbx::before{ content:''; position:absolute; right:-120px; top:-140px; width:380px; height:380px; border:1px solid rgba(169,139,84,.22); border-radius:50%; pointer-events:none; }
+.tbx::after{ content:''; position:absolute; left:0; right:0; bottom:0; height:2px; background:linear-gradient(90deg,transparent,var(--brass) 30%,var(--brass) 70%,transparent); opacity:.75; }
+.tbx-in{ position:relative; display:grid; grid-template-columns:minmax(0,1.25fr) auto minmax(0,1.6fr); gap:28px; align-items:center; padding:24px 28px 18px; }
+.tbx-eb{ font-size:9.5px; letter-spacing:.3em; text-transform:uppercase; color:var(--brass); font-weight:700; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.tbx-eb span{ color:#8E949A; letter-spacing:.18em; font-weight:600; }
+.tbx-eb span::before{ content:'·'; margin-right:10px; color:#5C6268; }
+.tbx-tit{ font-family:var(--font-display); font-size:22px; line-height:1.25; font-weight:400; color:#fff; margin:10px 0 8px; letter-spacing:.005em; }
+.tbx-tit em{ font-style:normal; font-weight:700; color:#E4CF9F; }
+.tbx-txt{ color:#AEB3B8; font-size:12.5px; line-height:1.55; max-width:560px; }
+.tbx-txt b{ color:#fff; font-weight:600; }
+.tbx-gauge{ position:relative; width:118px; height:118px; flex:none; }
+.tbx-gauge svg{ width:100%; height:100%; transform:rotate(-90deg); }
+.tbx-g-base{ fill:none; stroke:rgba(255,255,255,.08); stroke-width:7; }
+.tbx-g-arco{ fill:none; stroke:var(--brass); stroke-width:7; stroke-linecap:round; transition:stroke-dasharray .6s ease; filter:drop-shadow(0 0 6px rgba(169,139,84,.35)); }
+.tbx-gauge.ok .tbx-g-arco{ stroke:#6FA585; filter:drop-shadow(0 0 6px rgba(111,165,133,.35)); }
+.tbx-gauge.warn .tbx-g-arco{ stroke:#D3A148; }
+.tbx-gauge.bad .tbx-g-arco{ stroke:#D06A5F; filter:drop-shadow(0 0 6px rgba(208,106,95,.35)); }
+.tbx-g-txt{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.tbx-g-txt b{ font-family:var(--font-num); font-size:26px; font-weight:600; color:#fff; line-height:1; letter-spacing:-.03em; }
+.tbx-g-txt b small{ font-size:12px; color:#AEB3B8; margin-left:1px; }
+.tbx-g-txt span{ font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; color:#8E949A; margin-top:6px; max-width:84px; line-height:1.3; }
+.tbx-kpis{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.07); border-radius:var(--r); overflow:hidden; }
+.tbx-k{ background:rgba(18,20,22,.72); padding:11px 14px; min-width:0; }
+.tbx-k-l{ display:block; font-size:8.5px; letter-spacing:.18em; text-transform:uppercase; color:#8E949A; font-weight:600; }
+.tbx-k-v{ display:block; font-family:var(--font-num); font-size:16px; font-weight:600; color:#fff; margin-top:4px; letter-spacing:-.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tbx-k-f{ display:block; font-size:10.5px; color:#9AA0A6; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tbx-k.ok .tbx-k-v{ color:#9CCDB0; } .tbx-k.warn .tbx-k-v{ color:#E7BE72; } .tbx-k.bad .tbx-k-v{ color:#EE9489; } .tbx-k.accent .tbx-k-v{ color:#E4CF9F; }
+.tbx-sig{ position:relative; display:flex; padding-right:130px !important; flex-wrap:wrap; gap:6px 8px; align-items:center; padding:11px 28px 16px; border-top:1px solid rgba(255,255,255,.06); }
+.tbx-sig-l{ font-size:8.5px; letter-spacing:.24em; text-transform:uppercase; color:#6F757B; font-weight:700; margin-right:4px; }
+.tbx-s{ display:inline-flex; align-items:center; gap:7px; font-size:11px; color:#C9CDD1; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); padding:4px 10px; border-radius:99px; max-width:100%; }
+.tbx-s i{ width:6px; height:6px; border-radius:50%; background:#7FA3C2; flex:none; }
+.tbx-s.ok i{ background:#6FA585; } .tbx-s.warn i{ background:#D3A148; } .tbx-s.bad i{ background:#D06A5F; box-shadow:0 0 0 3px rgba(208,106,95,.18); }
+.tbx-s.bad{ color:#F2C3BD; border-color:rgba(208,106,95,.35); }
+.tbx-tg{ position:absolute; bottom:12px; right:16px; z-index:2; background:transparent; border:1px solid rgba(255,255,255,.12); color:#8E949A; font:inherit; font-size:10px; letter-spacing:.08em; padding:3px 9px; border-radius:99px; cursor:pointer; }
+.tbx-tg:hover{ color:#fff; border-color:var(--brass); }
+.tbx.min .tbx-in{ grid-template-columns:1fr; padding:12px 150px 12px 28px; }
+.tbx.min .tbx-tg{ bottom:auto; top:50%; transform:translateY(-50%); }
+.tbx.min .tbx-txt,.tbx.min .tbx-gauge,.tbx.min .tbx-kpis,.tbx.min .tbx-sig{ display:none; }
+.tbx.min .tbx-tit{ font-size:15px; margin:6px 0 0; }
+.tbx.min::before{ display:none; }
+@media (max-width:1180px){
+  .tbx-in{ grid-template-columns:minmax(0,1fr) auto; }
+  .tbx-kpis{ grid-column:1 / -1; grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+@media (max-width:760px){
+  .tbx-in{ grid-template-columns:1fr; padding:20px 18px 14px; gap:16px; }
+  .tbx-gauge{ width:96px; height:96px; }
+  .tbx-kpis{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .tbx-sig{ padding:10px 18px 44px; padding-right:18px !important; }
+  .tbx-tit{ font-size:18px; padding-right:70px; }
+}
+@media print{ .tbx{ display:none !important; } }
+[data-tema="oscuro"] .tbx{ background:radial-gradient(120% 140% at 100% 0%, #23272B 0%, #141618 50%, #0B0C0D 100%); border-color:#262A2E; }
+</style>
 </head>
 <body>
 
@@ -1950,7 +2024,7 @@ tr.prog-casi > td:nth-child(2){ box-shadow:inset 3px 0 0 #C7782A; }
         <span class="muted small" id="gHint"></span>
       </div>
     </div>
-    <div class="gate-foot"><span class="gate-copy">© <span id="gAnio"></span> ARKEN CONTROL — TODOS LOS DERECHOS RESERVADOS</span></div>
+    <div class="gate-foot"><span class="gate-copy">© <span id="gAnio"></span> ARKEN CONTROL — TODOS LOS DERECHOS RESERVADOS · VERSIÓN <span id="gVer"></span></span></div>
   </div>
 </div>
 
@@ -37400,7 +37474,7 @@ function salidasContador(cont, p, fuente){
       '<div class="stat"><div class="lab">Base gravable</div><div class="val">' + money(fuente.reduce((t,d)=>t+d.base,0)) + '</div></div>' +
       '<div class="stat"><div class="lab">IVA registrado</div><div class="val">' + money(fuente.reduce((t,d)=>t+d.iva,0)) + '</div></div>' +
       '<div class="stat"><div class="lab">ReteIVA practicado</div><div class="val">' + money(fuente.reduce((t,d)=>t+d.reteiva,0)) + '</div></div>' +
-      '<div class="stat"><div class="lab">Tratamiento del IVA</div><div class="val" style="font-size:15px">' + (ivaCosto ? 'Mayor valor del costo' : 'Descontable') + '</div><div class="foot">Administración › Plan de cuentas</div></div>' +
+      '<div class="stat"><div class="lab">Tratamiento del IVA</div><div class="val" style="font-size:15px">' + (ivaCosto ? 'Mayor valor del costo' : 'Descontable') + '</div><div class="foot">Administración › Plan Único de Cuentas</div></div>' +
       '</div></div></div>' +
     '<div class="card"><div class="card-head"><h3>Centro de costos — desagregación por capítulo</h3>' +
       '<button class="btn sm" id="s10Cc" type="button">PDF</button></div><div class="card-body flush">' +
@@ -52863,7 +52937,7 @@ const Ayuda = (function(){
   T.m10 =
     '<h3>Módulo 10 · Contabilidad</h3>' +
     '<p>Cada compra, salida de almacén, corte de obra, pago, ingreso del cliente, nómina y liquidación genera su ' +
-    '<b>comprobante contable por partida doble</b>, con las cuentas de las reglas de causación (Administración › Plan de cuentas). ' +
+    '<b>comprobante contable por partida doble</b>, con las cuentas de las reglas de causación (Administración › Plan Único de Cuentas). ' +
     'Con esos comprobantes y los manuales (ajustes y saldos iniciales) salen el <b>libro diario</b>, el <b>libro mayor</b> y el ' +
     '<b>balance de prueba</b>, por proyecto o de toda la empresa, en PDF y Excel.</p>' +
     '<h4>Retenciones</h4><p>La retención se calcula por concepto con la vigencia de la fecha del documento: base mínima en UVT, ' +
@@ -55949,7 +56023,7 @@ const GUIAS_MODULO = [
         'Agregue los renglones con cuenta, tercero, débito o crédito hasta que diga «Cuadrado».',
         'Pulse «Guardar comprobante».'] },
       { t:'Ajustar las cuentas de causación', pasos:[
-        'Vaya a Administración › Plan de cuentas.',
+        'Vaya a Administración › Plan Único de Cuentas.',
         'Baje a «Reglas de causación automática».',
         'Cambie la cuenta de cada hecho o la del concepto de retención; los libros se recalculan.'] },
       { t:'Marcar las declaraciones de retención', pasos:[
@@ -57351,7 +57425,7 @@ function ayudaInfoSoftware(){
       // ── El rótulo: la disciplina de un plano técnico — una fila, un dato.
       '<div class="ay-rotulo">' +
         fila('Creador', 'ARKEN 360') +
-        fila('Versión', '<span class="num">1.9.0</span>') +
+        fila('Versión', '<span class="num">' + esc(ARKEN_VERSION) + '</span> · ' + esc(fmtFecha(ARKEN_VERSION_FECHA))) +
         fila('Copyright', '© ' + anio + ' ARKEN 360 — todos los derechos reservados') +
         fila('Naturaleza', 'Software de propiedad privada, bajo licencia de uso') +
         fila('Licencia', LicenciaUso.esDemo() ? 'Modo demostración — sin licencia vigente' :
@@ -57380,6 +57454,13 @@ function ayudaInfoSoftware(){
         '</div>' +
         '<p class="ay-soporte">Para reportar un defecto o solicitar una mejora, use el canal que su empresa ' +
         'tenga dispuesto con el desarrollador del sistema.</p>' +
+      '</div>' +
+
+      '<div class="ay-tecnica">' +
+        '<div class="ay-tecnica-tit">Historial de versiones</div>' +
+        '<div class="ay-tecnica-grid">' +
+          HISTORIAL_VERSIONES.map(v => fila('Versión ' + v[0] + ' · ' + fmtFecha(v[1]), esc(v[2]))).join('') +
+        '</div>' +
       '</div>' +
 
       // El lema de la plataforma, cerrando la placa con el mismo lenguaje de
@@ -60381,6 +60462,7 @@ const Arranque = (function(){
     $('#gUser').onkeydown = e => { if (e.key === 'Enter') $('#gPass').focus(); };
     $('#gImport').onclick = () => Documentos.importarRespaldo();
     if ($('#gAnio')) $('#gAnio').textContent = new Date().getFullYear();
+    if ($('#gVer')) $('#gVer').textContent = ARKEN_VERSION;
     $('#gUser').focus();
 
     // 3 · Aviso de almacenamiento sólo en memoria
@@ -61422,13 +61504,13 @@ const Conta = (function(){
         '<td class="n">' + money(fin.d) + '</td><td class="n">' + money(fin.c) + '</td></tr></tfoot></table></div></div></div>' +
       '<div class="card"><div class="card-head"><h3>Controles del contador</h3></div><div class="card-body"><ul class="lista">' +
         '<li>' + (ctl.descuadrados.length ? '<b class="bad-txt">' + ctl.descuadrados.length + ' comprobante(s) descuadrado(s).</b>' : 'Todos los comprobantes cuadran.') + '</li>' +
-        '<li>' + (ctl.sinPUC.length ? '<b class="warn-txt">Cuentas usadas que no existen en el plan de cuentas: ' + esc(ctl.sinPUC.join(', ')) + '.</b> Créelas en Administración › Plan de cuentas o cambie la regla.' : 'Todas las cuentas usadas existen en el plan de cuentas.') + '</li>' +
+        '<li>' + (ctl.sinPUC.length ? '<b class="warn-txt">Cuentas usadas que no existen en el plan de cuentas: ' + esc(ctl.sinPUC.join(', ')) + '.</b> Créelas en Administración › Plan Único de Cuentas o cambie la regla.' : 'Todas las cuentas usadas existen en el plan de cuentas.') + '</li>' +
         '<li>' + (ctl.pucRaro.length ? ctl.pucRaro.length + ' documento(s) tienen como «cuenta PUC» una cuenta de pasivo (por ejemplo ' + esc(ctl.pucRaro[0].cod) + '). La compra se causa al inventario según las reglas; la cuenta del documento solo se muestra en el libro auxiliar.' : 'Ningún documento usa una cuenta de pasivo como cuenta de costo.') + '</li>' +
         '<li>' + (ctl.contrarios.length ? '<b class="warn-txt">Cuentas con saldo contrario a su naturaleza:</b> ' + ctl.contrarios.map(x => esc(x.cuenta + ' ' + (nombreCuenta(x.cuenta) || '')) + ' (' + money(Math.abs(x.saldo)) + (x.saldo > 0 ? ' débito' : ' crédito') + ')').join('; ') +
           '. Un banco o un inventario en crédito suele indicar que faltan los saldos iniciales, aportes o ingresos por registrar.' : 'Ninguna cuenta tiene saldo contrario a su naturaleza.') + '</li>' +
         '<li>Las salidas de almacén se valoran al costo promedio ponderado de compra (NIIF para PYMES, Sección 13)' + (ctl.sinCosto ? '; ' + ctl.sinCosto + ' salida(s) incluyen insumos sin compra registrada en el proyecto y se valoraron al precio de la salida.' : '.') + '</li>' +
         '<li>' + (ctl.inferidos ? ctl.inferidos + ' pago(s) se fecharon con la autorización del pago, porque el documento solo tiene la marca «pagado». Confírmelos con el extracto bancario.' : 'Todos los pagos tienen fecha propia.') + '</li>' +
-        '<li>Las compras entran al inventario y pasan al costo de la obra con las salidas de almacén; el IVA de compras se trata como ' + (ivaEsCosto(p) ? '<b>mayor valor del costo</b>' : '<b>descontable</b>') + ' (Administración › Plan de cuentas › Reglas de causación).</li>' +
+        '<li>Las compras entran al inventario y pasan al costo de la obra con las salidas de almacén; el IVA de compras se trata como ' + (ivaEsCosto(p) ? '<b>mayor valor del costo</b>' : '<b>descontable</b>') + ' (Administración › Plan Único de Cuentas › Reglas de causación).</li>' +
       '</ul><div class="alert info" style="margin-top:10px"><div class="ic">ℹ</div><div class="bd small">' + esc(AVISO_TRIBUTARIO) + '</div></div></div></div>';
     conectarFiltros();
     UI.conectarBusqueda('#cfBus', '#tBp');
@@ -61534,7 +61616,7 @@ const Conta = (function(){
     tabComprobantes, tabDiario, tabMayor, tabBalance, exportar, adminReglas, filtros, etiquetaPeriodo };
 })();
 
-/* Administración › Plan de cuentas: el catálogo y, debajo, las reglas de causación. */
+/* Administración › Plan Único de Cuentas: el catálogo y, debajo, las reglas de causación. */
 const _adPUCBase = adPUC;
 adPUC = function(c){
   Conta.migrar();
@@ -61551,13 +61633,691 @@ adPUC = function(c){
     ['Libro diario', 'Registro cronológico de todos los asientos contables, con su comprobante, cuenta, tercero y centro de costo (Código de Comercio arts. 48 a 60).'],
     ['Libro mayor y balances', 'Resumen por cuenta del saldo anterior, los débitos, los créditos y el saldo final de un periodo.'],
     ['Balance de prueba', 'Listado de todas las cuentas con sus saldos que comprueba que la suma de débitos es igual a la de créditos. Es la base de los estados financieros.'],
-    ['Reglas de causación', 'Cuentas que el sistema usa para cada tipo de hecho (compra, salida, corte, pago, nómina). Se ajustan en Administración › Plan de cuentas.'],
+    ['Reglas de causación', 'Cuentas que el sistema usa para cada tipo de hecho (compra, salida, corte, pago, nómina). Se ajustan en Administración › Plan Único de Cuentas.'],
     ['Certificado de retención', 'Documento que el agente retenedor entrega a cada tercero con el total retenido en el año, por concepto. ARKEN lo genera por NIT sumando todos los proyectos de la empresa (arts. 378 a 381 del Estatuto Tributario).'],
     ['Régimen simple de tributación', 'Régimen del art. 903 y siguientes del Estatuto Tributario. Sus integrantes no son sujetos de retención en la fuente a título de renta (art. 911 ET).'],
     ['Autorretenedor', 'Contribuyente autorizado por la DIAN para practicarse su propia retención; por eso no se le retiene en la fuente.']
   ];
   nuevos.forEach(([q, a]) => { if (!AYUDA_CONTENIDO.glosario.some(x => normaliza(x.q) === normaliza(q))) AYUDA_CONTENIDO.glosario.push({ q, a:'<p>' + esc(a) + '</p>' }); });
   AYUDA_CONTENIDO.glosario.sort((x,y) => String(x.q).localeCompare(String(y.q), 'es'));
+})();
+
+</script>
+<script id="v9-tablero">
+/* ════════════════════════════════════════════════════════════════════════
+   TABLERO EJECUTIVO — la franja de lectura gerencial de cada módulo
+   Cada módulo de trabajo abre con una franja oscura que responde, en una
+   frase, la pregunta que un gerente le haría a ese módulo: ¿cómo vamos?
+   Las cifras salen de los mismos cálculos que usa el módulo —nunca de una
+   segunda fórmula— y cada indicador se calcula aislado: si un dato falta,
+   ese indicador muestra «—» y el resto del tablero sigue en pie.
+   ════════════════════════════════════════════════════════════════════════ */
+const ARKEN_VERSION = '9.0.0';
+const ARKEN_VERSION_FECHA = '2026-10-29';
+const HISTORIAL_VERSIONES = [
+  ['9.0.0', '2026-10-29', 'Tablero ejecutivo en los módulos de trabajo, acabado visual premium, centro de ayuda con la contabilidad completa, y versión y año de copyright automáticos.'],
+  ['8.0.0', '2026-10-29', 'Contabilidad por partida doble: comprobantes, libro diario, libro mayor, balance de prueba, retenciones por concepto, control de declaraciones y certificados por NIT.'],
+  ['7.0.0', '2026-10-29', 'Centro de ayuda con guías por módulo, rutas de trabajo y glosario; tablero de obra faltante en el presupuesto.'],
+  ['6.0.0', '2026-10-28', 'Formatos de supervisión técnica e interventoría y manuales de uso, mantenimiento y garantía.'],
+  ['5.0.0', '2026-10-28', 'Visor de planos AutoCAD sin internet en la planoteca e informes de obra con temas.'],
+  ['4.0.0', '2026-10-28', 'Lector de documentos local: facturas electrónicas, PDF, fotos y códigos QR de la DIAN sin conexión.'],
+  ['3.0.0', '2026-10-28', 'Cifrado AES-256 y copias de respaldo, riesgos, órdenes de cambio, avance medido, RFI y no conformidades.'],
+  ['2.0.0', '2026-10-27', 'Programación CPM, AIU desglosado, ajuste masivo de precios, flujo de caja, control contractual y estándares SG-SST.']
+];
+
+const Tablero = (function(){
+  const MODULOS_TABLERO = ['01','02','04','05','06','07','08','11','12','14','15'];
+  const CLAVE_MIN = 'arken.tablero.min';
+
+  /* ── utilidades ── */
+  function seguro(fn, defecto){ try { const v = fn(); return (v === undefined || v === null || (typeof v === 'number' && !isFinite(v))) ? defecto : v; } catch(e){ return defecto; } }
+  function dias(a, b){
+    if (!a || !b) return NaN;
+    return Math.round((Date.parse(b + 'T00:00:00') - Date.parse(a + 'T00:00:00')) / 864e5);
+  }
+  function compacto(v){
+    v = Number(v) || 0;
+    const s = v < 0 ? '−' : '', a = Math.abs(v);
+    if (a >= 1e9) return s + '$ ' + (a / 1e9).toLocaleString('en-US', { maximumFractionDigits:2 }) + ' mil millones';
+    if (a >= 1e6) return s + '$ ' + (a / 1e6).toLocaleString('en-US', { maximumFractionDigits:1 }) + ' millones';
+    return s + money(a);
+  }
+  function p1(x){ return (Number(x) || 0).toLocaleString('en-US', { maximumFractionDigits:1 }) + ' %'; }
+  function limitar(x){ return Math.max(0, Math.min(100, Number(x) || 0)); }
+  function plural(n, uno, varios){ return n + ' ' + (n === 1 ? uno : varios); }
+  function activos(p){
+    const h = hoyISO();
+    return (p.personal || []).filter(t => !t.fechaRetiro || t.fechaRetiro > h);
+  }
+  function minimizado(num){
+    try { return (JSON.parse(localStorage.getItem(CLAVE_MIN) || '[]') || []).includes(num); } catch(e){ return false; }
+  }
+  function alternar(num){
+    try {
+      let l = JSON.parse(localStorage.getItem(CLAVE_MIN) || '[]') || [];
+      l = l.includes(num) ? l.filter(x => x !== num) : l.concat(num);
+      localStorage.setItem(CLAVE_MIN, JSON.stringify(l));
+    } catch(e){}
+  }
+
+  /* ── el dibujo ── */
+  function anillo(valor, etiqueta, tono){
+    const v = limitar(valor), r = 46, c = 2 * Math.PI * r;
+    return '<div class="tbx-gauge ' + (tono || '') + '"><svg viewBox="0 0 120 120" aria-hidden="true">' +
+      '<circle cx="60" cy="60" r="' + r + '" class="tbx-g-base"/>' +
+      (v > 0 ? '<circle cx="60" cy="60" r="' + r + '" class="tbx-g-arco" stroke-dasharray="' + (c * v / 100).toFixed(2) + ' ' + c.toFixed(2) + '"/>' : '') +
+      '</svg><div class="tbx-g-txt"><b>' + Math.round(v) + '<small>%</small></b><span>' + esc(etiqueta) + '</span></div></div>';
+  }
+  function pintar(num, t){
+    const min = minimizado(num);
+    const k = (t.kpis || []).map(x => '<div class="tbx-k' + (x.tono ? ' ' + x.tono : '') + '"><span class="tbx-k-l">' + esc(x.l) + '</span>' +
+      '<b class="tbx-k-v">' + x.v + '</b>' + (x.f ? '<span class="tbx-k-f">' + x.f + '</span>' : '') + '</div>').join('');
+    const s = (t.senales || []).filter(Boolean).slice(0, 6).map(x =>
+      '<span class="tbx-s ' + (x.t || 'info') + '"><i></i>' + x.m + '</span>').join('');
+    return '<section class="tbx' + (min ? ' min' : '') + '" data-tbx="' + num + '">' +
+      '<div class="tbx-in">' +
+        '<div class="tbx-main">' +
+          '<div class="tbx-eb">Tablero ejecutivo<span>' + esc(t.ambito || '') + '</span></div>' +
+          '<div class="tbx-tit">' + t.titular + '</div>' +
+          (t.texto ? '<div class="tbx-txt">' + t.texto + '</div>' : '') +
+        '</div>' +
+        (t.anillo ? anillo(t.anillo.v, t.anillo.l, t.anillo.tono) : '') +
+        '<div class="tbx-kpis">' + k + '</div>' +
+      '</div>' +
+      (s ? '<div class="tbx-sig"><span class="tbx-sig-l">Señales</span>' + s + '</div>' : '') +
+      '<button class="tbx-tg" type="button" data-tbx-tg="' + num + '" title="' + (min ? 'Mostrar' : 'Ocultar') + ' el tablero ejecutivo">' +
+        (min ? 'Mostrar tablero' : 'Ocultar') + '</button>' +
+    '</section>';
+  }
+
+  /* ── 01 · Información del proyecto ── */
+  function m01(p){
+    const h = hoyISO();
+    const tot = seguro(() => Calculo.valorTotal(p), 0);
+    const inv = seguro(() => Calculo.invertidoProyecto(p), 0);
+    const area = Number((p.info || {}).areaConstruida || 0);
+    const ini = (p.info || {}).fechaInicio || (p.programacion || {}).inicio || '';
+    const fin = (p.info || {}).fechaFin || (p.programacion || {}).fin || '';
+    const plazo = dias(ini, fin) + 1;
+    const corrido = isFinite(plazo) && plazo > 0 ? Math.max(0, Math.min(plazo, dias(ini, h) + 1)) : NaN;
+    const pPlazo = isFinite(corrido) ? corrido / plazo * 100 : NaN;
+    const hayProg = ((p.programacion || {}).tareas || []).length > 0;
+    const real = hayProg ? seguro(() => Calculo.avanceReal(p), NaN) : NaN;
+    const prog = hayProg ? seguro(() => Calculo.avanceProgramado(p, h), NaN) : NaN;
+    const pInv = tot > 0 ? inv / tot * 100 : 0;
+    const restan = dias(h, fin);
+    const sobre = seguro(() => Calculo.sobrecostos(p).length, 0);
+    const desv = isFinite(real) && isFinite(prog) ? real - prog : NaN;
+    return {
+      ambito: p.nombre,
+      titular: isFinite(real)
+        ? 'Obra al <em>' + p1(real) + '</em>' + (isFinite(pPlazo) ? ' con el ' + p1(pPlazo) + ' del plazo consumido' : '')
+        : 'Proyecto de <em>' + compacto(tot) + '</em>' + (area ? ' sobre ' + area.toLocaleString('en-US') + ' m²' : ''),
+      texto: isFinite(desv)
+        ? (Math.abs(desv) < 1 ? 'La obra avanza al ritmo programado.' :
+           'La obra va <b>' + p1(Math.abs(desv)) + (desv > 0 ? ' adelante' : ' atrás') + '</b> de lo programado a hoy (' + p1(prog) + ').') +
+          ' Se ha invertido el ' + p1(pInv) + ' del presupuesto.'
+        : 'Se ha invertido el ' + p1(pInv) + ' del presupuesto. Genere la programación (módulo 09) para medir el avance contra el plazo.',
+      anillo: isFinite(real) ? { v:real, l:'avance de obra', tono: desv < -5 ? 'bad' : desv < 0 ? 'warn' : 'ok' } : { v:pInv, l:'invertido' },
+      kpis: [
+        { l:'Valor del proyecto', v:money(tot), f:'Costo directo + AIU' },
+        { l:'Costo por m²', v: area ? money(tot / area) : '—', f: area ? area.toLocaleString('en-US') + ' m² construidos' : 'Registre el área construida' },
+        { l:'Plazo', v: isFinite(restan) ? (restan >= 0 ? plural(restan, 'día', 'días') : 'Vencido') : '—',
+          f: fin ? (restan >= 0 ? 'Termina el ' : 'Terminó el ') + fmtFecha(fin) : 'Sin fecha de terminación', tono: isFinite(restan) && restan < 0 && real < 100 ? 'bad' : '' },
+        { l:'Invertido', v:money(inv), f:p1(pInv) + ' del presupuesto' }
+      ],
+      senales: [
+        sobre ? { t:'bad', m:plural(sobre, 'actividad con sobrecosto', 'actividades con sobrecosto') } : { t:'ok', m:'Sin sobrecostos por actividad' },
+        isFinite(restan) && restan < 0 && real < 100 ? { t:'bad', m:'Plazo contractual vencido' } : null,
+        !area ? { t:'warn', m:'Falta el área construida' } : null,
+        !String((p.info || {}).resumen || '').trim() ? { t:'warn', m:'Falta el resumen del proyecto' } : null,
+        { t:'info', m:plural(((p.info || {}).equipo || []).length, 'profesional en el equipo', 'profesionales en el equipo') },
+        (p.info || {}).cerrada ? { t:'ok', m:'Ficha cerrada y firmada' } : null
+      ]
+    };
+  }
+
+  /* ── 02 · Biblioteca ── */
+  function m02(p){
+    const b = p.biblioteca || {};
+    const L = k => Array.isArray(b[k]) ? b[k] : [];
+    let peso = 0, ultimo = '';
+    Object.keys(b).forEach(k => L(k).forEach(x => {
+      peso += Number(x.peso || (x.archivo || {}).peso || 0);
+      if (x.fecha && x.fecha > ultimo) ultimo = x.fecha;
+    }));
+    const planos = L('planoteca');
+    const vigentes = planos.filter(x => x.vigente !== false);
+    const tipos = (p.tiposPlano || []);
+    const conVig = tipos.filter(t => vigentes.some(x => x.tipo === t));
+    const faltan = tipos.filter(t => !conVig.includes(t));
+    const total = Object.keys(b).reduce((s, k) => s + L(k).length, 0);
+    const cobertura = tipos.length ? conVig.length / tipos.length * 100 : 0;
+    return {
+      ambito: p.nombre,
+      titular: '<em>' + plural(total, 'registro', 'registros') + '</em> respaldan la memoria del proyecto',
+      texto: 'La planoteca tiene ' + plural(vigentes.length, 'plano vigente', 'planos vigentes') + ' de ' + plural(planos.length, 'versión', 'versiones') +
+        (tipos.length ? ', y cubre ' + conVig.length + ' de ' + tipos.length + ' disciplinas.' : '.') +
+        (ultimo ? ' Último movimiento: ' + fmtFecha(ultimo) + '.' : ''),
+      anillo: { v:cobertura, l:'disciplinas', tono: cobertura >= 80 ? 'ok' : cobertura >= 40 ? 'warn' : 'bad' },
+      kpis: [
+        { l:'Archivos del proyecto', v:String(L('archivos').length), f:(peso / 1048576).toLocaleString('en-US', { maximumFractionDigits:1 }) + ' MB en el repositorio' },
+        { l:'Planos vigentes', v:String(vigentes.length), f:plural(planos.length - vigentes.length, 'versión anterior', 'versiones anteriores') + ' en el histórico' },
+        { l:'Informes', v:String(L('informes').length), f:'Generados y archivados' },
+        { l:'Comités y actas', v:String(L('comites').length + L('actasVecindad').length + L('memorandos').length),
+          f:L('comites').length + ' comités · ' + L('actasVecindad').length + ' actas · ' + L('memorandos').length + ' memorandos' }
+      ],
+      senales: [
+        faltan.length ? { t:'warn', m:'Sin plano vigente: ' + esc(faltan.slice(0, 3).join(', ')) + (faltan.length > 3 ? ' y ' + (faltan.length - 3) + ' más' : '') } : (tipos.length ? { t:'ok', m:'Todas las disciplinas tienen plano vigente' } : null),
+        !L('actasVecindad').length ? { t:'warn', m:'Sin actas de vecindad registradas' } : { t:'ok', m:plural(L('actasVecindad').length, 'acta de vecindad', 'actas de vecindad') },
+        { t:'info', m:plural(L('equipos').length, 'equipo registrado', 'equipos registrados') }
+      ]
+    };
+  }
+
+  /* ── 04 · Lista maestra ── */
+  function m04(p){
+    const ins = p.insumos || [];
+    const usados = [], porCat = {};
+    let valor = 0;
+    ins.forEach(i => {
+      if (seguro(() => Calculo.cantidadPresupuestada(p, i.id), 0) > 0){
+        usados.push(i);
+        const v = seguro(() => Calculo.valorPresupuestadoInsumo(p, i), 0);
+        valor += v; porCat[i.categoria || 'Sin categoría'] = (porCat[i.categoria || 'Sin categoría'] || 0) + v;
+      }
+    });
+    const sinPrecio = usados.filter(i => !(Number(i.precio) > 0));
+    const cats = Object.keys(porCat).sort((a, b) => porCat[b] - porCat[a]);
+    const top = cats[0];
+    const conPrecio = usados.length ? (usados.length - sinPrecio.length) / usados.length * 100 : 0;
+    return {
+      ambito: p.nombre,
+      titular: '<em>' + plural(usados.length, 'insumo', 'insumos') + '</em> sostienen un presupuesto de ' + compacto(valor),
+      texto: top ? 'La categoría <b>' + esc(top) + '</b> concentra el ' + p1(valor ? porCat[top] / valor * 100 : 0) + ' del valor presupuestado.' +
+        ' Cada cantidad presupuestada es el techo para contratos y cortes.' : 'Aún no hay insumos con cantidad presupuestada.',
+      anillo: { v:conPrecio, l:'con precio', tono: sinPrecio.length ? 'warn' : 'ok' },
+      kpis: [
+        { l:'Insumos registrados', v:ins.length.toLocaleString('en-US'), f:(p.apus || []).length.toLocaleString('en-US') + ' APU los usan' },
+        { l:'En el presupuesto', v:usados.length.toLocaleString('en-US'), f:(ins.length - usados.length).toLocaleString('en-US') + ' sin cantidad asignada' },
+        { l:'Valor presupuestado', v:money(valor), f:'Suma de cantidad × precio' },
+        { l:'Categoría principal', v: top ? esc(top) : '—', f: top ? compacto(porCat[top]) : '' }
+      ],
+      senales: [
+        sinPrecio.length ? { t:'bad', m:plural(sinPrecio.length, 'insumo presupuestado sin precio', 'insumos presupuestados sin precio') } : { t:'ok', m:'Todos los insumos presupuestados tienen precio' }
+      ].concat(cats.slice(1, 4).map(c => ({ t:'info', m:esc(c) + ' · ' + p1(valor ? porCat[c] / valor * 100 : 0) })))
+    };
+  }
+
+  /* ── 05 · Causaciones ── */
+  function m05(p){
+    const docs = (p.documentos || []).filter(d => d.estado !== 'anulado');
+    const compras = docs.reduce((s, d) => s + seguro(() => Calculo.totalesDocumento(d).total, 0), 0);
+    const cons = (p.contratos || []).filter(k => k.estado !== 'anulado');
+    const contratado = cons.reduce((s, k) => s + seguro(() => Calculo.totalContrato(k), 0), 0);
+    const ejecutado = (p.cortes || []).reduce((s, c) => s + seguro(() => Calculo.totalCorte(p, c), 0), 0);
+    const inventario = seguro(() => Calculo.inventario(p, (S.config || {}).metodoInventario).reduce((s, f) => s + (f.existencia > 0 ? Number(f.valor || 0) : 0), 0), 0);
+    const retenido = cons.reduce((s, k) => s + Math.max(0, seguro(() => Calculo.saldoRetenido(p, k.id), 0)), 0);
+    const reqAbiertos = (p.requerimientos || []).filter(r => ['pendiente', 'parcial'].includes(seguro(() => Calculo.estadoRequerimiento(p, r), ''))).length;
+    const provSinRegimen = (p.proveedores || []).filter(v => !v.regimen).length;
+    const abiertos = docs.filter(d => !d.cerrado).length + (p.cortes || []).filter(c => !c.cerrado).length;
+    const pEje = contratado > 0 ? ejecutado / contratado * 100 : 0;
+    return {
+      ambito: p.nombre,
+      titular: contratado ? 'Contratos ejecutados al <em>' + p1(pEje) + '</em>' : '<em>' + compacto(compras) + '</em> causados en compras',
+      texto: 'Se han causado ' + compacto(compras) + ' en ' + plural(docs.length, 'documento', 'documentos') + ' de compra y ' +
+        compacto(ejecutado) + ' en ' + plural((p.cortes || []).length, 'corte', 'cortes') + ' de obra. El almacén guarda ' + compacto(inventario) + ' en inventario.',
+      anillo: { v:pEje, l:'ejecutado' },
+      kpis: [
+        { l:'Compras causadas', v:money(compras), f:plural(docs.length, 'documento', 'documentos') },
+        { l:'Contratado', v:money(contratado), f:plural(cons.length, 'contrato', 'contratos') },
+        { l:'Ejecutado en cortes', v:money(ejecutado), f:money(Math.max(0, contratado - ejecutado)) + ' por ejecutar' },
+        { l:'Inventario en almacén', v:money(inventario), f:'Comprado y aún no despachado' }
+      ],
+      senales: [
+        reqAbiertos ? { t:'warn', m:plural(reqAbiertos, 'requerimiento por atender', 'requerimientos por atender') } : { t:'ok', m:'Requerimientos atendidos' },
+        retenido > 0 ? { t:'info', m:compacto(retenido) + ' de retenido por devolver' } : null,
+        provSinRegimen ? { t:'warn', m:plural(provSinRegimen, 'proveedor sin régimen tributario', 'proveedores sin régimen tributario') } : { t:'ok', m:'Proveedores con ficha tributaria' },
+        abiertos ? { t:'info', m:plural(abiertos, 'documento abierto', 'documentos abiertos') + ' (sin cierre)' } : null
+      ]
+    };
+  }
+
+  /* ── 06 · Bitácora ── */
+  function m06(p){
+    const h = hoyISO();
+    const reg = p.bitacora || [];
+    const fechas = [...new Set(reg.map(b => b.fecha).filter(Boolean))].sort();
+    const ini = (p.info || {}).fechaInicio || (p.programacion || {}).inicio || fechas[0] || '';
+    const finP = (p.info || {}).fechaFin || (p.programacion || {}).fin || h;
+    const tope = finP < h ? finP : h;
+    let habiles = 0;
+    if (ini && ini <= tope){
+      const d = new Date(ini + 'T00:00:00'), f = new Date(tope + 'T00:00:00');
+      for (let i = 0; d <= f && i < 4000; i++){ if (d.getDay() !== 0) habiles++; d.setDate(d.getDate() + 1); }
+    }
+    const conReg = fechas.filter(f => f >= ini && f <= tope).length;
+    const cobertura = habiles ? conReg / habiles * 100 : 0;
+    const ultimo = fechas[fechas.length - 1] || '';
+    const hace = ultimo ? dias(ultimo, h) : NaN;
+    const clima = p.clima || [];
+    const lluvia = clima.filter(c => Number(c.mm || 0) > 0 || (c.franjas || []).some(x => x === 'lluvia' || x === 'aguacero' || x === 'llovizna')).length;
+    const mm = clima.reduce((s, c) => s + Number(c.mm || 0), 0);
+    const fotos = reg.reduce((s, b) => s + (b.adjuntos || []).length, 0);
+    const sinDir = reg.filter(b => !b.revisadoDireccion).length;
+    const sinInt = reg.filter(b => !b.revisadoInterventoria).length;
+    return {
+      ambito: p.nombre,
+      titular: '<em>' + p1(cobertura) + '</em> de los días de obra tienen registro',
+      texto: plural(conReg, 'día registrado', 'días registrados') + ' de ' + plural(habiles, 'día hábil', 'días hábiles') + ' (lunes a sábado) desde el inicio.' +
+        (ultimo ? ' El último registro es del ' + fmtFecha(ultimo) + '.' : ' Aún no hay registros.'),
+      anillo: { v:cobertura, l:'cobertura', tono: cobertura >= 80 ? 'ok' : cobertura >= 50 ? 'warn' : 'bad' },
+      kpis: [
+        { l:'Registros', v:String(reg.length), f:plural(fotos, 'foto o adjunto', 'fotos y adjuntos') },
+        { l:'Último registro', v: ultimo ? fmtFecha(ultimo) : '—', f: isFinite(hace) ? (hace <= 0 ? 'Hoy' : 'Hace ' + plural(hace, 'día', 'días')) : '', tono: hace > 3 ? 'warn' : '' },
+        { l:'Días con lluvia', v:String(lluvia), f:mm.toLocaleString('en-US', { maximumFractionDigits:1 }) + ' mm acumulados' },
+        { l:'Revisión de dirección', v:(reg.length - sinDir) + ' / ' + reg.length, f:(reg.length - sinInt) + ' revisados por interventoría' }
+      ],
+      senales: [
+        isFinite(hace) && hace > 3 ? { t:'warn', m:'Sin registro hace ' + plural(hace, 'día', 'días') } : (ultimo ? { t:'ok', m:'Bitácora al día' } : { t:'warn', m:'Bitácora sin registros' }),
+        sinDir ? { t:'warn', m:plural(sinDir, 'registro sin revisión de dirección', 'registros sin revisión de dirección') } : null,
+        sinInt ? { t:'info', m:plural(sinInt, 'registro sin revisión de interventoría', 'registros sin revisión de interventoría') } : null
+      ]
+    };
+  }
+
+  /* ── 07 · Facturación ── */
+  function m07(p){
+    const h = hoyISO();
+    const rows = seguro(() => documentosUnificados(p), []);
+    const pag = rows.filter(r => r.pagado), pen = rows.filter(r => !r.pagado);
+    const vPag = pag.reduce((s, r) => s + Number(r.neto || 0), 0);
+    const vPen = pen.reduce((s, r) => s + Number(r.neto || 0), 0);
+    const ret = rows.reduce((s, r) => s + Number(r.retefuente || 0) + Number(r.reteica || 0) + Number(r.reteiva || 0), 0);
+    const viejos = pen.filter(r => seguro(() => diasEntre(r.fecha, h), 0) > 30);
+    const vViejos = viejos.reduce((s, r) => s + Number(r.neto || 0), 0);
+    const tot = vPag + vPen;
+    const pPag = tot > 0 ? vPag / tot * 100 : 0;
+    const porProv = {};
+    pen.forEach(r => { porProv[r.prov] = (porProv[r.prov] || 0) + Number(r.neto || 0); });
+    const mayor = Object.keys(porProv).sort((a, b) => porProv[b] - porProv[a])[0];
+    return {
+      ambito: p.nombre,
+      titular: 'El <em>' + p1(pPag) + '</em> de lo causado ya está pagado',
+      texto: pen.length ? 'Quedan ' + compacto(vPen) + ' por girar en ' + plural(pen.length, 'documento', 'documentos') + '; ' +
+        (viejos.length ? '<b>' + viejos.length + ' superan 30 días</b> (' + compacto(vViejos) + ').' : 'ninguno supera 30 días.') : 'No hay pagos pendientes.',
+      anillo: { v:pPag, l:'pagado', tono: viejos.length ? 'warn' : 'ok' },
+      kpis: [
+        { l:'Documentos', v:String(rows.length), f:pag.length + ' pagados · ' + pen.length + ' pendientes' },
+        { l:'Neto pagado', v:money(vPag), f:'Girado a proveedores y contratistas' },
+        { l:'Por pagar', v:money(vPen), f: mayor ? 'Mayor saldo: ' + esc(mayor) : 'Sin saldos', tono: vPen > 0 ? 'accent' : '' },
+        { l:'Retenciones practicadas', v:money(ret), f:'Fuente, ICA e IVA' }
+      ],
+      senales: [
+        viejos.length ? { t:'bad', m:plural(viejos.length, 'pago con más de 30 días', 'pagos con más de 30 días') } : { t:'ok', m:'Cartera de proveedores al día' },
+        pen.filter(r => !r.autorizadoPor).length ? { t:'warn', m:plural(pen.filter(r => !r.autorizadoPor).length, 'pendiente sin autorización de pago', 'pendientes sin autorización de pago') } : null
+      ]
+    };
+  }
+
+  /* ── 08 · Análisis financiero ── */
+  function m08(p){
+    const h = hoyISO();
+    const ini = ((p.financiero || {}).presupuestoInicial || null);
+    const vIni = ini ? Number(ini.total || 0) : 0;
+    const act = seguro(() => Calculo.valorTotal(p), 0);
+    const inv = seguro(() => Calculo.invertidoProyecto(p), 0);
+    const sobre = seguro(() => Calculo.sobrecostos(p), []);
+    const vSobre = sobre.reduce((s, x) => s + x.exceso, 0);
+    const ahorro = seguro(() => Calculo.ahorroProyecto(p), 0);
+    const varPct = vIni ? (act - vIni) / vIni * 100 : NaN;
+    const pInv = act > 0 ? inv / act * 100 : 0;
+    const hayProg = ((p.programacion || {}).tareas || []).length > 0;
+    const real = hayProg ? seguro(() => Calculo.avanceReal(p), NaN) : NaN;
+    const prog = hayProg ? seguro(() => Calculo.avanceProgramado(p, h), NaN) : NaN;
+    return {
+      ambito: p.nombre,
+      titular: isFinite(varPct)
+        ? (Math.abs(varPct) < 0.05 ? 'El presupuesto se mantiene <em>igual al inicial</em>'
+          : 'El presupuesto ' + (varPct > 0 ? 'crece' : 'baja') + ' <em>' + p1(Math.abs(varPct)) + '</em> frente al inicial')
+        : 'Presupuesto vigente de <em>' + compacto(act) + '</em>',
+      texto: (isFinite(varPct) ? 'Pasó de ' + compacto(vIni) + ' a ' + compacto(act) + '. ' : 'Fije el presupuesto inicial para medir la variación. ') +
+        'Se ha invertido el ' + p1(pInv) + (isFinite(real) ? ' con una obra al ' + p1(real) + '.' : '.'),
+      anillo: { v:pInv, l:'invertido', tono: isFinite(real) && pInv - real > 5 ? 'warn' : '' },
+      kpis: [
+        { l:'Presupuesto inicial', v: vIni ? money(vIni) : '—', f: ini && ini.ts ? 'Fijado el ' + fmtFecha(new Date(ini.ts).toISOString().slice(0, 10)) : 'Sin fijar' },
+        { l:'Presupuesto actual', v:money(act), f: isFinite(varPct) ? (varPct >= 0 ? '+' : '−') + p1(Math.abs(varPct)) + ' de variación' : '', tono: varPct > 0.05 ? 'warn' : '' },
+        { l:'Sobrecostos', v:money(vSobre), f:plural(sobre.length, 'actividad', 'actividades'), tono: sobre.length ? 'bad' : '' },
+        { l:'Ahorros capturados', v:money(ahorro), f:'Actividades cerradas con saldo a favor', tono: ahorro > 0 ? 'ok' : '' }
+      ],
+      senales: [
+        !vIni ? { t:'warn', m:'Presupuesto inicial sin fijar' } : null,
+        sobre.length ? { t:'bad', m:'Mayor sobrecosto: ' + esc((sobre[0].act || {}).nombre || '') + ' (' + compacto(sobre[0].exceso) + ')' } : { t:'ok', m:'Ninguna actividad supera su presupuesto' },
+        isFinite(real) && isFinite(prog) ? { t: real - prog < -5 ? 'bad' : real - prog < 0 ? 'warn' : 'ok', m:'Avance real ' + p1(real) + ' frente a ' + p1(prog) + ' programado' } : null
+      ]
+    };
+  }
+
+  /* ── 11 · SG-SST ── */
+  function m11(p){
+    const h = hoyISO();
+    const sg = p.sgsst || {};
+    const L = k => Array.isArray(sg[k]) ? sg[k] : [];
+    const act = activos(p);
+    const ids = new Set(act.map(t => t.id));
+    const capacitados = new Set();
+    L('capacitaciones').forEach(c => (c.asistentes || []).forEach(a => { if (ids.has(a)) capacitados.add(a); }));
+    const horas = L('capacitaciones').reduce((s, c) => s + Number(c.duracion || 0), 0);
+    const epp = L('epp'), eppF = epp.filter(e => e.firmado).length;
+    const inc = L('incidentes');
+    const ultInc = inc.map(x => x.fecha).filter(Boolean).sort().pop();
+    const ini = (p.info || {}).fechaInicio || (p.programacion || {}).inicio || '';
+    const sinAcc = ultInc ? dias(ultInc, h) : (ini ? dias(ini, h) : NaN);
+    const noAptos = act.filter(t => !seguro(() => Reglas.trabajadorApto(t), true)).length;
+    const pCap = act.length ? capacitados.size / act.length * 100 : 0;
+    return {
+      ambito: p.nombre,
+      titular: isFinite(sinAcc) && sinAcc >= 0 ? '<em>' + plural(sinAcc, 'día', 'días') + '</em> sin incidentes registrados' : '<em>' + p1(pCap) + '</em> del personal capacitado',
+      texto: 'El ' + p1(pCap) + ' del personal activo ha recibido capacitación. ' +
+        plural(L('capacitaciones').length, 'capacitación', 'capacitaciones') + ', ' + plural(epp.length, 'entrega', 'entregas') + ' de EPP y ' +
+        plural(L('inspecciones').length, 'inspección', 'inspecciones') + ' registradas.',
+      anillo: { v:pCap, l:'capacitado', tono: pCap >= 80 ? 'ok' : pCap >= 50 ? 'warn' : 'bad' },
+      kpis: [
+        { l:'Personal activo', v:String(act.length), f:noAptos ? noAptos + ' no aptos para ingresar' : 'Todos aptos para ingresar', tono: noAptos ? 'bad' : '' },
+        { l:'Capacitaciones', v:String(L('capacitaciones').length), f:horas.toLocaleString('en-US') + ' horas dictadas' },
+        { l:'Entregas de EPP', v:String(epp.length), f:eppF + ' firmadas por el trabajador' },
+        { l:'Incidentes', v:String(inc.length), f: ultInc ? 'Último: ' + fmtFecha(ultInc) : 'Ninguno registrado', tono: inc.length ? 'warn' : 'ok' }
+      ],
+      senales: [
+        noAptos ? { t:'bad', m:plural(noAptos, 'trabajador no apto', 'trabajadores no aptos') + ' (documentos incompletos)' } : { t:'ok', m:'Personal con documentos de ingreso completos' },
+        epp.length - eppF ? { t:'warn', m:plural(epp.length - eppF, 'entrega de EPP sin firma', 'entregas de EPP sin firma') } : null,
+        !L('inspecciones').length ? { t:'warn', m:'Sin inspecciones de seguridad registradas' } : null,
+        { t:'info', m:plural(L('permisosAltura').length, 'permiso de alturas', 'permisos de alturas') }
+      ]
+    };
+  }
+
+  /* ── 12 · Licenciamiento ── */
+  function m12(p){
+    const lic = p.licencia || {};
+    const regs = new Map(); (lic.documentos || []).forEach(d => regs.set(d.k, d));
+    const aplicables = DOCS_LICENCIA.filter(d => !d.aplica || (regs.get(d.k) || {}).aplica !== false);
+    const completos = aplicables.filter(d => (regs.get(d.k) || {}).archivo);
+    const faltan = aplicables.filter(d => !(regs.get(d.k) || {}).archivo);
+    const pc = aplicables.length ? completos.length / aplicables.length * 100 : 0;
+    return {
+      ambito: p.nombre,
+      titular: pc >= 100 ? 'Expediente de licencia <em>completo</em>' : 'Expediente de licencia al <em>' + p1(pc) + '</em>',
+      texto: completos.length + ' de ' + aplicables.length + ' documentos exigidos están cargados.' +
+        (lic.numero ? ' Licencia n.º <b>' + esc(lic.numero) + '</b>' + (lic.curaduria ? ' · ' + esc(lic.curaduria) : '') + '.' : ' Aún no se ha registrado el número de la licencia.'),
+      anillo: { v:pc, l:'cargado', tono: pc >= 100 ? 'ok' : pc >= 60 ? 'warn' : 'bad' },
+      kpis: [
+        { l:'Documentos cargados', v:completos.length + ' / ' + aplicables.length, f:plural(faltan.length, 'pendiente', 'pendientes'), tono: faltan.length ? 'warn' : 'ok' },
+        { l:'Número de licencia', v: lic.numero ? esc(lic.numero) : '—', f: lic.fechaExpedicion ? 'Expedida el ' + fmtFecha(lic.fechaExpedicion) : 'Sin fecha de expedición' },
+        { l:'Curaduría', v: lic.curaduria ? esc(lic.curaduria) : '—', f: lic.numeroRadicacion ? 'Radicado ' + esc(lic.numeroRadicacion) : '' },
+        { l:'Vigencia', v: lic.vigencia ? esc(lic.vigencia) : '—', f: lic.prorrogas ? 'Prórrogas: ' + esc(lic.prorrogas) : 'Sin prórrogas' }
+      ],
+      senales: faltan.slice(0, 3).map(d => ({ t:'warn', m:'Falta: ' + esc(d.n) }))
+        .concat(faltan.length > 3 ? [{ t:'info', m:'y ' + plural(faltan.length - 3, 'documento más', 'documentos más') }] : [])
+        .concat(!faltan.length ? [{ t:'ok', m:'Todos los documentos exigidos están cargados' }] : [])
+    };
+  }
+
+  /* ── 14 · Recursos humanos ── */
+  function m14(p){
+    const h = hoyISO();
+    const todos = p.personal || [], act = activos(p);
+    const aptos = act.filter(t => seguro(() => Reglas.trabajadorApto(t), true));
+    const pA = act.length ? aptos.length / act.length * 100 : 0;
+    const contratistas = new Set(act.map(t => String(t.contratista || '').trim()).filter(Boolean));
+    const mes = h.slice(0, 7);
+    const permisosMes = (p.permisosSalida || []).filter(x => String(x.fecha || '').startsWith(mes)).length;
+    const sinEmerg = act.filter(t => !t.emergenciaNombre || !t.emergenciaTel).length;
+    const sinFoto = act.filter(t => !((t.documentos || {}).foto)).length;
+    const noApto = act.filter(t => !aptos.includes(t));
+    return {
+      ambito: p.nombre,
+      titular: '<em>' + plural(act.length, 'persona activa', 'personas activas') + '</em> en el proyecto',
+      texto: 'El ' + p1(pA) + ' cumple los cuatro documentos de ingreso. ' +
+        (contratistas.size ? 'Vinculadas a ' + plural(contratistas.size, 'empresa o contratista', 'empresas o contratistas') + '. ' : '') +
+        plural(todos.length - act.length, 'persona retirada', 'personas retiradas') + ' en el histórico.',
+      anillo: { v:pA, l:'aptos', tono: pA >= 100 ? 'ok' : pA >= 80 ? 'warn' : 'bad' },
+      kpis: [
+        { l:'Personal activo', v:String(act.length), f:plural(todos.length, 'ficha registrada', 'fichas registradas') },
+        { l:'Aptos para ingresar', v:aptos.length + ' / ' + act.length, f:'Cédula, exámenes, EPS y pensión', tono: noApto.length ? 'bad' : 'ok' },
+        { l:'Contratistas', v:String(contratistas.size), f:'Empresas con personal en obra' },
+        { l:'Permisos de salida', v:String(permisosMes), f:'En el mes en curso' }
+      ],
+      senales: [
+        noApto.length ? { t:'bad', m:'No aptos: ' + esc(noApto.slice(0, 2).map(t => (t.nombre || '') + ' ' + (t.apellidos || '')).join(', ')) + (noApto.length > 2 ? ' y ' + (noApto.length - 2) + ' más' : '') } : { t:'ok', m:'Todo el personal activo está apto' },
+        sinEmerg ? { t:'warn', m:plural(sinEmerg, 'ficha sin contacto de emergencia', 'fichas sin contacto de emergencia') } : null,
+        sinFoto ? { t:'info', m:plural(sinFoto, 'ficha sin foto para el carné', 'fichas sin foto para el carné') } : null
+      ]
+    };
+  }
+
+  /* ── 15 · Nómina ── */
+  function m15(p){
+    const h = hoyISO();
+    const noms = (p.nominas || []).slice().sort((a, b) => String(a.hasta).localeCompare(String(b.hasta)));
+    let costo = 0, neto = 0, dev = 0, prest = 0, aport = 0;
+    noms.forEach(n => {
+      const t = seguro(() => Nomina.totalesPeriodo(n, p, parametrosNomina(S, n.hasta)), null);
+      if (!t) return;
+      costo += t.costo; neto += t.neto; dev += t.devengado; prest += t.prestaciones; aport += t.aportes;
+    });
+    const ult = noms[noms.length - 1];
+    const tUlt = ult ? seguro(() => Nomina.totalesPeriodo(ult, p, parametrosNomina(S, ult.hasta)), null) : null;
+    const vig = seguro(() => parametrosNomina(S, h), null);
+    const cerrados = noms.filter(n => n.cerrado).length;
+    const factor = dev > 0 ? costo / dev : 0;
+    return {
+      ambito: p.nombre,
+      titular: noms.length ? 'Costo laboral acumulado de <em>' + compacto(costo) + '</em>' : 'Nómina <em>sin periodos liquidados</em>',
+      texto: noms.length ? plural(noms.length, 'periodo liquidado', 'periodos liquidados') + '. Por cada peso devengado la empresa asume $ ' +
+        factor.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' de costo total, con aportes y prestaciones.' :
+        'Liquide el primer periodo en la pestaña de periodos; el sistema calcula devengados, deducciones, aportes y prestaciones.',
+      anillo: { v: noms.length ? cerrados / noms.length * 100 : 0, l:'cerrados' },
+      kpis: [
+        { l:'Último periodo', v: ult ? esc(ult.consecutivo || '') : '—', f: ult ? fmtFecha(ult.desde) + ' al ' + fmtFecha(ult.hasta) : '' },
+        { l:'Neto del último periodo', v: tUlt ? money(tUlt.neto) : '—', f: tUlt ? 'Costo total ' + money(tUlt.costo) : '' },
+        { l:'Neto pagado acumulado', v:money(neto), f:'Devengado ' + money(dev) },
+        { l:'Aportes y prestaciones', v:money(aport + prest), f:'Aportes ' + compacto(aport) + ' · prestaciones ' + compacto(prest) }
+      ],
+      senales: [
+        !vig || !Number(vig.smmlv) ? { t:'bad', m:'Sin parámetros legales de nómina vigentes' } : { t:'ok', m:'Parámetros legales ' + esc(vig.nombre || '') + ' cargados' },
+        noms.length - cerrados ? { t:'warn', m:plural(noms.length - cerrados, 'periodo abierto', 'periodos abiertos') } : null,
+        (p.liquidaciones || []).length ? { t:'info', m:plural(p.liquidaciones.length, 'liquidación por retiro', 'liquidaciones por retiro') } : null
+      ]
+    };
+  }
+
+  const CALC = { '01':m01, '02':m02, '04':m04, '05':m05, '06':m06, '07':m07, '08':m08, '11':m11, '12':m12, '14':m14, '15':m15 };
+
+  function html(num){
+    if (!MODULOS_TABLERO.includes(num)) return '';
+    const p = seguro(() => Modelo.activo(), null);
+    if (!p) return '';
+    try { return pintar(num, CALC[num](p)); }
+    catch(e){ console.warn('Tablero ' + num + ':', e); return ''; }
+  }
+
+  // Un solo escucha para todos los tableros: el botón vive dentro del HTML que
+  // cada módulo vuelve a pintar, así que no hay nada que reenlazar.
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('[data-tbx-tg]');
+    if (!b) return;
+    const num = b.dataset.tbxTg, sec = b.closest('.tbx');
+    alternar(num);
+    const min = minimizado(num);
+    if (sec){ sec.classList.toggle('min', min); b.textContent = min ? 'Mostrar tablero' : 'Ocultar'; b.title = (min ? 'Mostrar' : 'Ocultar') + ' el tablero ejecutivo'; }
+  });
+
+  return { html, MODULOS_TABLERO };
+})();
+
+/* La franja entra justo después de la cabecera de cada módulo: un solo punto
+   de inserción, sin tocar las vistas. */
+(function(){
+  const original = App.cabecera;
+  App.cabecera = function(num, titulo, sub, acciones){
+    return original(num, titulo, sub, acciones) + Tablero.html(num);
+  };
+})();
+
+</script>
+<script id="v9-ayuda">
+/* ════════════════════════════════════════════════════════════════════════
+   CENTRO DE AYUDA v9 — la contabilidad del módulo 10 en todas las secciones
+   Preguntas frecuentes propias, ruta de cierre del mes, guía de
+   administración y glosario al día con lo que el módulo 10 hace hoy.
+   ════════════════════════════════════════════════════════════════════════ */
+(function(){
+  if (typeof AYUDA_CONTENIDO === 'undefined') return;
+
+  /* ── Preguntas frecuentes: categoría propia ── */
+  if (!FAQ_CATEGORIAS.some(c => c.k === 'contabilidad')){
+    const i = FAQ_CATEGORIAS.findIndex(c => c.k === 'causaciones');
+    FAQ_CATEGORIAS.splice(i >= 0 ? i + 1 : FAQ_CATEGORIAS.length, 0, { k:'contabilidad', n:'Contabilidad y retenciones' });
+  }
+  FAQ_POR_MODULO['10'] = ['contabilidad'];
+  FAQ_POR_MODULO['05'] = (FAQ_POR_MODULO['05'] || ['causaciones']).filter(k => k !== 'contabilidad').concat('contabilidad');
+
+  AYUDA_CONTENIDO.contabilidad = [
+    { q:'¿De dónde salen los comprobantes contables?',
+      a:'<p>Cada hecho registrado en los demás módulos genera su comprobante por <b>partida doble</b>, sin digitarlo dos veces: ' +
+        'la compra (CP), la salida de almacén (SA), el corte de obra (CO), el pago (EG), el ingreso del cliente (RC), la nómina (NO), ' +
+        'la devolución de retenido (DV) y la liquidación de un retiro (LQ). Los comprobantes automáticos se recalculan siempre desde el documento de origen: si corrige ' +
+        'el documento, el comprobante queda corregido.</p>' +
+        '<p>Los <b>comprobantes manuales</b> (botón «+ Comprobante manual») sirven para ajustes, y «+ Saldos iniciales» para la ' +
+        'apertura (AP). Un comprobante manual sólo se guarda si débitos y créditos son iguales.</p>' },
+    { q:'¿Qué diferencia hay entre el libro auxiliar, el diario, el mayor y el balance de prueba?',
+      a:'<p><b>Libro auxiliar</b>: el detalle de cada documento de pago y corte, con su tercero y su cuenta. ' +
+        '<b>Libro diario</b>: todos los asientos en orden cronológico. <b>Libro mayor</b>: por cuenta, saldo anterior, débitos, créditos ' +
+        'y saldo final; un clic en la cuenta abre sus movimientos. <b>Balance de prueba</b>: todas las cuentas por clase, con la prueba ' +
+        'de sumas iguales. Cada libro se exporta con los botones de exportación de su pestaña.</p>' },
+    { q:'¿Qué cuentas usa el sistema y cómo las cambio?',
+      a:'<p>Las cuentas de cada tipo de hecho son las <b>reglas de causación</b>, en Administración › Plan Único de Cuentas, debajo ' +
+        'del catálogo. Allí se define, por ejemplo, la cuenta del inventario (1405), del IVA descontable (2408), de proveedores (2205), ' +
+        'de costos por pagar (2335) y la cuenta de cada concepto de retención en la fuente. «Volver a las reglas base» restablece las de ' +
+        'fábrica. Defínalas con su contador antes de causar.</p>' },
+    { q:'¿Cómo calcula el sistema la retención en la fuente?',
+      a:'<p>Por <b>concepto</b> (compras, servicios, honorarios, arrendamientos, contratos de construcción…), que se elige en el ' +
+        'documento de pago —incluso uno distinto por línea— o en el contrato. El sistema toma la tarifa y la base mínima en UVT de la ' +
+        'vigencia tributaria de la fecha del documento y tiene en cuenta si el tercero es <b>declarante</b>.</p>' +
+        '<p>No se retiene renta a un <b>autorretenedor</b> ni a un integrante del <b>régimen simple</b> (art. 911 del Estatuto ' +
+        'Tributario). La nota bajo las retenciones explica en palabras de dónde salió cada valor.</p>' },
+    { q:'¿Qué es la «Revisión de retenciones»?',
+      a:'<p>En Retenciones por tercero, la tarjeta «Revisión de retenciones» compara lo que se retuvo en cada documento con lo que ' +
+        'corresponde según la vigencia, el régimen y la calidad de autorretenedor del tercero, y lista las diferencias para corregirlas ' +
+        'antes de declarar. Si la vigencia del año no tiene UVT ni tarifas, el sistema lo advierte.</p>' },
+    { q:'¿Cómo llevo el control de las declaraciones de retención (formulario 350)?',
+      a:'<p>En «Salidas para el contador», la tabla <b>Control de declaraciones de retención</b> muestra cada mes de la empresa con ' +
+        'lo retenido por concepto. Marque el mes como <b>presentado</b> y <b>pagado</b>, con la fecha y el número de formulario. ' +
+        'El control es de toda la empresa —no por proyecto—, igual que la declaración.</p>' },
+    { q:'¿Por qué el certificado de retención sale como BORRADOR?',
+      a:'<p>El certificado suma todos los proyectos de la empresa por NIT, por concepto, ICA por municipio e IVA. Sólo dice que los ' +
+        'valores fueron «declarados y consignados» cuando <b>todos los meses</b> con retenciones a ese tercero están marcados como ' +
+        'presentados y pagados en el control de declaraciones. Mientras falte alguno, se emite como BORRADOR para que nunca se ' +
+        'certifique algo que no se ha pagado.</p>' },
+    { q:'¿Cómo se valoran las salidas de almacén?',
+      a:'<p>Al <b>costo promedio ponderado</b> de las compras del insumo (NIIF para PYMES, sección 13): el inventario (1405) se ' +
+        'descarga al mismo costo al que entró, y la diferencia nunca queda como saldo contrario. Si un insumo sale sin haberse comprado, ' +
+        'los controles del contador lo señalan.</p>' },
+    { q:'¿Qué revisan los «Controles del contador»?',
+      a:'<p>En el balance de prueba: comprobantes descuadrados, cuentas usadas que no existen en el plan de cuentas, cuentas ' +
+        'con naturaleza poco usual, cuentas inferidas por falta de dato, salidas sin costo y saldos contrarios a la naturaleza. ' +
+        'Un balance sin hallazgos está listo para entregar al contador.</p>' },
+    { q:'¿Quién puede contabilizar y qué bloquea el cierre contable?',
+      a:'<p>Los comprobantes manuales, las reglas y el control de declaraciones los maneja el Administrador, Gerencia o el Contador. ' +
+        'El <b>cierre contable</b> congela los documentos hasta la fecha definida en todos los módulos: después del cierre no se puede ' +
+        'crear ni modificar un comprobante con fecha anterior. Sólo el Administrador general puede revertirlo.</p>' }
+  ];
+
+  /* ── La respuesta resumida del módulo 10 en «Otros módulos» ── */
+  (AYUDA_CONTENIDO.otros || []).forEach(x => {
+    if (x.q === 'Módulo 10 · Contabilidad'){
+      x.a = '<p>Once pestañas: libro auxiliar, comprobantes por partida doble, libro diario, libro mayor, balance de prueba, ' +
+        'consolidado de la empresa, vistas por proveedor, por cuenta PUC y por periodo, retenciones por tercero y salidas para el contador ' +
+        '(retenciones por concepto, control de declaraciones, certificados por NIT, IVA, cuentas por pagar y centros de costo). Los ' +
+        'comprobantes automáticos nacen de los documentos de los demás módulos; los manuales sirven para ajustes y saldos iniciales. ' +
+        'Todo el detalle está en la categoría <b>Contabilidad y retenciones</b>.</p>';
+    }
+  });
+
+  /* ── Rutas de trabajo ── */
+  RUTAS_TRABAJO.forEach(r => (r.pasos || []).forEach(s => {
+    if (s[0] === '10' && /libro auxiliar/i.test(s[1])) s[1] = 'Verifique el comprobante del corte y del pago en Comprobantes o en el Libro mayor.';
+  }));
+  const empresa = RUTAS_TRABAJO.find(r => r.id === 'empresa');
+  if (empresa && !empresa.pasos.some(s => /reglas de causación/.test(s[1])))
+    empresa.pasos.splice(4, 0, ['adm', 'Revise con su contador el Plan Único de Cuentas y las reglas de causación.']);
+  if (!RUTAS_TRABAJO.some(r => r.id === 'cierre')){
+    const i = RUTAS_TRABAJO.findIndex(r => r.id === 'seguimiento');
+    RUTAS_TRABAJO.splice(i >= 0 ? i + 1 : RUTAS_TRABAJO.length, 0,
+      { id:'cierre', t:'Cerrar la contabilidad del mes', d:'De los documentos causados a la declaración y los certificados.', pasos:[
+        ['05', 'Verifique que cada proveedor tenga régimen, calidad de declarante y autorretenedor.'],
+        ['05', 'Revise que compras y cortes del mes tengan su concepto de retención.'],
+        ['10', 'En Balance de prueba, deje sin hallazgos los Controles del contador.'],
+        ['10', 'Registre los ajustes del mes con «+ Comprobante manual».'],
+        ['10', 'Revise el Libro diario y el Libro mayor y expórtelos a PDF o Excel.'],
+        ['10', 'En Retenciones por tercero, resuelva las diferencias de la Revisión de retenciones.'],
+        ['10', 'En Salidas para el contador, marque la declaración del mes como presentada y pagada.'],
+        ['10', 'Emita los certificados de retención por NIT cuando el año esté declarado y pagado.'],
+        ['05', 'Cierre los documentos a la fecha con «Cerrar documentos a la fecha».']] });
+  }
+
+  /* ── Primeros pasos: la contabilidad también se configura al comienzo ── */
+  if (!PRIMEROS_PASOS.some(x => /cuentas/i.test(x[1])))
+    PRIMEROS_PASOS.splice(2, 0, ['adm', 'Revise las cuentas contables', 'Plan Único de Cuentas y reglas de causación, con su contador.']);
+
+  /* ── Guía de Administración ── */
+  const adm = (typeof GUIAS_MODULO !== 'undefined') ? GUIAS_MODULO.find(g => g.id === 'adm') : null;
+  if (adm){
+    (adm.pestanas || []).forEach(t => {
+      if (t[0] === 'Plan Único de Cuentas') t[1] = 'Catálogo de cuentas y, debajo, las reglas de causación: la cuenta que usa cada comprobante automático.';
+      if (t[0] === 'Parámetros tributarios') t[1] = 'UVT, tarifas y bases mínimas de retención, ICA e IVA por vigencias; la retención por concepto se calcula con ellas.';
+    });
+    if (!adm.tareas.some(t => /reglas de causación/.test(t.t)))
+      adm.tareas.push({ t:'Ajustar las reglas de causación', pasos:[
+        'Abra Administración › Plan Único de Cuentas y baje hasta «Reglas de causación».',
+        'Cambie la cuenta de cada hecho (inventario, proveedores, costos, retenciones por concepto) según el plan de su empresa.',
+        'Revise en el módulo 10 › Balance de prueba que los controles del contador queden sin hallazgos.'],
+        res:'Los libros se recalculan con las cuentas nuevas, también los comprobantes automáticos ya generados: defina las reglas antes del primer cierre.' });
+  }
+
+  /* ── Glosario ── */
+  const G = AYUDA_CONTENIDO.glosario || [];
+  const fijar = (q, a) => {
+    const x = G.find(y => y.q === q);
+    if (x) x.a = a; else G.push({ q, a });
+  };
+  fijar('Régimen (común / simplificado)',
+    '<p>La condición tributaria del proveedor: <b>común</b> (responsable de IVA), <b>simplificado</b> (no responsable de IVA), ' +
+    '<b>simple</b> (régimen simple de tributación, no sujeto de retención en renta) o <b>especial</b>. Junto con la calidad de ' +
+    'declarante y autorretenedor, decide qué retenciones se le practican.</p>');
+  fijar('Retención en la fuente / ICA / autorretención',
+    '<p>Descuentos tributarios que se aplican al pagar una factura o un corte. La retención en la fuente se calcula por ' +
+    '<b>concepto</b>, con la tarifa y la base mínima en UVT de la vigencia tributaria; la ReteICA, con la tarifa por mil configurada en la ficha del tercero. ' +
+    'Se reflejan en el neto a pagar, en el comprobante contable y en el certificado anual.</p>');
+  fijar('Cuenta PUC',
+    '<p>El código del Plan Único de Cuentas al que se imputa un valor. Las reglas de causación definen qué cuenta usa cada ' +
+    'comprobante automático; el libro mayor y el balance de prueba del módulo 10 se arman con ellas.</p>');
+  fijar('Causación',
+    '<p>Registrar contablemente un documento, sin importar si ya se pagó. Cada causación genera su comprobante automático; un ' +
+    'documento causado y no pagado sigue apareciendo como saldo pendiente en el módulo 07.</p>');
+  [
+    ['Libro auxiliar', 'Detalle de cada documento de pago y corte de obra con su tercero, su cuenta y sus retenciones. Es la primera pestaña del módulo 10.'],
+    ['Concepto de retención', 'La clase de pago que define la tarifa de retención en la fuente: compras, servicios, contratos de construcción, honorarios, arrendamientos u otros. Se elige en el documento de pago, por línea o en el contrato.'],
+    ['Base mínima de retención', 'Valor, expresado en UVT, desde el cual se practica la retención en la fuente de un concepto. Por debajo de la base no se retiene. Se configura en los parámetros tributarios de cada vigencia.'],
+    ['Declarante (de renta)', 'Persona natural obligada a declarar renta. Para algunos conceptos, como honorarios, la tarifa de retención cambia según sea o no declarante; se marca en la ficha del proveedor.'],
+    ['Formulario 350', 'Declaración mensual de retenciones en la fuente ante la DIAN. En el control de declaraciones del módulo 10 se marca cada mes como presentado y pagado.'],
+    ['Costo promedio ponderado', 'Método para valorar las salidas de almacén: el costo de cada unidad es el promedio de lo pagado en las compras del insumo (NIIF para PYMES, sección 13).'],
+    ['Comprobante manual', 'Asiento digitado por el contador para ajustes o saldos iniciales (AP). Sólo se guarda si sus débitos y créditos son iguales y respeta el cierre contable.'],
+    ['Controles del contador', 'Revisiones automáticas del balance de prueba: comprobantes descuadrados, cuentas inexistentes, cuentas inferidas, salidas sin costo y saldos contrarios.'],
+    ['Tablero ejecutivo', 'La franja oscura al inicio de cada módulo de trabajo: responde en una frase cómo va el proyecto en ese frente, con sus cifras clave y las señales que requieren atención. Se oculta o se muestra con su botón.']
+  ].forEach(([q, a]) => { if (!G.some(y => normaliza(y.q) === normaliza(q))) G.push({ q, a:'<p>' + esc(a) + '</p>' }); });
+  G.sort((x, y) => String(x.q).localeCompare(String(y.q), 'es'));
 })();
 
 </script>
