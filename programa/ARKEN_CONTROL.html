@@ -1584,6 +1584,317 @@ tr.prog-casi > td:nth-child(2){ box-shadow:inset 3px 0 0 #C7782A; }
 .p-indice .pi-n3{ font-size:8.5pt; padding-left:36px; color:#444; }
 .p-indice .pi-nota{ font-size:7.5pt; color:#888; margin-top:6px; font-style:italic; }
 </style>
+<style id="estilos-ayuda-obra-faltante">
+/* ═════ Centro de ayuda (módulo 16) ═════ */
+.ay-ic{ width:22px; height:22px; flex:none; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.ay-ic.lg{ width:30px; height:30px; }
+.ay-ic.xl{ width:46px; height:46px; stroke-width:1.2; }
+.ay-eb{ font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--brass); font-weight:700; }
+.ay-chip{ display:inline-block; padding:0 6px; margin:0 1px; border:1px solid var(--line); border-bottom-width:2px; border-radius:4px;
+  background:var(--surface); font-size:.92em; font-weight:600; color:var(--ink); line-height:1.55; white-space:nowrap; }
+.ay-hero{ position:relative; overflow:hidden; border-radius:var(--r-lg); margin:0 0 var(--gap); color:#F1F2F2;
+  background:
+    linear-gradient(rgba(169,139,84,.07) 1px, transparent 1px) 0 0/28px 28px,
+    linear-gradient(90deg, rgba(169,139,84,.07) 1px, transparent 1px) 0 0/28px 28px,
+    radial-gradient(120% 140% at 100% 0%, #3a3e43 0%, #24272B 45%, #16181A 100%);
+  box-shadow:var(--shadow-lg); }
+.ay-hero::after{ content:''; position:absolute; left:0; right:0; bottom:0; height:3px; background:linear-gradient(90deg, transparent, var(--brass), transparent); }
+.ay-hero-in{ position:relative; padding:38px 40px 30px; max-width:980px; }
+.ay-hero-eb{ font-size:10px; letter-spacing:.32em; text-transform:uppercase; color:var(--brass); font-weight:700; }
+.ay-hero-t{ font-family:var(--font-display); font-size:34px; font-weight:500; letter-spacing:-.01em; margin:10px 0 8px; color:#fff; }
+.ay-hero-p{ color:#B9BDC2; max-width:720px; font-size:14px; margin-bottom:20px; }
+.ay-buscar{ display:flex; align-items:center; gap:10px; background:#fff; border-radius:10px; padding:0 16px; height:54px;
+  box-shadow:0 10px 30px -10px rgba(0,0,0,.55), inset 0 0 0 1px rgba(169,139,84,.35); color:var(--slate); }
+.ay-buscar input{ flex:1; border:0; outline:0; background:transparent; font-size:15.5px; height:100%; color:var(--ink); min-width:0; padding:0; box-shadow:none; }
+.ay-barra{ margin:0 0 var(--gap); }
+.ay-barra .ay-buscar{ height:46px; box-shadow:var(--shadow); border:1px solid var(--line); }
+.ay-sug{ display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+.ay-sug-b{ border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.05); color:#DCDFE2; border-radius:999px; padding:4px 12px; font-size:12px; cursor:pointer; }
+.ay-sug-b:hover{ border-color:var(--brass); color:#fff; }
+.ay-hero-cifras{ display:flex; flex-wrap:wrap; gap:0; margin-top:26px; border-top:1px solid rgba(255,255,255,.1); padding-top:16px; }
+.ay-hero-cifras div{ padding:0 22px 0 0; margin-right:22px; border-right:1px solid rgba(255,255,255,.1); }
+.ay-hero-cifras div:last-child{ border-right:0; }
+.ay-hero-cifras b{ display:block; font-family:var(--font-num); font-size:24px; color:#fff; font-weight:600; }
+.ay-hero-cifras span{ font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:#9EA3A9; }
+.ay-sec{ margin:22px 0 8px; }
+.ay-sec-h{ display:flex; justify-content:space-between; align-items:flex-end; gap:20px; margin-bottom:12px; flex-wrap:wrap; }
+.ay-sec-h h3{ font-family:var(--font-display); font-size:21px; font-weight:500; margin-top:3px; }
+.ay-sec-h p{ margin:0; color:var(--slate); max-width:480px; font-size:12.5px; }
+.ay-pasos6{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:10px; counter-reset:p; }
+@media (max-width:1200px){ .ay-pasos6{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+@media (max-width:640px){ .ay-pasos6{ grid-template-columns:1fr 1fr; } }
+.ay-paso{ position:relative; text-align:left; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:16px 14px 12px;
+  cursor:pointer; display:flex; flex-direction:column; gap:4px; transition:border-color .15s, transform .15s, box-shadow .15s; font:inherit; color:inherit; }
+.ay-paso:hover{ border-color:var(--brass-line); transform:translateY(-2px); box-shadow:var(--shadow); }
+.ay-paso-n{ width:28px; height:28px; border-radius:50%; background:var(--ink); color:var(--brass); display:grid; place-items:center; font-family:var(--font-num); font-weight:700; font-size:13px; margin-bottom:6px; }
+.ay-paso-t{ font-weight:600; font-size:13.5px; }
+.ay-paso-d{ color:var(--slate); font-size:12px; line-height:1.4; flex:1; }
+.ay-paso-m{ font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--brass); font-weight:700; margin-top:6px; }
+.ay-rutas-g{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
+@media (max-width:1000px){ .ay-rutas-g{ grid-template-columns:1fr 1fr; } }
+@media (max-width:640px){ .ay-rutas-g{ grid-template-columns:1fr; } }
+.ay-ruta-c{ text-align:left; font:inherit; color:inherit; cursor:pointer; background:linear-gradient(180deg, var(--surface), #FAFAF8); border:1px solid var(--line);
+  border-radius:var(--r-lg); padding:16px 16px 14px; display:grid; grid-template-columns:auto 1fr; column-gap:12px; row-gap:3px; transition:border-color .15s, box-shadow .15s; }
+.ay-ruta-c:hover{ border-color:var(--brass); box-shadow:var(--shadow); }
+.ay-ruta-n{ grid-row:span 3; font-family:var(--font-num); font-size:22px; color:var(--brass); font-weight:600; line-height:1; }
+.ay-ruta-t{ font-weight:600; font-size:14px; }
+.ay-ruta-d{ color:var(--slate); font-size:12px; }
+.ay-ruta-m{ display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+.ay-ruta-m i{ font-style:normal; font-family:var(--font-num); font-size:10.5px; padding:1px 6px; border-radius:3px; background:var(--paper); border:1px solid var(--line); color:var(--steel); }
+.ay-mods{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:10px; }
+.ay-mod{ position:relative; text-align:left; font:inherit; color:inherit; cursor:pointer; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:16px; display:flex; flex-direction:column; gap:4px; min-height:150px; transition:all .15s; overflow:hidden; }
+.ay-mod::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brass); transform:scaleY(0); transition:transform .2s; transform-origin:top; }
+.ay-mod:hover{ border-color:var(--brass-line); box-shadow:var(--shadow); transform:translateY(-2px); }
+.ay-mod:hover::before{ transform:scaleY(1); }
+.ay-mod .ay-ic{ color:var(--steel); margin-bottom:6px; }
+.ay-mod-n{ position:absolute; right:14px; top:12px; font-family:var(--font-num); font-size:12px; color:var(--silver); font-weight:700; }
+.ay-mod-t{ font-weight:600; font-size:14px; }
+.ay-mod-l{ color:var(--slate); font-size:12px; line-height:1.4; flex:1; }
+.ay-mod-f{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass); font-weight:700; margin-top:6px; }
+.ay-banda{ display:flex; align-items:center; justify-content:space-between; gap:18px; margin:22px 0 6px; padding:18px 22px; border-radius:var(--r-lg);
+  background:linear-gradient(90deg, var(--brass-soft), var(--surface)); border:1px solid var(--brass-line); flex-wrap:wrap; }
+.ay-banda-t{ display:flex; gap:14px; align-items:center; color:var(--steel); }
+.ay-banda-t b{ display:block; color:var(--ink); font-size:15px; }
+.ay-banda-t span{ font-size:12.5px; color:var(--slate); }
+/* Resultados de búsqueda */
+.ay-resultados:empty{ display:none; }
+.ay-rtotal{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--slate); font-weight:600; margin:4px 0 10px; }
+.ay-rgrupo{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:14px 16px; margin-bottom:var(--gap); }
+.ay-rgrupo h3{ font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+.ay-rgrupo h3 span{ font-family:var(--font-num); font-size:11px; background:var(--ink); color:var(--brass); border-radius:999px; padding:1px 8px; }
+.ay-res{ display:flex; gap:12px; width:100%; text-align:left; font:inherit; color:inherit; background:none; border:0; border-top:1px solid var(--line-soft);
+  padding:11px 6px; cursor:pointer; align-items:flex-start; }
+.ay-res:first-of-type{ border-top:0; }
+.ay-res:hover{ background:var(--paper); }
+.ay-res .ay-ic{ color:var(--brass); margin-top:2px; }
+.ay-res-c{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.ay-res-e{ font-size:9.5px; letter-spacing:.16em; color:var(--slate); font-weight:700; }
+.ay-res-s{ color:var(--slate); font-size:12.5px; }
+.ay-resultados mark, .ay-term mark{ background:#F6E7C4; color:inherit; padding:0 1px; border-radius:2px; }
+.ay-cat{ margin-left:auto; padding-left:10px; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--slate); font-weight:600; white-space:nowrap; }
+.ay-vacio{ text-align:center; padding:50px 20px; color:var(--slate); background:var(--surface); border:1px dashed var(--line); border-radius:var(--r-lg); }
+.ay-vacio h3{ color:var(--ink); margin:10px 0 6px; }
+/* Guía */
+.ay-guia{ display:grid; grid-template-columns:200px minmax(0,1fr); gap:var(--gap); align-items:start; }
+@media (max-width:900px){ .ay-guia{ grid-template-columns:1fr; } .ay-gnav{ position:static !important; flex-direction:row !important; overflow-x:auto; } }
+.ay-gnav{ position:sticky; top:calc(var(--top-h-total) + var(--ledger-h) + 10px); display:flex; flex-direction:column; gap:1px; background:var(--surface);
+  border:1px solid var(--line); border-radius:var(--r-lg); padding:6px; max-height:calc(100vh - 200px); overflow:auto; }
+.ay-gnav-b{ display:flex; gap:8px; align-items:center; text-align:left; font:inherit; font-size:12.5px; color:var(--steel); background:none; border:0; border-radius:4px; padding:6px 8px; cursor:pointer; white-space:nowrap; }
+.ay-gnav-b span{ font-family:var(--font-num); font-size:10.5px; color:var(--silver); width:26px; }
+.ay-gnav-b:hover{ background:var(--paper); color:var(--ink); }
+.ay-gnav-b.on{ background:var(--ink); color:#fff; }
+.ay-gnav-b.on span{ color:var(--brass); }
+.ay-gdoc{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; }
+.ay-ghead{ display:flex; gap:18px; align-items:center; padding:26px 28px; color:#F1F2F2; flex-wrap:wrap;
+  background:linear-gradient(rgba(169,139,84,.06) 1px, transparent 1px) 0 0/24px 24px, linear-gradient(90deg, rgba(169,139,84,.06) 1px, transparent 1px) 0 0/24px 24px, linear-gradient(120deg, #2b2f33, #16181A); }
+.ay-ghead .ay-ic{ color:var(--brass); }
+.ay-ghead-c{ flex:1; min-width:200px; }
+.ay-ghead h2{ font-family:var(--font-display); font-size:27px; font-weight:500; color:#fff; margin:4px 0 2px; }
+.ay-ghead p{ margin:0; color:#AEB3B8; }
+.ay-ghead-a{ display:flex; gap:8px; flex-wrap:wrap; }
+.ay-ghead-a .btn:not(.brass){ background:transparent; color:#E3E5E6; border-color:rgba(255,255,255,.25); }
+.ay-para{ display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:0; border-bottom:1px solid var(--line); }
+@media (max-width:760px){ .ay-para{ grid-template-columns:1fr; } }
+.ay-para > div{ padding:20px 28px; }
+.ay-para p{ margin:6px 0 0; font-size:14px; line-height:1.6; }
+.ay-quien{ background:var(--paper); border-left:1px solid var(--line); }
+.ay-quien p{ font-size:13px !important; color:var(--steel); }
+.ay-gsec{ padding:20px 28px 6px; }
+.ay-gsec h3{ font-family:var(--font-display); font-weight:500; font-size:18px; margin-bottom:12px; }
+.ay-pests{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:8px; }
+.ay-pest{ border:1px solid var(--line); border-radius:6px; padding:11px 12px; display:grid; grid-template-columns:auto 1fr; column-gap:10px; row-gap:2px; background:#FCFCFB; }
+.ay-pest-n{ grid-row:span 2; font-family:var(--font-num); color:var(--brass); font-weight:700; font-size:12px; padding-top:1px; }
+.ay-pest b{ font-size:13px; }
+.ay-pest span:last-child{ color:var(--slate); font-size:12px; line-height:1.45; }
+.ay-tareas{ display:flex; flex-direction:column; gap:8px; }
+.ay-tarea{ border:1px solid var(--line); border-radius:8px; background:var(--surface); transition:box-shadow .15s; }
+.ay-tarea[open]{ box-shadow:var(--shadow); border-color:var(--brass-line); }
+.ay-tarea summary{ list-style:none; display:flex; align-items:center; gap:12px; padding:12px 14px; cursor:pointer; }
+.ay-tarea summary::-webkit-details-marker{ display:none; }
+.ay-tarea-n{ width:26px; height:26px; border-radius:50%; border:1.5px solid var(--brass); color:var(--brass); display:grid; place-items:center; font-family:var(--font-num); font-size:12px; font-weight:700; flex:none; }
+.ay-tarea[open] .ay-tarea-n{ background:var(--brass); color:#fff; }
+.ay-tarea-t{ flex:1; font-weight:600; font-size:14px; }
+.ay-tarea-c{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--slate); font-weight:600; }
+.ay-pasos{ list-style:none; counter-reset:paso; margin:0; padding:2px 18px 10px 52px; position:relative; }
+.ay-pasos::before{ content:''; position:absolute; left:36px; top:8px; bottom:18px; width:1px; background:var(--brass-line); }
+.ay-pasos li{ counter-increment:paso; position:relative; padding:6px 0 8px 18px; font-size:13.5px; line-height:1.55; }
+.ay-pasos li::before{ content:counter(paso); position:absolute; left:-25px; top:6px; width:20px; height:20px; border-radius:50%; background:var(--surface);
+  border:1px solid var(--brass-line); color:var(--steel); font-family:var(--font-num); font-size:10.5px; font-weight:700; display:grid; place-items:center; }
+.ay-res-final{ margin:0 18px 14px 52px; padding:9px 12px; background:var(--ok-soft); border-radius:6px; font-size:12.5px; color:var(--ok); }
+.ay-res-final b{ display:block; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:2px; }
+.ay-dos{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:16px 28px 4px; }
+@media (max-width:760px){ .ay-dos{ grid-template-columns:1fr; } }
+.ay-consejo, .ay-cuidado{ border-radius:8px; padding:14px 16px; }
+.ay-consejo{ background:var(--brass-soft); border:1px solid var(--brass-line); }
+.ay-cuidado{ background:var(--warn-soft); border:1px solid #EAD3A6; }
+.ay-cuidado .ay-eb{ color:var(--warn); }
+.ay-consejo ul, .ay-cuidado ul{ margin:6px 0 0; padding-left:18px; font-size:13px; }
+.ay-consejo li, .ay-cuidado li{ margin:3px 0; }
+.ay-faq-l{ border:1px solid var(--line); border-radius:8px; padding:0 14px; background:var(--surface); }
+.ay-ref{ margin:18px 28px 0; border:1px solid var(--line); border-radius:8px; }
+.ay-ref summary{ cursor:pointer; padding:11px 14px; font-weight:600; font-size:13px; color:var(--steel); }
+.ay-ref .help{ padding:0 18px 14px; font-size:13px; }
+.ay-gpie{ display:flex; justify-content:space-between; gap:10px; padding:20px 28px 24px; }
+.ay-gpie-b{ font:inherit; text-align:left; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:10px 14px; cursor:pointer; display:flex; flex-direction:column; min-width:180px; font-weight:600; }
+.ay-gpie-b.der{ text-align:right; }
+.ay-gpie-b span{ font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--brass); font-weight:700; }
+.ay-gpie-b:hover{ border-color:var(--brass); }
+/* Rutas */
+.ay-rutas{ display:grid; grid-template-columns:repeat(auto-fill, minmax(420px,1fr)); gap:var(--gap); }
+@media (max-width:640px){ .ay-rutas{ grid-template-columns:1fr; } }
+.ay-ruta{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; scroll-margin-top:200px; }
+.ay-ruta.on{ border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
+.ay-ruta header{ display:flex; gap:14px; align-items:center; padding:16px 18px; background:linear-gradient(120deg,#2b2f33,#16181A); color:#fff; }
+.ay-ruta header h3{ font-size:15.5px; color:#fff; }
+.ay-ruta header p{ margin:0; color:#AEB3B8; font-size:12px; }
+.ay-linea{ list-style:none; margin:0; padding:14px 18px 16px; position:relative; }
+.ay-linea li{ display:flex; gap:12px; align-items:flex-start; position:relative; padding:6px 0 10px; }
+.ay-linea li:not(:last-child)::after{ content:''; position:absolute; left:19px; top:38px; bottom:-4px; width:1px; background:var(--brass-line); }
+.ay-linea-m{ flex:none; width:39px; height:30px; border-radius:6px; background:var(--ink); color:var(--brass); font-family:var(--font-num); font-weight:700; font-size:11.5px; border:0; cursor:pointer; }
+.ay-linea-c{ flex:1; font-size:13px; line-height:1.5; }
+.ay-linea-mod{ display:block; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--slate); font-weight:700; }
+/* Preguntas frecuentes */
+.ay-faq{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:var(--gap); align-items:start; }
+@media (max-width:900px){ .ay-faq{ grid-template-columns:1fr; } }
+.ay-faq-cats{ display:flex; flex-direction:column; gap:2px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:6px; }
+.ay-faq-cat{ display:flex; justify-content:space-between; gap:8px; text-align:left; font:inherit; font-size:13px; background:none; border:0; border-radius:4px; padding:8px 10px; cursor:pointer; color:var(--steel); }
+.ay-faq-cat span{ font-family:var(--font-num); font-size:11px; color:var(--silver); }
+.ay-faq-cat:hover{ background:var(--paper); }
+.ay-faq-cat.on{ background:var(--ink); color:#fff; }
+.ay-faq-cat.on span{ color:var(--brass); }
+.ay-faq-h{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.ay-faq-h h3{ font-family:var(--font-display); font-weight:500; font-size:19px; }
+/* Glosario */
+.ay-glos-bar{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; position:sticky; top:calc(var(--top-h-total) + var(--ledger-h)); z-index:2;
+  background:var(--paper); padding:8px 0; }
+.ay-letras{ display:flex; flex-wrap:wrap; gap:3px; }
+.ay-letras button{ width:28px; height:28px; border-radius:4px; border:1px solid var(--line); background:var(--surface); font-family:var(--font-display); font-weight:600; cursor:pointer; color:var(--steel); }
+.ay-letras button:hover{ background:var(--ink); color:var(--brass); border-color:var(--ink); }
+.ay-glos-bar input{ width:260px; max-width:100%; }
+.ay-glos-sec{ display:grid; grid-template-columns:56px minmax(0,1fr); gap:10px; margin:12px 0; scroll-margin-top:200px; }
+.ay-glos-l{ font-family:var(--font-display); font-size:30px; color:var(--brass); font-weight:500; line-height:1; padding-top:6px; }
+.ay-glos-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:8px; }
+.ay-term{ background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+.ay-term-t{ font-weight:600; font-size:13.5px; margin-bottom:3px; }
+.ay-term-d{ color:var(--steel); font-size:12.5px; line-height:1.5; }
+
+/* ═════ Obra faltante (módulo 03) ═════ */
+.of-eb{ font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--brass); font-weight:700; }
+.of-hero{ display:grid; grid-template-columns:minmax(0,1.7fr) minmax(220px,.8fr); gap:0; border-radius:var(--r-lg); overflow:hidden; color:#E9EBEC; margin:var(--gap) 0;
+  background:linear-gradient(rgba(169,139,84,.06) 1px, transparent 1px) 0 0/26px 26px, linear-gradient(90deg, rgba(169,139,84,.06) 1px, transparent 1px) 0 0/26px 26px,
+    radial-gradient(120% 160% at 100% 0%, #3a3e43 0%, #24272B 50%, #16181A 100%); box-shadow:var(--shadow-lg); }
+.of-hero-a{ padding:26px 30px 10px; }
+.of-hero-a h2{ font-family:var(--font-display); font-weight:500; font-size:28px; color:#fff; margin:6px 0 8px; }
+.of-frase{ font-size:14.5px; line-height:1.65; color:#C6CACE; margin:0; max-width:760px; }
+.of-frase b{ color:#fff; font-family:var(--font-num); font-weight:600; }
+.of-alerta{ display:inline-block; margin-top:6px; color:#F2B5AE; }
+.of-hero-b{ padding:26px 30px 10px; border-left:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; justify-content:center; }
+.of-big{ font-family:var(--font-num); font-size:30px; font-weight:600; color:#fff; letter-spacing:-.03em; margin:6px 0 2px; word-break:break-word; }
+.of-hero-s{ font-size:12px; color:#9EA3A9; }
+.of-hero-c{ grid-column:1 / -1; padding:16px 30px 22px; }
+.of-barra{ display:flex; height:9px; border-radius:999px; overflow:hidden; background:var(--line-soft); min-width:90px; }
+.of-barra i{ display:block; height:100%; }
+.of-barra .e{ background:var(--ok); } .of-barra .c{ background:var(--brass); } .of-barra .f{ background:#CDD0D3; }
+.of-barra.xl{ height:16px; background:#3A3E43; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06); }
+.of-barra.xl .e{ background:linear-gradient(180deg,#5C9677,#3B6E52); } .of-barra.xl .c{ background:linear-gradient(180deg,#C9AC74,#A98B54); } .of-barra.xl .f{ background:#555A60; }
+.of-leyenda{ display:flex; flex-wrap:wrap; gap:8px 28px; margin-top:12px; }
+.of-leyenda div{ display:flex; gap:9px; align-items:flex-start; }
+.of-leyenda i{ width:12px; height:12px; border-radius:3px; margin-top:3px; flex:none; }
+.of-leyenda i.e{ background:#4E8A69; } .of-leyenda i.c{ background:var(--brass); } .of-leyenda i.f{ background:#6A7076; }
+.of-leyenda span{ font-family:var(--font-num); font-size:12.5px; color:#D9DCDF; }
+.of-leyenda b{ display:block; font-family:var(--font-body); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#9EA3A9; font-weight:600; }
+.of-nota{ margin-top:10px; font-size:11.5px; color:#8E949A; }
+.of-kpis{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:10px; margin-bottom:var(--gap); }
+@media (max-width:1300px){ .of-kpis{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+@media (max-width:640px){ .of-kpis{ grid-template-columns:1fr 1fr; } .of-hero{ grid-template-columns:1fr; } .of-hero-b{ border-left:0; } }
+.of-kpi{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:14px 16px; position:relative; overflow:hidden; }
+.of-kpi::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--line); }
+.of-kpi.ok::before{ background:var(--ok); } .of-kpi.brass::before{ background:var(--brass); } .of-kpi.bad::before{ background:var(--bad); }
+.of-kpi.bad .val{ color:var(--bad); }
+.of-kpi .lab{ font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--slate); font-weight:600; }
+.of-kpi .val{ font-family:var(--font-num); font-size:18px; font-weight:600; margin-top:6px; letter-spacing:-.03em; word-break:break-word; }
+.of-kpi .foot{ font-size:11.5px; color:var(--slate); margin-top:4px; line-height:1.4; }
+.of-dos{ display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:var(--gap); margin-bottom:var(--gap); }
+@media (max-width:1000px){ .of-dos{ grid-template-columns:1fr; } }
+.of-card .card-head{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.of-rank{ display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto; gap:12px; align-items:center; width:100%; padding:7px 4px; background:none; border:0;
+  border-bottom:1px solid var(--line-soft); font:inherit; text-align:left; cursor:pointer; }
+.of-rank:last-child{ border-bottom:0; }
+.of-rank:hover{ background:var(--paper); }
+.of-rank-t{ font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.of-rank-b{ height:8px; background:var(--line-soft); border-radius:999px; overflow:hidden; }
+.of-rank-b i{ display:block; height:100%; background:linear-gradient(90deg, var(--brass-line), var(--brass)); border-radius:999px; }
+.of-rank-v{ font-family:var(--font-num); font-size:12.5px; font-weight:600; }
+.of-est{ display:flex; gap:18px; align-items:center; flex-wrap:wrap; }
+.of-dona{ width:132px; height:132px; flex:none; }
+.of-dona-n{ font-family:var(--font-num); font-size:17px; font-weight:700; fill:var(--ink); }
+.of-dona-l{ font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; fill:var(--slate); }
+.of-est-l{ flex:1; min-width:180px; display:flex; flex-direction:column; gap:2px; }
+.of-est-i{ display:flex; align-items:center; gap:9px; font:inherit; font-size:12.5px; background:none; border:0; padding:5px 6px; border-radius:4px; cursor:pointer; text-align:left; }
+.of-est-i:hover, .of-est-i.on{ background:var(--paper); }
+.of-est-i i{ width:10px; height:10px; border-radius:3px; flex:none; }
+.of-est-i span{ flex:1; }
+.of-est-i b{ font-family:var(--font-num); }
+.of-leer{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); margin-bottom:var(--gap); }
+.of-leer summary{ cursor:pointer; padding:11px 16px; font-weight:600; font-size:13px; color:var(--steel); }
+.of-leer-g{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:10px 22px; padding:4px 16px 16px; }
+.of-leer-g b{ display:block; font-size:12.5px; }
+.of-leer-g span{ font-size:12px; color:var(--slate); line-height:1.45; }
+.of-fil{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.of-fil h3{ margin-right:auto; }
+.of-fil-b{ display:flex; gap:4px; flex-wrap:wrap; }
+.of-fb{ font:inherit; font-size:12px; border:1px solid var(--line); background:var(--surface); border-radius:999px; padding:4px 11px; cursor:pointer; color:var(--steel); }
+.of-fb:hover{ border-color:var(--brass-line); }
+.of-fb.on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+.of-fil input{ width:240px; max-width:100%; }
+.of-t td{ vertical-align:middle; }
+.of-t .of-av{ min-width:170px; }
+.of-av .of-barra{ display:inline-flex; width:calc(100% - 46px); vertical-align:middle; }
+.of-av-p{ display:inline-block; width:40px; text-align:right; font-family:var(--font-num); font-size:11.5px; color:var(--steel); margin-left:6px; }
+.of-cap{ cursor:pointer; background:#F4F5F5; }
+.of-cap td:first-child{ font-weight:600; }
+.of-cap:hover{ background:var(--brass-soft); }
+.of-sub td{ background:var(--surface); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--slate); font-weight:600; padding-left:30px !important; }
+.of-act{ cursor:pointer; }
+.of-act td:first-child{ padding-left:30px !important; }
+.of-act:hover{ background:var(--paper); }
+.of-tog{ display:inline-block; width:16px; color:var(--brass); }
+.of-act-n{ margin-left:8px; font-size:10.5px; color:var(--slate); }
+.of-det > td{ background:#FAFAF9; padding:6px 10px 12px 46px !important; }
+.of-ins{ width:100%; border-collapse:collapse; font-size:11.5px; background:var(--surface); border:1px solid var(--line); border-radius:6px; }
+.of-ins th{ font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--slate); text-align:left; padding:6px 7px; border-bottom:1px solid var(--line); background:var(--paper); white-space:nowrap; }
+.of-ins td{ padding:5px 7px; border-bottom:1px solid var(--line-soft); }
+.of-ins .n{ text-align:right; font-family:var(--font-num); white-space:nowrap; }
+.of-falta{ color:var(--warn); font-weight:600; }
+.of-chip{ display:inline-block; font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:999px; background:var(--paper); color:var(--steel); border:1px solid var(--line); white-space:nowrap; }
+.of-chip.ok{ background:var(--ok-soft); color:var(--ok); border-color:#C9DDD0; }
+.of-chip.info{ background:var(--info-soft); color:var(--info); border-color:#CBD7E3; }
+.of-chip.brass{ background:var(--brass-soft); color:#7D6438; border-color:var(--brass-line); }
+.of-chip.bad{ background:var(--bad-soft); color:var(--bad); border-color:#EBC6C1; }
+.of-chip.warn{ background:var(--warn-soft); color:var(--warn); border-color:#EAD3A6; }
+.of-t tfoot td{ font-weight:700; background:var(--brass-soft); border-top:2px solid var(--brass-line); }
+.of-fin{ margin-top:22px; }
+.of-fin .of-eb{ margin-bottom:6px; }
+
+.ay-ir{ flex:none; font:inherit; font-size:11.5px; font-weight:600; color:var(--steel); background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:3px 10px; cursor:pointer; margin-top:4px; }
+.ay-ir:hover{ border-color:var(--brass); color:var(--ink); }
+.ay-pest{ align-content:start; }
+.of-dos > .card{ margin:0; }
+.of-t td:first-child{ white-space:normal; min-width:280px; }
+.of-t th:nth-child(2), .of-t .of-av{ width:190px; min-width:170px; }
+.of-t td.n, .of-t th.n{ white-space:nowrap; }
+.of-ins td:nth-child(2){ min-width:230px; white-space:normal; }
+.of-chip.violeta{ background:#EFEBF4; color:#5B4877; border-color:#D9D0E5; }
+@media (max-width:640px){
+  .ay-hero-in{ padding:24px 18px 20px; } .ay-hero-t{ font-size:26px; } .ay-hero-cifras div{ padding-right:12px; margin-right:12px; }
+  .ay-ghead, .ay-para > div, .ay-gsec, .ay-dos, .ay-gpie{ padding-left:16px; padding-right:16px; }
+  .of-hero-a, .of-hero-b, .of-hero-c{ padding-left:18px; padding-right:18px; } .of-hero-a h2{ font-size:23px; } .of-big{ font-size:24px; }
+}
+.of-det-w{ width:0; min-width:100%; overflow-x:auto; }
+.of-ins th{ white-space:normal; vertical-align:bottom; }
+
+</style>
 </head>
 <body>
 
@@ -27037,127 +27348,314 @@ function conectarTarjetasColapsable(){
   $('[data-tarjetastog]').onclick = () => { Sesion.tarjetasMin = !Sesion.tarjetasMin; App.render(); };
 }
 
-function tabObraFaltante(p, cont){
+/* ─────────── Obra faltante: el cálculo ───────────
+   Por insumo se llevan las cantidades presupuestada, contratada, pagada y por
+   contratar (lo que aún no tiene ni contrato ni salida de almacén). El dinero
+   pagado (salidas + cortes, a su precio real) y el saldo por pagar
+   (presupuestado − pagado) son los mismos de siempre; la barra de cada nivel
+   se arma con partesOF(). */
+function filaObraFaltante(ins, v){
+  const precio = Number(ins.precio || 0);
+  const pres = v.presupuestada, contQ = v.contratada, pagQ = v.pagadaQ;
+  const ejecQ = Math.min(pagQ, pres);
+  const compQ = Math.max(0, contQ - pagQ);
+  const compBarQ = Math.min(compQ, Math.max(0, pres - ejecQ));
+  const faltQ = Math.max(0, pres - Math.max(contQ, pagQ));
+  const presV = pres * precio, pagV = v.pagadaV;
+  const r = { ins, precio, pres, contQ, pagQ, compQ, faltQ,
+    presV, pagV, porPagarV: redondear(presV - pagV),
+    ejecBarV: ejecQ * precio, compBarV: compBarQ * precio, faltV: faltQ * precio, compV: compQ * precio,
+    excV: Math.max(0, pagV - presV) };
+  r.estado = pres <= 1e-9 && pagQ > 1e-9 ? 'nopres'
+    : r.excV > Math.max(TOL, presV * 0.005) ? 'exceso'
+    : faltQ <= 1e-9 && compQ <= 1e-9 && pagQ > 1e-9 ? 'pagado'
+    : pagQ > 1e-9 ? 'curso'
+    : contQ > 1e-9 ? 'contratado' : 'pendiente';
+  return r;
+}
+const ESTADOS_OF = {
+  pagado:     { n:'Completo',          c:'ok',   d:'Todo lo presupuestado ya se ejecutó y pagó.' },
+  curso:      { n:'En ejecución',      c:'info', d:'Se ha pagado una parte; falta otra.' },
+  contratado: { n:'Contratado',        c:'brass', d:'Tiene contrato, pero todavía no hay pagos.' },
+  pendiente:  { n:'Sin iniciar',       c:'',     d:'Ni contratado ni comprado todavía.' },
+  exceso:     { n:'Sobre lo presupuestado', c:'bad', d:'Lo pagado ya superó lo presupuestado.' },
+  nopres:     { n:'Fuera del APU',  c:'violeta', d:'Se pagó un insumo que no está en el APU de esa actividad (por ejemplo, uno específico que reemplaza a uno genérico).' }
+};
+function totObraFaltante(){ return { presV:0, pagV:0, porPagarV:0, ejecBarV:0, compBarV:0, faltV:0, compV:0, excV:0, n:0, est:{} }; }
+function sumarObraFaltante(a, b){
+  ['presV','pagV','porPagarV','ejecBarV','compBarV','faltV','compV','excV','n'].forEach(k => a[k] += b[k] || 0);
+  Object.keys(b.est || {}).forEach(k => a.est[k] = (a.est[k] || 0) + b.est[k]);
+  if (b.estado){ a.n += 1; a.est[b.estado] = (a.est[b.estado] || 0) + 1; }
+}
+function calcularObraFaltante(p){
   const idx = indiceObraFaltante(p);
-  Sesion.abiertosOF = Sesion.abiertosOF || {};
-  let totG = { pres:0, pagV:0 };
-  const bloquesCap = (p.capitulos||[]).map(cap => {
-    let huboFilas = false;
-    const abCap = Sesion.abiertosOF[cap.id];
-    const bloquesSub = (cap.subs||[]).map(sub => {
-      let huboFilasSub = false;
-      const abSub = Sesion.abiertosOF[sub.id];
-      const filasActHTML = (sub.acts||[]).map(act => {
+  const G = totObraFaltante();
+  const caps = (p.capitulos || []).map(cap => {
+    const tc = totObraFaltante();
+    const subs = (cap.subs || []).map(sub => {
+      const ts = totObraFaltante();
+      const acts = (sub.acts || []).map(act => {
         const porInsumo = filasObraFaltanteActividad(p, act, idx);
-        const filas = [...porInsumo.entries()].filter(([,v]) => v.presupuestada > TOL || v.contratada > TOL || v.pagadaQ > TOL);
-        if (!filas.length) return '';
-        huboFilasSub = true;
-        const filasHTML = filas.map(([idIns, v]) => {
-          const ins = Modelo.insumo(p, idIns); if (!ins) return '';
-          const sinContratar = Math.max(0, v.presupuestada - v.contratada);
-          const porPagarQ = Math.max(0, v.contratada - v.pagadaQ);
-          const totalPres = v.presupuestada * Number(ins.precio||0);
-          const totalPorPagar = redondear(totalPres - v.pagadaV);
-          totG.pres += totalPres; totG.pagV += v.pagadaV;
-          return '<tr><td class="mono small">' + esc(ins.codigo) + '</td><td class="small">' + esc(ins.nombre) + '</td>' +
-            '<td class="small">' + esc(ins.unidad) + '</td>' +
-            '<td class="n small">' + money(ins.precio) + '</td>' +
-            '<td class="n small">' + cant(v.presupuestada) + '</td>' +
-            '<td class="n small">' + cant(v.contratada) + '</td>' +
-            '<td class="n small' + (sinContratar > TOL ? ' bad-txt' : '') + '">' + cant(sinContratar) + '</td>' +
-            '<td class="n small">' + cant(v.pagadaQ) + '</td>' +
-            '<td class="n small">' + cant(porPagarQ) + '</td>' +
-            '<td class="n small">' + money(totalPres) + '</td>' +
-            '<td class="n small">' + money(v.pagadaV) + '</td>' +
-            '<td class="n small' + (totalPorPagar > TOL ? ' bad-txt' : totalPorPagar < -TOL ? ' ok-txt' : '') + '"><b>' + money(totalPorPagar) + '</b></td></tr>';
-        }).join('');
-        return '<tr class="row-act"><td colspan="11" style="padding-left:22px"><span class="mono">' + esc(act.codigo) +
-          '</span> ' + esc(act.nombre) + '</td></tr>' + filasHTML;
-      }).join('');
-      if (!huboFilasSub) return '';
-      huboFilas = true;
-      const encabezadoSub = '<tr class="row-sub"><td colspan="11">' +
-        '<button class="btn xs ghost" data-togof="' + sub.id + '" type="button" style="margin-right:6px">' + (abSub ? '▾' : '▸') + '</button>' +
-        '<span class="mono">' + esc(sub.codigo) + '</span> ' + esc(sub.nombre) + '</td></tr>';
-      return encabezadoSub + (abSub ? filasActHTML : '');
-    }).join('');
-    if (!huboFilas) return '';
-    const encabezadoCap = '<tr class="row-cap"><td colspan="11">' +
-      '<button class="btn xs ghost" data-togof="' + cap.id + '" type="button" style="margin-right:6px">' + (abCap ? '▾' : '▸') + '</button>' +
-      esc(cap.codigo) + ' — ' + esc(cap.nombre) + '</td></tr>';
-    return encabezadoCap + (abCap ? bloquesSub : '');
+        const filas = [...porInsumo.entries()].filter(([,v]) => v.presupuestada > TOL || v.contratada > TOL || v.pagadaQ > TOL)
+          .map(([idIns, v]) => { const ins = Modelo.insumo(p, idIns); return ins ? filaObraFaltante(ins, v) : null; }).filter(Boolean);
+        if (!filas.length) return null;
+        const ta = totObraFaltante(); filas.forEach(f => sumarObraFaltante(ta, f)); partesOF(ta);
+        sumarObraFaltante(ts, ta);
+        return { act, filas, t: ta };
+      }).filter(Boolean);
+      if (!acts.length) return null;
+      partesOF(ts);
+      sumarObraFaltante(tc, ts);
+      return { sub, acts, t: ts };
+    }).filter(Boolean);
+    if (!subs.length) return null;
+    partesOF(tc);
+    sumarObraFaltante(G, tc);
+    return { cap, subs, t: tc };
+  }).filter(Boolean);
+  partesOF(G);
+  return { idx, caps, G };
+}
+/* En actividades, capítulos y total la barra se arma en pesos con los totales
+   del nodo: pagado (hasta lo presupuestado), comprometido en contratos y el
+   resto por contratar o comprar. Así suman exactamente lo presupuestado y el
+   saldo por pagar es comprometido + por contratar. Un insumo específico que
+   el almacén entregó en lugar del genérico del APU cuenta en lo pagado de su
+   actividad, como en el INVERTIDO. */
+function partesOF(t){
+  t.ejecBarV = Math.min(Math.max(t.pagV, 0), t.presV);
+  t.compBarV = Math.min(t.compV, Math.max(0, t.presV - t.ejecBarV));
+  t.faltV = Math.max(0, t.presV - t.ejecBarV - t.compBarV);
+  return t;
+}
+function estadoNodoOF(t){
+  if (t.excV > Math.max(TOL, t.presV * 0.005) && t.presV > 0 && t.pagV > t.presV) return 'exceso';
+  if (t.presV <= TOL) return t.pagV > TOL ? 'nopres' : 'pendiente';
+  const ej = t.ejecBarV / t.presV;
+  if (ej >= 0.999 && t.faltV <= TOL && t.compBarV <= TOL) return 'pagado';
+  if (t.pagV > TOL) return 'curso';
+  if (t.compBarV > TOL) return 'contratado';
+  return 'pendiente';
+}
+function barraOF(t, grande){
+  const base = t.presV > TOL ? t.presV : 1;
+  const e = Math.min(100, t.ejecBarV / base * 100), c = Math.min(100 - e, t.compBarV / base * 100);
+  const f = Math.max(0, 100 - e - c);
+  return '<div class="of-barra' + (grande ? ' xl' : '') + '" title="Pagado ' + pct(e) + ' · Comprometido ' + pct(c) + ' · Por contratar ' + pct(f) + '">' +
+    '<i class="e" style="width:' + e.toFixed(2) + '%"></i><i class="c" style="width:' + c.toFixed(2) + '%"></i><i class="f" style="width:' + f.toFixed(2) + '%"></i></div>';
+}
+function chipEstadoOF(k){ const e = ESTADOS_OF[k] || ESTADOS_OF.pendiente; return '<span class="of-chip ' + e.c + '" title="' + esc(e.d) + '">' + esc(e.n) + '</span>'; }
+function coincideFiltroOF(f, filtro){
+  if (filtro === 'saldo') return f.porPagarV > TOL;
+  if (filtro === 'falta') return f.faltV > TOL;
+  if (filtro === 'comp') return f.compV > TOL;
+  if (filtro === 'exceso') return f.estado === 'exceso' || f.estado === 'nopres';
+  return true;
+}
+
+/* ─────────── Obra faltante: el tablero ─────────── */
+function tabObraFaltante(p, cont){
+  const D = calcularObraFaltante(p);
+  const G = D.G;
+  Sesion.abiertosOF = Sesion.abiertosOF || {};
+  const filtro = Sesion.filtroOF || 'todo';
+  const q = normaliza(Sesion.qOF || '');
+  const base = G.presV > TOL ? G.presV : 1;
+  const pEj = G.ejecBarV / base * 100, pCo = G.compBarV / base * 100, pFa = Math.max(0, 100 - pEj - pCo);
+  const pPag = G.pagV / base * 100;
+  const nExc = (G.est.exceso || 0) + (G.est.nopres || 0), nSobre = G.est.exceso || 0, nNoPres = G.est.nopres || 0;
+
+  // Frase en lenguaje llano: lo primero que lee cualquier persona.
+  const frase = G.presV > TOL
+    ? 'De los <b>' + money(G.presV) + '</b> que el presupuesto prevé en insumos, ya se han pagado <b>' + money(G.pagV) + '</b> (' + pct(pPag) + '). ' +
+      'Quedan <b>' + money(Math.max(0, G.porPagarV)) + '</b> por pagar: <b>' + money(G.compBarV) + '</b> ya están comprometidos en contratos y <b>' +
+      money(G.faltV) + '</b> todavía no se han contratado ni comprado.' +
+      (nExc ? ' <span class="of-alerta">Atención: ' + money(G.excV) + ' se pagaron por encima de lo previsto' +
+        (nSobre ? ' — ' + nSobre + ' insumo' + (nSobre === 1 ? '' : 's') + ' superaron su cantidad presupuestada' : '') +
+        (nNoPres ? (nSobre ? ' y ' : ' — ') + nNoPres + ' se pagaron sin estar en el APU de su actividad (por lo general, un insumo específico que reemplaza a uno genérico del presupuesto)' : '') + '.</span>' : '')
+    : 'Este proyecto todavía no tiene insumos presupuestados.';
+
+  const hero = '<div class="of-hero">' +
+    '<div class="of-hero-a"><div class="of-eb">Obra faltante · corte al ' + esc(fmtFechaLarga(hoyISO())) + '</div>' +
+      '<h2>¿Cuánta obra falta?</h2><p class="of-frase">' + frase + '</p></div>' +
+    '<div class="of-hero-b"><div class="of-eb">Saldo por pagar</div><div class="of-big">' + money(Math.max(0, G.porPagarV)) + '</div>' +
+      '<div class="of-hero-s">' + pct(Math.max(0, 100 - pPag)) + ' del presupuesto de insumos</div></div>' +
+    '<div class="of-hero-c">' + barraOF(G, true) +
+      '<div class="of-leyenda">' +
+        '<div><i class="e"></i><span><b>Pagado</b>' + pct(pEj) + ' · ' + money(G.ejecBarV) + '</span></div>' +
+        '<div><i class="c"></i><span><b>Contratado, por pagar</b>' + pct(pCo) + ' · ' + money(G.compBarV) + '</span></div>' +
+        '<div><i class="f"></i><span><b>Por contratar o comprar</b>' + pct(pFa) + ' · ' + money(G.faltV) + '</span></div>' +
+      '</div><div class="of-nota">La barra reparte el presupuesto de insumos: lo que ya se pagó, lo contratado que falta pagar y lo que todavía no se ha contratado ni comprado. Las dos últimas partes suman el saldo por pagar.</div></div>' +
+  '</div>';
+
+  const kpi = (lab, val, foot, cls) => '<div class="of-kpi' + (cls ? ' ' + cls : '') + '"><div class="lab">' + lab + '</div><div class="val">' + val + '</div><div class="foot">' + foot + '</div></div>';
+  const kpis = '<div class="of-kpis">' +
+    kpi('Presupuestado en insumos', money(G.presV), 'Materiales, mano de obra y equipos, antes de AIU.') +
+    kpi('Pagado a la fecha', money(G.pagV), pct(pPag) + ' · salidas de almacén + cortes de obra.', 'ok') +
+    kpi('Saldo por pagar', money(G.porPagarV), 'Presupuestado menos pagado.') +
+    kpi('Comprometido en contratos', money(G.compBarV), 'Ya contratado, todavía sin pagar.', 'brass') +
+    kpi('Por contratar o comprar', money(G.faltV), 'Saldo que todavía no tiene contrato ni compra.') +
+    kpi('Sobre lo presupuestado', money(G.excV), nExc ? nSobre + ' sobre su cantidad · ' + nNoPres + ' fuera del APU.' : 'Ningún insumo con exceso.', nExc ? 'bad' : '') +
+  '</div>';
+
+  // Dónde se concentra el saldo y cómo están los insumos.
+  const top = D.caps.filter(c => c.t.porPagarV > TOL).sort((a, b) => b.t.porPagarV - a.t.porPagarV).slice(0, 6);
+  const maxTop = top.length ? top[0].t.porPagarV : 1;
+  const concentra = '<div class="card of-card"><div class="card-head"><h3>Dónde está lo que falta</h3><span class="muted small">Capítulos con mayor saldo por pagar</span></div><div class="card-body">' +
+    (top.length ? top.map(c => '<button class="of-rank" data-ofir="' + c.cap.id + '" type="button"><span class="of-rank-t">' + esc(c.cap.codigo) + ' · ' + esc(c.cap.nombre) + '</span>' +
+      '<span class="of-rank-b"><i style="width:' + (c.t.porPagarV / maxTop * 100).toFixed(1) + '%"></i></span><span class="of-rank-v">' + money(c.t.porPagarV) + '</span></button>').join('')
+      : '<p class="muted">No hay saldos por pagar.</p>') + '</div></div>';
+  const ordenEst = ['pagado','curso','contratado','pendiente','exceso','nopres'];
+  const colEst = { pagado:'var(--ok)', curso:'var(--info)', contratado:'var(--brass)', pendiente:'var(--silver)', exceso:'var(--bad)', nopres:'#6E5A8A' };
+  let acum = 0; const totN = G.n || 1;
+  const arcos = ordenEst.filter(k => G.est[k]).map(k => {
+    const fr = G.est[k] / totN, L = 2 * Math.PI * 42;
+    const s = '<circle cx="60" cy="60" r="42" fill="none" stroke="' + colEst[k] + '" stroke-width="16" stroke-dasharray="' + (fr * L).toFixed(2) + ' ' + L.toFixed(2) + '" stroke-dashoffset="' + (-acum * L).toFixed(2) + '" transform="rotate(-90 60 60)"/>';
+    acum += fr; return s;
+  }).join('');
+  const estados = '<div class="card of-card"><div class="card-head"><h3>Estado de los insumos</h3><span class="muted small">' + G.n + ' renglones de insumo por actividad</span></div><div class="card-body of-est">' +
+    '<svg viewBox="0 0 120 120" class="of-dona"><circle cx="60" cy="60" r="42" fill="none" stroke="var(--line-soft)" stroke-width="16"/>' + arcos +
+      '<text x="60" y="57" text-anchor="middle" class="of-dona-n">' + pct(G.n ? (G.est.pagado || 0) / G.n * 100 : 0, 0) + '</text><text x="60" y="73" text-anchor="middle" class="of-dona-l">completos</text></svg>' +
+    '<div class="of-est-l">' + ordenEst.map(k => '<button class="of-est-i' + ((filtro === 'exceso' && (k === 'exceso' || k === 'nopres')) ? ' on' : '') + '" data-ofest="' + k + '" type="button"><i style="background:' + colEst[k] + '"></i><span>' + esc(ESTADOS_OF[k].n) + '</span><b>' + (G.est[k] || 0) + '</b></button>').join('') + '</div>' +
+  '</div></div>';
+
+  // Tabla por capítulos, con filtros.
+  const filtros = [['todo','Todo'], ['saldo','Con saldo por pagar'], ['comp','Comprometido en contratos'], ['falta','Por contratar o comprar'], ['exceso','Excesos y fuera del APU']];
+  const hayFiltro = filtro !== 'todo' || !!q;
+  const pasaAct = a => (!q || normaliza(a.act.codigo + ' ' + a.act.nombre).indexOf(q) >= 0 || a.filas.some(f => normaliza(f.ins.codigo + ' ' + f.ins.nombre).indexOf(q) >= 0))
+    && a.filas.some(f => coincideFiltroOF(f, filtro));
+  const celdasNodo = t => '<td class="of-av">' + barraOF(t) + '<span class="of-av-p">' + pct(t.presV > TOL ? t.ejecBarV / t.presV * 100 : 0, 0) + '</span></td>' +
+    '<td class="n">' + money(t.presV) + '</td><td class="n">' + money(t.pagV) + '</td>' +
+    '<td class="n' + (t.porPagarV < -TOL ? ' bad-txt' : '') + '"><b>' + money(t.porPagarV) + '</b></td><td>' + chipEstadoOF(estadoNodoOF(t)) + '</td>';
+  let nVis = 0;
+  const cuerpo = D.caps.map(c => {
+    const subsVis = c.subs.map(s => ({ s, acts: s.acts.filter(pasaAct) })).filter(x => x.acts.length);
+    if (!subsVis.length) return '';
+    nVis++;
+    const ab = hayFiltro || Sesion.abiertosOF[c.cap.id];
+    return '<tr class="of-cap" data-ofcap="' + c.cap.id + '"><td><span class="of-tog">' + (ab ? '▾' : '▸') + '</span><span class="mono">' + esc(c.cap.codigo) + '</span> ' + esc(c.cap.nombre) + '</td>' + celdasNodo(c.t) + '</tr>' +
+      (ab ? subsVis.map(x => '<tr class="of-sub"><td colspan="6"><span class="mono">' + esc(x.s.sub.codigo) + '</span> ' + esc(x.s.sub.nombre) + '</td></tr>' +
+        x.acts.map(a => {
+          const abA = Sesion.abiertosOF[a.act.id];
+          return '<tr class="of-act" data-ofact="' + a.act.id + '"><td><span class="of-tog">' + (abA ? '▾' : '▸') + '</span><span class="mono">' + esc(a.act.codigo) + '</span> ' + esc(a.act.nombre) +
+              '<span class="of-act-n">' + a.filas.length + ' insumo' + (a.filas.length === 1 ? '' : 's') + '</span></td>' + celdasNodo(a.t) + '</tr>' +
+            (abA ? '<tr class="of-det"><td colspan="6"><div class="of-det-w">' + detalleInsumosOF(a.filas, filtro) + '</div></td></tr>' : '');
+        }).join('')).join('') : '');
   }).join('');
 
-  const cd = Calculo.costoDirecto(p), aiu = Calculo.valorAIU(p), tot = Calculo.valorTotal(p), inv = Calculo.invertidoProyecto(p);
+  const leer = '<details class="of-leer"' + (Sesion.leerOF ? ' open' : '') + '><summary>Cómo leer este tablero</summary><div class="of-leer-g">' +
+    [['Presupuestado', 'Cantidad del insumo en el APU × cantidad de la actividad, al precio de la lista maestra.'],
+     ['Contratado', 'Cantidad incluida en contratos vigentes (los anulados no cuentan).'],
+     ['Pagado', 'Lo que salió de almacén hacia la actividad más lo liquidado en cortes de obra. Es la misma fuente del INVERTIDO del presupuesto.'],
+     ['Comprometido', 'Lo contratado que todavía no se ha pagado, valorado al precio del presupuesto.'],
+     ['Por contratar o comprar', 'Parte del saldo por pagar que todavía no tiene contrato ni compra. En el detalle de insumos se muestra en cantidad.'],
+     ['Saldo por pagar', 'Presupuestado menos pagado, en pesos. Si es negativo, se pagó más de lo presupuestado.'],
+     ['Avance', 'La barra verde es lo pagado, la dorada lo contratado que falta pagar y la gris lo que todavía no se ha contratado ni comprado. El porcentaje es lo pagado sobre lo presupuestado.'],
+     ['Estado', Object.keys(ESTADOS_OF).map(k => ESTADOS_OF[k].n + ': ' + ESTADOS_OF[k].d.toLowerCase()).join(' ')]]
+      .map(x => '<div><b>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></div>').join('') + '</div></details>';
+
   const htmlTarjetas =
     '<div class="grid g4" style="margin:var(--gap) 0">' +
-      '<div class="stat"><div class="lab">Costo directo antes de AIU</div><div class="val">' + money(cd) + '</div></div>' +
-      '<div class="stat"><div class="lab">Total AIU</div><div class="val">' + money(aiu.total) + '</div>' +
-        '<div class="foot">A ' + money(aiu.a) + ' · I ' + money(aiu.i) + ' · U ' + money(aiu.u) + '</div></div>' +
-      '<div class="stat"><div class="lab">Invertido</div><div class="val">' + money(inv) + '</div>' +
-        '<div class="foot">' + pct(Calculo.avanceCosto(tot, inv)) + ' del total</div></div>' +
-      '<div class="stat accent"><div class="lab">TOTAL DEL PRESUPUESTO</div><div class="val">' + money(tot) + '</div></div>' +
+      '<div class="stat"><div class="lab">Costo directo antes de AIU</div><div class="val">' + money(Calculo.costoDirecto(p)) + '</div></div>' +
+      '<div class="stat"><div class="lab">Total AIU</div><div class="val">' + money(Calculo.valorAIU(p).total) + '</div>' +
+        '<div class="foot">A ' + money(Calculo.valorAIU(p).a) + ' · I ' + money(Calculo.valorAIU(p).i) + ' · U ' + money(Calculo.valorAIU(p).u) + '</div></div>' +
+      '<div class="stat"><div class="lab">Invertido</div><div class="val">' + money(Calculo.invertidoProyecto(p)) + '</div>' +
+        '<div class="foot">' + pct(Calculo.avanceCosto(Calculo.valorTotal(p), Calculo.invertidoProyecto(p))) + ' del total</div></div>' +
+      '<div class="stat accent"><div class="lab">TOTAL DEL PRESUPUESTO</div><div class="val">' + money(Calculo.valorTotal(p)) + '</div></div>' +
     '</div>' +
     bloqueResumenDeducciones(Calculo.resumenDeducciones(p));
+
   cont.innerHTML =
-    '<div class="toolbar"><button class="btn" id="ofPdf" type="button">PDF — Obra faltante</button>' +
+    '<div class="toolbar of-tool"><button class="btn primary" id="ofPdf" type="button">PDF — Obra faltante</button>' +
       '<button class="btn" id="ofTodo" type="button">Expandir todo</button>' +
       '<button class="btn" id="ofNada" type="button">Contraer todo</button></div>' +
-    bloqueTarjetasColapsable('ofTarjetas', htmlTarjetas) +
-    '<div class="card"><div class="tw scroll"><table class="t" id="tOF"><thead><tr>' +
-      '<th>Código</th><th class="desc">Insumo</th><th>Un</th><th class="n">Precio</th>' +
-      '<th class="n">Presupuestada</th><th class="n">Contratada</th><th class="n">Sin contratar</th>' +
-      '<th class="n">Pagada</th><th class="n">Por pagar</th>' +
-      '<th class="n">Total presupuestado</th><th class="n">Total pagado</th><th class="n">Total por pagar</th>' +
-      '</tr></thead><tbody>' +
-      (bloquesCap || '<tr><td colspan="11" class="muted small" style="padding:20px">No hay insumos presupuestados todavía.</td></tr>') +
-      '</tbody></table></div></div>';
+    hero + kpis +
+    '<div class="of-dos">' + concentra + estados + '</div>' +
+    leer +
+    '<div class="card of-tabla-c"><div class="card-head of-fil"><h3>Detalle por capítulo</h3>' +
+      '<div class="of-fil-b">' + filtros.map(f => '<button class="of-fb' + (filtro === f[0] ? ' on' : '') + '" data-offil="' + f[0] + '" type="button">' + esc(f[1]) + '</button>').join('') + '</div>' +
+      '<input id="ofBuscar" type="search" placeholder="Buscar actividad o insumo…" value="' + esc(Sesion.qOF || '') + '"></div>' +
+      '<div class="tw scroll"><table class="t of-t"><thead><tr><th class="desc">Capítulo · subcapítulo · actividad</th><th>Avance</th>' +
+        '<th class="n">Presupuestado</th><th class="n">Pagado</th><th class="n">Saldo por pagar</th><th>Estado</th></tr></thead><tbody>' +
+      (nVis ? cuerpo : '<tr><td colspan="6" class="muted small" style="padding:20px">' + (D.caps.length ? 'Ninguna actividad cumple el filtro.' : 'No hay insumos presupuestados todavía.') + '</td></tr>') +
+      '</tbody><tfoot><tr><td><b>TOTAL</b></td>' + celdasNodo(G) + '</tr></tfoot></table></div></div>' +
+    '<div class="of-fin"><div class="of-eb">Resumen financiero del proyecto</div>' + bloqueTarjetasColapsable('ofTarjetas', htmlTarjetas) + '</div>';
 
   conectarTarjetasColapsable();
-  $('#ofPdf').onclick = () => Documentos.previsualizar(docObraFaltante(p, idx));
-  $('#ofTodo').onclick = () => {
-    (p.capitulos||[]).forEach(c => { Sesion.abiertosOF[c.id] = true; (c.subs||[]).forEach(s => Sesion.abiertosOF[s.id] = true); });
-    App.render();
-  };
+  $('#ofPdf').onclick = () => Documentos.previsualizar(docObraFaltante(p, D.idx));
+  $('#ofTodo').onclick = () => { D.caps.forEach(c => { Sesion.abiertosOF[c.cap.id] = true; c.subs.forEach(s => s.acts.forEach(a => Sesion.abiertosOF[a.act.id] = true)); }); App.render(); };
   $('#ofNada').onclick = () => { Sesion.abiertosOF = {}; App.render(); };
-  $$('[data-togof]').forEach(b => b.onclick = () => { Sesion.abiertosOF[b.dataset.togof] = !Sesion.abiertosOF[b.dataset.togof]; App.render(); });
+  $$('[data-ofcap]').forEach(r => r.onclick = () => { Sesion.abiertosOF[r.dataset.ofcap] = !Sesion.abiertosOF[r.dataset.ofcap]; App.render(); });
+  $$('[data-ofact]').forEach(r => r.onclick = () => { Sesion.abiertosOF[r.dataset.ofact] = !Sesion.abiertosOF[r.dataset.ofact]; App.render(); });
+  $$('[data-ofir]').forEach(b => b.onclick = () => { Sesion.abiertosOF[b.dataset.ofir] = true; App.render();
+    setTimeout(() => { const r = $('[data-ofcap="' + b.dataset.ofir + '"]'); if (r) r.scrollIntoView({ block:'center', behavior:'smooth' }); }, 50); });
+  $$('[data-offil]').forEach(b => b.onclick = () => { Sesion.filtroOF = b.dataset.offil; App.render(); });
+  $$('[data-ofest]').forEach(b => b.onclick = () => {
+    const k = b.dataset.ofest;
+    Sesion.filtroOF = k === 'exceso' || k === 'nopres' ? 'exceso' : k === 'contratado' ? 'comp' : k === 'pendiente' ? 'falta' : k === 'curso' ? 'saldo' : 'todo';
+    App.render();
+  });
+  $('.of-leer').ontoggle = e => { Sesion.leerOF = e.target.open; };
+  let tmr = null;
+  $('#ofBuscar').oninput = e => { clearTimeout(tmr); tmr = setTimeout(() => { Sesion.qOF = e.target.value; App.render(); const i = $('#ofBuscar'); if (i){ i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 300); };
+}
+
+function detalleInsumosOF(filas, filtro){
+  const fs = filtro === 'todo' ? filas : filas.filter(f => coincideFiltroOF(f, filtro));
+  return '<table class="of-ins"><thead><tr><th>Código</th><th>Insumo</th><th>Un</th><th class="n">Precio</th>' +
+    '<th class="n">Presupuestada</th><th class="n">Contratada</th><th class="n">Pagada</th><th class="n">Por contratar</th><th class="n">Contratada por pagar</th>' +
+    '<th class="n">Total presupuestado</th><th class="n">Total pagado</th><th class="n">Saldo</th><th>Estado</th></tr></thead><tbody>' +
+    fs.map(f => '<tr><td class="mono small">' + esc(f.ins.codigo) + '</td><td>' + esc(f.ins.nombre) + '</td><td class="small">' + esc(f.ins.unidad) + '</td>' +
+      '<td class="n">' + money(f.precio) + '</td><td class="n">' + cant(f.pres) + '</td><td class="n">' + cant(f.contQ) + '</td><td class="n">' + cant(f.pagQ) + '</td>' +
+      '<td class="n' + (f.faltQ > 1e-9 ? ' of-falta' : '') + '">' + cant(f.faltQ) + '</td><td class="n">' + cant(f.compQ) + '</td>' +
+      '<td class="n">' + money(f.presV) + '</td><td class="n">' + money(f.pagV) + '</td>' +
+      '<td class="n' + (f.porPagarV < -TOL ? ' bad-txt' : '') + '"><b>' + money(f.porPagarV) + '</b></td><td>' + chipEstadoOF(f.estado) + '</td></tr>').join('') +
+    '</tbody></table>';
 }
 
 function docObraFaltante(p, idx){
+  const D = calcularObraFaltante(p);
+  const G = D.G;
+  const base = G.presV > TOL ? G.presV : 1;
+  const der = { halign:'right' };
+  const resumenCaps = D.caps.map(c => [c.cap.codigo + ' ' + c.cap.nombre,
+    { content:money2Imp(c.t.presV), styles:der }, { content:money2Imp(c.t.pagV), styles:der }, { content:money2Imp(c.t.porPagarV), styles:der },
+    { content:money2Imp(c.t.compBarV), styles:der }, { content:money2Imp(c.t.faltV), styles:der },
+    { content:pct(c.t.presV > TOL ? c.t.ejecBarV / c.t.presV * 100 : 0), styles:der }, ESTADOS_OF[estadoNodoOF(c.t)].n]);
   const body = [];
-  let totPres = 0, totPag = 0;
-  (p.capitulos||[]).forEach(cap => {
-    (cap.subs||[]).forEach(sub => {
-      (sub.acts||[]).forEach(act => {
-        const porInsumo = filasObraFaltanteActividad(p, act, idx);
-        const filas = [...porInsumo.entries()].filter(([,v]) => v.presupuestada > TOL || v.contratada > TOL || v.pagadaQ > TOL);
-        if (!filas.length) return;
-        body.push([{ content: act.codigo + ' — ' + act.nombre, colSpan:9,
-          styles:{ fontStyle:'bold', fillColor:[241,242,242] } }]);
-        filas.forEach(([idIns, v]) => {
-          const ins = Modelo.insumo(p, idIns); if (!ins) return;
-          const totalPres = v.presupuestada * Number(ins.precio||0);
-          const totalPorPagar = redondear(totalPres - v.pagadaV);
-          totPres += totalPres; totPag += v.pagadaV;
-          const der = { halign:'right' };
-          body.push([ins.codigo||'—', ins.nombre||'—', ins.unidad||'',
-            { content:money2Imp(ins.precio), styles:der }, { content:cant(v.presupuestada), styles:der },
-            { content:cant(v.contratada), styles:der }, { content:cant(v.pagadaQ), styles:der },
-            { content:money2Imp(totalPres), styles:der }, { content:money2Imp(totalPorPagar), styles:der }]);
-        });
-      });
-    });
+  D.caps.forEach(c => {
+    body.push([{ content: c.cap.codigo + ' — ' + c.cap.nombre, colSpan:11, styles:{ fontStyle:'bold', fillColor:[226,228,229] } }]);
+    c.subs.forEach(s => s.acts.forEach(a => {
+      body.push([{ content: a.act.codigo + ' — ' + a.act.nombre, colSpan:11, styles:{ fontStyle:'bold', fillColor:[244,245,245] } }]);
+      a.filas.forEach(f => body.push([f.ins.codigo || '—', f.ins.nombre || '—', f.ins.unidad || '',
+        { content:money2Imp(f.precio), styles:der }, { content:cant(f.pres), styles:der }, { content:cant(f.contQ), styles:der },
+        { content:cant(f.pagQ), styles:der }, { content:cant(f.faltQ), styles:der },
+        { content:money2Imp(f.presV), styles:der }, { content:money2Imp(f.porPagarV), styles:der }, ESTADOS_OF[f.estado].n]));
+    }));
   });
   const cd = Calculo.costoDirecto(p), aiu = Calculo.valorAIU(p), tot = Calculo.valorTotal(p), inv = Calculo.invertidoProyecto(p);
   return { nombre:'ARKEN_obra_faltante_' + p.id, titulo:'OBRA FALTANTE — INSUMOS DEL PRESUPUESTO',
     documento:'Obra faltante', proyecto:p, orientacion:'l',
     bloques:[
-      { t:'kv', cols:4, pares:[['Costo directo antes de AIU', money(cd)], ['Total AIU', money(aiu.total)],
-        ['Invertido', money(inv)], ['TOTAL DEL PRESUPUESTO', money(tot)]] },
-      body.length ? { t:'tabla', tam:6.8, head:[['Código','Insumo','Un','Precio','Presupuestada','Contratada','Pagada','Total presupuestado','Total por pagar']], body }
+      { t:'sec', txt:'1. Resumen' },
+      { t:'texto', txt:'De ' + money(G.presV) + ' presupuestados en insumos se han pagado ' + money(G.pagV) + ' (' + pct(G.pagV / base * 100) + '). Quedan ' +
+        money(Math.max(0, G.porPagarV)) + ' por pagar: ' + money(G.compBarV) + ' comprometidos en contratos y ' + money(G.faltV) + ' por contratar o comprar.' +
+        (G.excV > TOL ? ' Hay ' + money(G.excV) + ' pagados por encima de lo presupuestado.' : '') },
+      { t:'kv', cols:4, pares:[['Presupuestado en insumos', money(G.presV)], ['Pagado a la fecha', money(G.pagV)], ['Saldo por pagar', money(G.porPagarV)],
+        ['Avance pagado', pct(G.ejecBarV / base * 100)], ['Comprometido en contratos', money(G.compBarV)], ['Por contratar o comprar', money(G.faltV)],
+        ['Sobre lo presupuestado', money(G.excV)], ['Renglones de insumo', String(G.n)]] },
+      { t:'kv', cols:4, pares:[['Costo directo antes de AIU', money(cd)], ['Total AIU', money(aiu.total)], ['Invertido', money(inv)], ['TOTAL DEL PRESUPUESTO', money(tot)]] },
+      { t:'sec', txt:'2. Resumen por capítulo' },
+      resumenCaps.length ? { t:'tabla', tam:7.2, head:[['Capítulo','Presupuestado','Pagado','Saldo por pagar','Comprometido','Por contratar','Avance','Estado']], body: resumenCaps,
+        foot:[['TOTAL', { content:money2Imp(G.presV), styles:der }, { content:money2Imp(G.pagV), styles:der }, { content:money2Imp(G.porPagarV), styles:der },
+          { content:money2Imp(G.compBarV), styles:der }, { content:money2Imp(G.faltV), styles:der }, { content:pct(G.ejecBarV / base * 100), styles:der }, '']] }
+        : { t:'texto', txt:'No hay insumos presupuestados todavía.', gris:true },
+      { t:'salto' },
+      { t:'sec', txt:'3. Detalle por actividad e insumo' },
+      body.length ? { t:'tabla', tam:6.6, head:[['Código','Insumo','Un','Precio','Presupuestada','Contratada','Pagada','Por contratar','Total presupuestado','Saldo por pagar','Estado']], body }
         : { t:'texto', txt:'No hay insumos presupuestados todavía.', gris:true },
       { t:'espacio', alto:6 },
-      { t:'texto', txt:'Generado el ' + fmtSello(Date.now()) + '. "Pagada" incluye lo consumido por salidas de almacén y lo liquidado en cortes de obra.', gris:true }
+      { t:'texto', txt:'Generado el ' + fmtSello(Date.now()) + '. «Pagada» incluye lo consumido por salidas de almacén y lo liquidado en cortes de obra. «Por contratar» es lo presupuestado que aún no tiene contrato ni salida de almacén. El avance es lo pagado sobre lo presupuestado.', gris:true }
     ] };
 }
 
@@ -52233,12 +52731,14 @@ const Ayuda = (function(){
     '<h4>Formulario Único Nacional</h4><p>El botón <b>Formulario digital</b> (junto a «Imprimir lista de chequeo») abre una versión llenable del Formulario Único Nacional del Ministerio de Vivienda para la solicitud de licencias. Replica las cuatro páginas del formato oficial —datos del predio, colindantes, linderos, titulares, profesionales responsables y el anexo de construcción sostenible—, se llena en pantalla, se guarda solo y se imprime o exporta a PDF diligenciado, con el escudo del Ministerio y cuadros de firma.</p>';
 
   T.m13 =
-    '<h3>Módulo 13 · Formatos de supervisión técnica</h3>' +
-    '<p>Control de calidad de concreto con resultados a 7 y 28 días y veredicto de cumplimiento; control de acero ' +
-    'de refuerzo; liberación de actividades; control de compactación y densidades; verificación de niveles y ejes ' +
-    'de replanteo; actas de recibo parcial; y registro de no conformidades.</p>' +
-    '<p>El <b>constructor de formatos</b> permite crear formatos propios con campos de texto, numéricos, casillas, ' +
-    'fecha, firma y observaciones. Todos se diligencian e imprimen con logos y espacios de firma.</p>';
+    '<h3>Módulo 13 · Formatos de supervisión técnica e interventoría</h3>' +
+    '<p>La pestaña <b>Formatos del sistema</b> reúne 49 formatos para todas las etapas de la obra —planeación, preliminares, cimentación, '+
+    'estructura, mampostería, cubiertas, instalaciones, acabados, exteriores, entrega y controles transversales—, cada uno con su soporte '+
+    'normativo (NSR-10, Ley 1796 de 2016, Decreto 1077 de 2015, RETIE, NTC, RAS, Resolución 0312 de 2019, Ley 1474 de 2011, entre otras).</p>' +
+    '<p>Cada formato se diligencia en pantalla con lista de chequeo C/NC/NA, tablas de medición y fotos, o se imprime en blanco para llenarlo a mano. '+
+    'Un punto no conforme ofrece abrir una no conformidad. La <b>matriz de control</b> cruza las actividades del presupuesto con los formatos que les '+
+    'corresponden y muestra cuáles ejecutadas no tienen registro. El control de concreto aplica el criterio de aceptación de la NSR-10 C.5.6.3.3.</p>' +
+    '<p>También están la biblioteca de formatos propios, las consultas técnicas (RFI) y las no conformidades.</p>';
 
   T.m14 =
     '<h3>Módulo 14 · Recursos humanos</h3>' +
@@ -54913,80 +55413,1041 @@ function docOtroSi(p, k, indice){
    vez, sin importar en qué pestaña esté cada una.
    ══════════════════════════════════════════════════════════════════════════ */
 
+/* ═══════════════════ Centro de ayuda — guías por módulo ═══════════════════
+   Cada guía dice para qué sirve el módulo, qué hay en cada pestaña y cómo se
+   hace cada tarea, paso por paso, con los nombres de botón tal como aparecen
+   en pantalla. En los textos, «…» marca un botón o una pestaña: se pinta como
+   una etiqueta de botón para que la persona lo reconozca de un vistazo. */
+const GUIAS_MODULO = [
+  { id:'00', ic:'proyectos', lema:'La puerta de entrada a cada obra',
+    para:'Aquí se crean, abren, duplican y ordenan los proyectos. Cada proyecto es una unidad independiente: su presupuesto, compras, bitácora y contabilidad nunca se mezclan con los de otra obra. También reúne la base consolidada de proveedores y trabajadores de toda la empresa.',
+    quien:'Administrador general, gerencia y dirección de obra.',
+    pestanas:[
+      ['Proyectos', 'Tarjetas de todas las obras a las que usted tiene acceso, con su estado y avance.'],
+      ['Base de proveedores', 'Todos los proveedores registrados en cualquier proyecto, consolidados en una sola lista de consulta.'],
+      ['Base de trabajadores', 'Todos los trabajadores de la empresa, con el proyecto en que están vinculados.']],
+    tareas:[
+      { t:'Crear un proyecto nuevo', pasos:[
+        'Pulse «+ Nuevo proyecto».',
+        'Escriba el nombre y el código del proyecto. El código se usa para nombrar los archivos que exporte.',
+        'Elija la tipología (vivienda, institucional, comercial o industrial).',
+        'Elija el presupuesto de partida: el catálogo maestro (capítulos, APU e insumos con cantidades en cero) o un proyecto en blanco.',
+        'Confirme. El proyecto aparece en la lista y queda listo para abrirse.'],
+        res:'Un proyecto vacío o con catálogo, independiente de los demás.' },
+      { t:'Abrir un proyecto para trabajar en él', pasos:[
+        'Ubique la tarjeta del proyecto.',
+        'Pulse «Abrir proyecto». Su nombre aparece arriba, en «Proyecto activo», y la cinta superior muestra su presupuesto e invertido.',
+        'Desde ese momento los módulos 01 a 15 trabajan sobre esa obra.'] },
+      { t:'Duplicar un proyecto como plantilla', pasos:[
+        'En la tarjeta del proyecto modelo pulse «Duplicar proyecto».',
+        'Asigne nombre y código al nuevo proyecto.',
+        'Revise en el módulo 03 las cantidades y precios antes de usarlo.'],
+        res:'Una copia del presupuesto para no digitar desde cero obras parecidas.' },
+      { t:'Ordenar o eliminar proyectos', pasos:[
+        '«Ordenar proyectos» cambia el orden de las tarjetas (alfabético, por código o los que están en ejecución primero).',
+        '«Eliminar proyecto» borra la obra con todos sus registros. El sistema pide confirmación y lo deja en auditoría.'] }],
+    consejos:['Use códigos cortos y estables (por ejemplo SA-2026): aparecen en el nombre de todos los PDF y Excel.',
+      'Antes de eliminar un proyecto, guarde una copia con «Guardar archivo» en la barra superior.'],
+    cuidado:['Eliminar un proyecto no se puede deshacer desde el programa.'] },
+
+  { id:'01', ic:'info', lema:'La ficha técnica de la obra',
+    para:'Reúne los datos generales del proyecto (ubicación, área, sistema estructural, tipología, fechas y resumen) y el equipo profesional. Esta información alimenta la portada de informes, manuales, actas y formatos.',
+    quien:'Dirección de obra y coordinación del proyecto.',
+    pestanas:[['Ficha del proyecto', 'Datos generales editables, resumen del proyecto y equipo profesional con contacto y correo.']],
+    tareas:[
+      { t:'Diligenciar la ficha del proyecto', pasos:[
+        'Escriba nombre, ubicación, área construida, sistema estructural, tipología y fechas de inicio y terminación.',
+        'Redacte el resumen del proyecto en el cuadro de texto.',
+        'Pulse «Guardar ficha».'] },
+      { t:'Registrar el equipo profesional', pasos:[
+        'Pulse «+ Profesional».',
+        'Indique el rol (arquitecto, ingeniero estructural, interventor, constructor…), el nombre, el número de contacto y el correo.',
+        'Repita por cada profesional. Use «Editar» para corregir.'],
+        res:'El equipo queda disponible para traerlo con un clic a comités, bitácora y envíos.' },
+      { t:'Imprimir la ficha', pasos:[
+        'Pulse «Vista previa» para revisarla en pantalla.',
+        'Pulse «Imprimir ficha». Sale en una sola hoja carta; si el resumen es largo, la letra se ajusta sola.'] },
+      { t:'Cerrar la ficha para que nadie la modifique', pasos:[
+        'Pulse «Cerrar ficha». Los datos quedan protegidos.',
+        'Sólo un usuario autorizado puede volver a abrirla con «Abrir ficha».'] }],
+    consejos:['El botón «LICENCIA» lleva directo al módulo 12 para cargar los documentos del trámite.'],
+    cuidado:[] },
+
+  { id:'02', ic:'biblioteca', lema:'Todo el archivo documental de la obra',
+    para:'Guarda documentos, planos con control de versiones, informes de obra, manuales de mantenimiento y garantía, actas de comité, equipos, actas de vecindad y memorandos. Los archivos quedan dentro del sistema y viajan con él.',
+    quien:'Todo el equipo de obra; cada pestaña según los permisos de su rol.',
+    pestanas:[
+      ['Archivos', 'Documentos clasificados (licencia, permisos, fotografías, facturas, gestión, otros) con quién y cuándo los cargó.'],
+      ['Planoteca', 'Planos con versión y vigencia. Abre planos de AutoCAD (.dwg y .dxf) sin internet, con capas, zoom y medición.'],
+      ['Informes de obra', 'Informes entre dos fechas: Contable, Técnico, Completo o con los temas que usted elija.'],
+      ['Manuales', 'Manual de uso, mantenimiento y garantía de cada elemento construido, y el manual completo de entrega.'],
+      ['Comité de obra', 'Actas con asistentes, temas por bloques, compromisos que se arrastran y envío del PDF.'],
+      ['Control de equipos', 'Hoja de vida de cada equipo: ingreso, salida, días en obra y mantenimientos.'],
+      ['Actas de vecindad', 'Estado de los predios vecinos antes de iniciar, con fotos, esquemas y firmas.'],
+      ['Memorandos', 'Comunicaciones formales con consecutivo, adjuntos y fotografías embebidas.']],
+    tareas:[
+      { t:'Subir un plano y marcar la versión vigente', pasos:[
+        'En «Planoteca» pulse «+ Subir plano».',
+        'Elija el archivo (PDF, imagen, .dwg o .dxf), el tipo de plano, la versión y el plano que actualiza.',
+        'Marque si es la versión vigente. El sistema desmarca sola la versión anterior.',
+        'Para enviar planos a un tercero use «Transmittal»: deja constancia de qué se entregó, a quién y cuándo.'],
+        res:'Quien abra un plano no vigente verá el aviso «este plano NO es la versión más reciente».' },
+      { t:'Ver un plano de AutoCAD', pasos:[
+        'Pulse «Ver» sobre un plano .dwg o .dxf.',
+        'Use la rueda del ratón o pellizque para acercar; arrastre para mover; «⤢ Ajustar» para verlo completo.',
+        '«☰ Capas» muestra u oculta capas; «📏 Medir» mide la distancia entre dos puntos; «◐ Fondo» cambia el fondo; «⬇ Imagen» guarda la vista.'] },
+      { t:'Generar un informe de obra', pasos:[
+        'En «Informes de obra» cree un informe con el rango de fechas y quién lo solicita.',
+        'Elija el tipo: Contable, Técnico o Completo, o marque los temas uno por uno.',
+        'Revise y edite la redacción si lo desea.',
+        'Pulse «PDF» para imprimirlo o guardarlo.'] },
+      { t:'Generar los manuales de mantenimiento y garantía', pasos:[
+        'En «Manuales» pulse «Datos de entrega» y registre la fecha de entrega del inmueble, a quién se entrega y el contacto para garantías.',
+        'Revise la lista: el sistema redacta un manual por cada actividad ejecutada.',
+        'Use «Ver» para leer uno, «Editar» para cambiar textos o agregar imágenes, «Quitar» para excluirlo.',
+        'Pulse «Manual completo» para obtener el documento con portada, índice, garantías, cronograma y acta de entrega.',
+        '«Cronograma de mantenimiento» imprime sólo el plan de mantenimiento consolidado.'] },
+      { t:'Levantar un acta de comité y enviarla', pasos:[
+        'En «Comité de obra» cree el comité y pulse «Traer equipo del proyecto» o «+ Asistente».',
+        'Registre los temas con «+ Tema» o «+ Nuevo bloque», y los compromisos con responsable y fecha.',
+        'Pulse «Enviar» y elija «Compartir PDF del acta…», «Correo» o «WhatsApp».'],
+        res:'Los compromisos abiertos aparecen solos en el siguiente comité.' },
+      { t:'Redactar un memorando', pasos:[
+        'En «Memorandos» pulse «+ Nuevo memorando».',
+        'Diligencie destinatario, asunto, referencia y contenido.',
+        'Agregue fotos con «+ Adjuntar fotografía» y soportes con «+ Adjuntar documento».',
+        'Imprima o guarde en PDF. Ciérrelo para protegerlo cuando esté enviado.'] }],
+    consejos:['Los archivos de Revit (.rvt) se consultan exportando sus vistas a PDF.',
+      'En Manuales, una foto propia del elemento construido vale más que la ilustración de referencia.'],
+    cuidado:['Un plano no vigente se puede descargar, pero sale con una hoja de advertencia. Verifique siempre la versión antes de construir.'] },
+
+  { id:'03', ic:'presupuesto', lema:'El presupuesto vivo de la obra',
+    para:'Construye y controla el presupuesto capítulo → subcapítulo → actividad, con sus APU, el AIU, las solicitudes de cambio, los ingresos del cliente, la obra faltante y el resumen ejecutivo. Compara en todo momento lo presupuestado con lo invertido.',
+    quien:'Dirección de obra, presupuestos, gerencia e interventoría.',
+    pestanas:[
+      ['Presupuesto', 'La tabla del presupuesto con presupuestado, invertido y por invertir. Se edita haciendo clic sobre el texto.'],
+      ['Actualizaciones', 'Solicitudes de cambio al presupuesto que necesitan visto bueno de Dirección e Interventoría.'],
+      ['Ingresos', 'Pagos recibidos del cliente, liquidez del proyecto y documentos de cobro.'],
+      ['Obra faltante', 'Cuánto falta por contratar, comprar y pagar de cada insumo, capítulo por capítulo.'],
+      ['Órdenes de cambio', 'Obras adicionales o modificadas, con su valor, aprobación y cobro.'],
+      ['Resumen ejecutivo', 'Resumen gerencial del presupuesto, en PDF o Excel.']],
+    tareas:[
+      { t:'Armar el presupuesto desde cero', pasos:[
+        'Pulse «+ Capítulo» y escriba código y nombre.',
+        'En la fila del capítulo pulse «+ Sub» para crear un subcapítulo.',
+        'En el subcapítulo pulse «+ Act»: elija uno o varios APU y escriba nombre, unidad y cantidad.',
+        'Para ajustar un APU pulse «APU» en la actividad. Los insumos vienen de la lista maestra (módulo 04).',
+        'Defina el AIU con «AIU desglosado…» o en los porcentajes de la cabecera.'],
+        res:'El total se recalcula al instante en la tabla y en la cinta superior.' },
+      { t:'Importar el presupuesto desde Excel', pasos:[
+        'Descargue la plantilla de ejemplo (desde «Importar desde Excel» o desde esta ayuda, en Preguntas frecuentes › Creación de presupuestos).',
+        'Llene las hojas Insumos, APU y Actividades. Las columnas se reconocen por su encabezado.',
+        'Pulse «Importar desde Excel» y elija el archivo.',
+        'Si ya hay presupuesto, elija Adicionar (actualiza por código) o Reemplazar (borra lo actual).'] },
+      { t:'Calcular cantidades con memorias de cálculo', pasos:[
+        'Pulse «Memorias de cálculo» y luego «+ Nueva memoria» o «Generar por capítulos…».',
+        'Elija el formato (acero, concreto, mampostería, excavación, áreas, longitudes o conteos) y diligencie las filas.',
+        'Enlace la memoria a la actividad y pulse «Aplicar total a la actividad».'] },
+      { t:'Pedir un cambio al presupuesto', pasos:[
+        'En «Actualizaciones» pulse «+ Nueva solicitud de cambio».',
+        'Modifique lo necesario y anote el motivo en cada fila que toque.',
+        'Dirección de obra e Interventoría marcan su visto bueno.',
+        'Con los dos vistos buenos se habilita «Actualizar presupuesto», que aplica el cambio.'] },
+      { t:'Registrar un pago del cliente y cobrar', pasos:[
+        'En «Ingresos» pulse «+ Registrar ingreso»: fecha, documento, medio de pago, valor y retenciones.',
+        'El cuadro de liquidez muestra en verde si hay caja suficiente o en rojo si el proyecto necesita capital.',
+        'Para pedir un giro pulse «Documento de cobro»: genera la cuenta de cobro con el valor en letras.'] },
+      { t:'Saber cuánta obra falta', pasos:[
+        'Abra «Obra faltante». El tablero de arriba dice cuánto se ha pagado, cuánto está comprometido y cuánto falta por contratar o comprar.',
+        'La tabla por capítulos muestra el avance de cada uno con una barra de colores.',
+        'Pulse un capítulo para ver sus actividades y una actividad para ver sus insumos.',
+        'Use los filtros para ver sólo lo pendiente por pagar, lo que falta contratar o lo que se pasó del presupuesto.',
+        'Pulse «PDF — Obra faltante» para el informe completo.'] },
+      { t:'Exportar el presupuesto', pasos:[
+        'Pulse «Exportar» y elija el nivel de detalle del PDF (de presupuesto general a desglose de APU).',
+        'O elija Excel: de sólo lectura, o «Editable para reimportar» para ajustar precios en Excel y volver a traerlos.'] }],
+    consejos:['Una fila en rojo significa que lo invertido ya superó lo presupuestado en esa actividad.',
+      'Fije el presupuesto inicial (módulo 08) apenas esté aprobado: es la base de toda comparación posterior.'],
+    cuidado:['«Reemplazar» al importar borra el presupuesto actual. Si hay compras o contratos imputados, el sistema avisa cuántos antes de continuar.'] },
+
+  { id:'04', ic:'insumos', lema:'Un solo catálogo de insumos y precios',
+    para:'Lista única de materiales, mano de obra, herramientas, equipos, ferretería, consumibles y todo costo, con su precio. Cambiar un precio aquí recalcula de inmediato los APU, las actividades y el presupuesto.',
+    quien:'Presupuestos, compras y dirección de obra.',
+    pestanas:[['Lista maestra', 'Cada insumo con código automático por categoría (MAT-0001, MOB-0001…), unidad, precio y cantidad presupuestada.']],
+    tareas:[
+      { t:'Crear un insumo', pasos:[
+        'Pulse «+ Nuevo insumo».',
+        'Elija la categoría; el código se asigna solo.',
+        'Escriba nombre, unidad y precio. El nombre no puede repetirse.'] },
+      { t:'Ajustar precios de forma masiva', pasos:[
+        'Pulse «Ajuste de precios».',
+        'Elija la categoría (o toda la lista) y el porcentaje.',
+        'Revise el impacto sobre el presupuesto y confirme. El ajuste se puede deshacer.'] },
+      { t:'Traer la lista de otro proyecto', pasos:[
+        'Pulse «Importar de otro proyecto» y elija el proyecto de origen.',
+        'Revise cuántos insumos se agregan, se actualizan y quedan sin uso.',
+        'Si hay coincidencias, elija «Sobrescribir todos los que coinciden» u «Omitir todos los que coinciden».'] }],
+    consejos:['La cantidad presupuestada es el techo para contratos y cortes: no se puede contratar más de lo presupuestado.'],
+    cuidado:['Cambiar un precio no altera lo ya causado, contratado o despachado: esos valores quedan congelados en su documento.'] },
+
+  { id:'05', ic:'causaciones', lema:'Compras, almacén, contratos y cortes',
+    para:'Es el corazón del control de costos: proveedores, requerimientos, compras, inventario, salidas de almacén, comparativos, contratos, cortes de obra y lectura automática de facturas. Regla de oro: comprar llena el almacén; el presupuesto se consume sólo cuando el insumo sale hacia una actividad o se paga un corte.',
+    quien:'Compras, almacén, contratación, dirección de obra e interventoría.',
+    pestanas:[
+      ['Proveedores', 'Ficha tributaria y bancaria de cada proveedor, con sus documentos (RUT, cámara de comercio, certificado bancario…).'],
+      ['Requerimientos', 'Pedidos de obra que necesitan visto bueno de Dirección e Interventoría antes de comprar.'],
+      ['Documentos de pago', 'Facturas, cuentas de cobro, remisiones, anticipos y notas. Alimentan el inventario.'],
+      ['Inventario de obra', 'Existencias calculadas por insumo, con su precio de almacén.'],
+      ['Salidas de almacén', 'Despachos del almacén a una actividad: aquí se consume el presupuesto.'],
+      ['Comparativos', 'Cuadros comparativos de ofertas contra el presupuesto.'],
+      ['Contratos', 'Contratos sobre actividades del presupuesto, con anticipo, pólizas, cláusulas y otrosíes.'],
+      ['Control contractual', 'Plazos, pólizas y vencimientos de cada contrato.'],
+      ['Cortes de obra', 'Liquidación periódica de los contratos, con retenido, retenciones y amortización de anticipo.'],
+      ['Revisión', 'Revisión cruzada de documentos y cortes antes de pagarlos.'],
+      ['Lectura de documentos', 'Lee facturas electrónicas (XML), PDF y fotos sin internet y arma el documento de pago.']],
+    tareas:[
+      { t:'Registrar un proveedor', pasos:[
+        'En «Proveedores» pulse «+ Proveedor».',
+        'Escriba NIT (el dígito de verificación se calcula solo), razón social, régimen, si es autorretenedor y responsable de IVA, y el concepto de retención.',
+        'Abra la «Ficha» y cargue sus documentos con «Cargar».'] },
+      { t:'Pedir material con un requerimiento', pasos:[
+        'En «Requerimientos» pulse «+ Requerimiento».',
+        'Agregue los insumos con «+ Agregar insumo», la actividad de destino y la cantidad.',
+        'Dirección de obra e Interventoría marcan su aprobación en la misma tabla.',
+        'Con las dos aprobaciones, el requerimiento se puede convertir en compra.'] },
+      { t:'Causar una factura leyéndola automáticamente', pasos:[
+        'En «Lectura de documentos» pulse «+ Subir documento(s)» y elija el XML, PDF o foto de la factura.',
+        'Pulse leer y revise la pantalla de revisión: todo es editable.',
+        'Vincule el proveedor y los insumos a los existentes o apruebe crearlos.',
+        'Al aprobar se abre el documento de pago ya armado: revíselo y guárdelo.'],
+        res:'La compra entra al inventario con sus retenciones calculadas.' },
+      { t:'Registrar una compra a mano', pasos:[
+        'En «Documentos de pago» pulse «+ Documento de pago», «+ Desde requerimiento» o «+ Compra directa».',
+        'Elija proveedor, tipo, número y fecha.',
+        'Agregue cada insumo con cantidad, precio antes de IVA e IVA.',
+        'Pulse «Calcular retenciones desde la ficha del proveedor» y guarde.'] },
+      { t:'Despachar material a una actividad', pasos:[
+        'En «Salidas de almacén» cree la salida y pulse «+ Agregar insumos del inventario».',
+        'Para cada insumo indique cantidad y la actividad del presupuesto a la que va.',
+        'Guarde. El valor entra a la columna INVERTIDO del presupuesto.'],
+        res:'Si la cantidad supera lo presupuestado para esa actividad, queda una advertencia visible.' },
+      { t:'Comparar ofertas', pasos:[
+        'En «Comparativos» pulse «+ Cuadro comparativo» o «Traer de un requerimiento».',
+        'Agregue al menos dos proveedores con «+ Adicionar proveedor» y sus precios.',
+        'Imprima el cuadro. Es informativo: no mueve inventario ni presupuesto.'] },
+      { t:'Contratar mano de obra o un subcontrato', pasos:[
+        'En «Contratos» pulse «+ Nuevo contrato» y elija el contratista.',
+        'Agregue las actividades con «+ Agregar insumos»: la cantidad no puede superar lo presupuestado.',
+        'Defina anticipo, retenido, pólizas y cláusulas («Cargar cláusulas estándar» las trae listas).',
+        'Guarde e imprima el contrato.'] },
+      { t:'Liquidar un corte de obra', pasos:[
+        'En «Cortes de obra» pulse «+ Generar corte de obra» y elija el contrato.',
+        'Autorice: el corte trae los ítems del contrato sin cantidades.',
+        'Digite las cantidades ejecutadas del periodo. El acumulado no puede pasar de lo contratado.',
+        'Revise retenido, retenciones y amortización del anticipo, y guarde.'],
+        res:'El corte entra a INVERTIDO, a Facturación y a Contabilidad.' }],
+    consejos:['«Resumen de contratos» muestra por contrato el anticipo pagado, lo amortizado y lo que falta.',
+      '«Devolución de retenido» libera el retenido acumulado al final del contrato.',
+      'La factura electrónica XML es la lectura más exacta; la foto, la menos confiable.'],
+    cuidado:['El sistema avisa si el número de factura ya existe para ese proveedor: así se evita pagar dos veces la misma factura.'] },
+
+  { id:'06', ic:'bitacora', lema:'El diario oficial de la obra',
+    para:'Registra cada día: novedades, avance, clima, personal, fotos, documentos, esquemas a mano y firmas. Cada día se imprime o se envía como un PDF completo.',
+    quien:'Residente de obra, dirección de obra e interventoría.',
+    pestanas:[
+      ['Diario de obra', 'El registro de cada día con fotos, documentos, pizarra y firmas.'],
+      ['Cuadro de lluvias', 'Clima por franjas del día y milímetros de lluvia; días perdidos por lluvia.'],
+      ['Control de personal', 'Trabajadores por función cada día, con gráfica y acumulado de jornales.']],
+    tareas:[
+      { t:'Registrar el día de obra', pasos:[
+        'Pulse «Hoy» o elija la fecha.',
+        'Escriba quién registra y su cargo, las novedades y el avance.',
+        'Agregue soportes con «+ Fotografía», «+ Documento» o «+ Pizarra» (dibujo a mano).',
+        'Agregue firmas con «+ Firma».',
+        'Pulse «Guardar registro».'] },
+      { t:'Enviar el día por correo o WhatsApp', pasos:[
+        'Configure una sola vez los destinatarios con «Configurar envío…».',
+        'En el día pulse «Enviar» y elija «Compartir PDF del día…», «Correo» o «WhatsApp».'] },
+      { t:'Registrar la lluvia y el personal', pasos:[
+        'En «Cuadro de lluvias» marque el estado de mañana, mediodía, tarde y noche.',
+        'En «Control de personal» pulse «+ Registrar día» y digite los trabajadores por función.',
+        'Use «Imprimir cuadro de lluvias» o «Imprimir control de personal».'] },
+      { t:'Cerrar la bitácora', pasos:[
+        'Pulse «Cerrar bitácoras a la fecha» para proteger los días ya revisados.',
+        'Un día cerrado sólo se abre con «Abrir para editar» y un usuario autorizado.'] }],
+    consejos:['La bitácora es un documento con valor legal: regístrela el mismo día.',
+      'Las firmas del equipo profesional se traen del módulo 01.'],
+    cuidado:[] },
+
+  { id:'07', ic:'facturacion', lema:'Qué está pagado y qué no',
+    para:'Une en una sola tabla todos los documentos de pago y cortes de obra del proyecto, con sus deducciones, para controlar los pagos y la antigüedad de las cuentas por pagar.',
+    quien:'Tesorería, contabilidad y gerencia.',
+    pestanas:[['Listado', 'Todos los documentos con filtros, deducciones y la casilla PAGADO.'], ['Gráficas', 'Panel gráfico de pagos, pendientes y antigüedad.']],
+    tareas:[
+      { t:'Marcar un documento como pagado', pasos:[
+        'Ubique el documento en el «Listado» (use los filtros).',
+        'Marque la casilla PAGADO. Exige un usuario con permiso de autorizar pagos.',
+        'Queda registrado quién autorizó y cuándo, en la auditoría.'] },
+      { t:'Ver lo que está pendiente', pasos:[
+        'Filtre por «No pagados».',
+        'Revise la antigüedad: 0-30, 31-60, 61-90 y más de 90 días.',
+        'Exporte con «PDF del listado» o «Excel».'] }],
+    consejos:['La columna Deducciones suma retención, ICA, IVA, retenido, descuento y otras retenciones en una sola cifra.'],
+    cuidado:['Quitar la marca de pagado también exige permiso y queda en auditoría.'] },
+
+  { id:'08', ic:'financiero', lema:'Comparar, proyectar y anticipar riesgos',
+    para:'Compara el presupuesto inicial con el actual, muestra la variación y los sobrecostos, proyecta el flujo de fondos y lleva el registro de riesgos del proyecto.',
+    quien:'Gerencia, dirección de obra y presupuestos.',
+    pestanas:[
+      ['Presupuesto inicial', 'La copia congelada del presupuesto aprobado.'],
+      ['Comparativo', 'Inicial contra actual por capítulo, subcapítulo y actividad.'],
+      ['Variación', 'Sobrecostos ordenados por magnitud y proyección al cierre.'],
+      ['Gráficas', 'Panel gráfico del análisis financiero.'],
+      ['Flujo de fondos', 'Distribución del valor en el tiempo por semana o mes, con curva S.'],
+      ['Registro de riesgos', 'Riesgos con probabilidad, impacto, responsable y plan de respuesta.']],
+    tareas:[
+      { t:'Fijar el presupuesto inicial', pasos:[
+        'Con el presupuesto aprobado, abra «Presupuesto inicial».',
+        'Pulse «Fijar presupuesto inicial» y autorice.',
+        'Desde ahí todo cambio se mide contra esa fotografía.'],
+        res:'Sólo gerencia puede revertirlo, con motivo, y queda en auditoría.' },
+      { t:'Proyectar el flujo de fondos', pasos:[
+        'Abra «Flujo de fondos».',
+        'Use «Distribuir automáticamente» según la programación, o «Digitar manualmente…».',
+        'Si hace falta, «Definir el plazo de la obra…» o «Ajustar el plazo a lo programado».',
+        'Elija presentación (campana con curva S, barras o cuadro) y guarde en PDF.'] },
+      { t:'Registrar un riesgo', pasos:[
+        'En «Registro de riesgos» agregue el riesgo con su probabilidad e impacto.',
+        'Asigne responsable, plan de respuesta y fecha de revisión.'] }],
+    consejos:['La casilla de superposición del flujo dibuja lo invertido real sobre lo proyectado.'],
+    cuidado:['Sin presupuesto inicial fijado, el comparativo y la variación no tienen contra qué medir.'] },
+
+  { id:'09', ic:'programacion', lema:'Tiempo, ruta crítica y valor ganado',
+    para:'Programa la obra con duraciones y vínculos, calcula la ruta crítica, dibuja el Gantt, mide el avance real y compara con la curva S y el valor ganado. Incluye la revisión de prerrequisitos de cada actividad.',
+    quien:'Dirección de obra, programación y residentes.',
+    pestanas:[
+      ['Programación y vínculos', 'Tareas, hitos, duraciones y predecesoras.'],
+      ['Diagrama de Gantt', 'Barras con vínculos, línea de fecha de corte y PDF paginado.'],
+      ['Ruta crítica', 'Actividades sin holgura que definen la fecha final.'],
+      ['Curva S y valor ganado', 'Programado contra ejecutado, con indicadores de costo y plazo.'],
+      ['Avance medido', 'Mediciones reales en obra con fotos, que pueden llevarse a la programación.'],
+      ['Calendario y parámetros', 'Días laborables, festivos y jornada.'],
+      ['Programación por fechas', 'Vista jerárquica capítulo → actividad por fechas.'],
+      ['Revisión prerrequisitos', 'Lista de chequeo de lo que necesita cada actividad para iniciar.']],
+    tareas:[
+      { t:'Generar la programación desde el presupuesto', pasos:[
+        'En «Programación y vínculos» pulse «Generar desde el presupuesto…».',
+        'Ajuste duraciones y agregue predecesoras con «+ Predecesora» o marque tareas y pulse «⛓ Vincular marcadas».',
+        'Pulse «Programar con el calendario laboral» y luego «Guardar línea base».'] },
+      { t:'Revisar la ruta crítica', pasos:[
+        'Abra «Ruta crítica». Las actividades críticas no tienen holgura.',
+        'Use «Simular» para ver el efecto de cambiar una duración.',
+        'Imprima con «PDF · Informe de ruta crítica».'] },
+      { t:'Registrar el avance medido', pasos:[
+        'En «Avance medido» pulse «+ Registrar medición» o «+ Medir».',
+        'Digite la cantidad ejecutada y agregue fotos.',
+        'Pulse «Llevar el avance medido a la programación».'] },
+      { t:'Revisar prerrequisitos antes de iniciar', pasos:[
+        'Abra «Revisión prerrequisitos».',
+        'Marque en cada actividad próxima: planos, cantidades, contratos, insumos, pólizas, equipos, SG-SST y personal apto.',
+        'Asigne el ejecutor e imprima la revisión.'] }],
+    consejos:['«ABRIR ARKEN PLANNER» conecta con la planeación semanal Last Planner (PPC).'],
+    cuidado:['Mover una predecesora corre sus dependientes: revise la ruta crítica después de cada cambio grande.'] },
+
+  { id:'10', ic:'contabilidad', lema:'El libro auxiliar y las salidas para el contador',
+    para:'Arma el libro auxiliar con todos los documentos de pago y cortes, y entrega al contador las relaciones de retenciones, IVA, cuentas por pagar y certificados.',
+    quien:'Contabilidad y gerencia.',
+    pestanas:[
+      ['Libro auxiliar del proyecto', 'Todos los movimientos con NIT, cuenta PUC, base, IVA, retenciones y neto.'],
+      ['Consolidado empresa', 'Los movimientos de todos los proyectos.'],
+      ['Por proveedor', 'Movimientos agrupados por tercero.'],
+      ['Por cuenta PUC', 'Movimientos agrupados por cuenta contable.'],
+      ['Por periodo', 'Movimientos agrupados por mes.'],
+      ['Retenciones por tercero', 'Retenciones practicadas a cada proveedor y su certificado.'],
+      ['Salidas para el contador', 'Relaciones de retenciones, IVA, cuentas por pagar y centros de costo.']],
+    tareas:[
+      { t:'Generar un certificado de retención', pasos:[
+        'Abra «Retenciones por tercero».',
+        'Elija el proveedor y el periodo.',
+        'Pulse «Generar certificado» o «Certificado».'] },
+      { t:'Entregar la información al contador', pasos:[
+        'Abra la vista que necesite.',
+        'Pulse «Exportar a Excel» o «Exportar a PDF».'] }],
+    consejos:['Las tarifas tributarias se editan en Administración › Parámetros tributarios, con vigencias por fechas.'],
+    cuidado:['Cada documento se calcula con la tarifa vigente en su fecha; cambiar una tarifa no recalcula documentos anteriores.'] },
+
+  { id:'11', ic:'sst', lema:'Seguridad y salud en el trabajo',
+    para:'Lleva el SG-SST de la obra: autoevaluación de estándares mínimos (Res. 0312 de 2019), capacitaciones, inspecciones, incidentes, trabajo en alturas, entrega de EPP y documentación de contratistas.',
+    quien:'SISO, dirección de obra y contratistas.',
+    pestanas:[
+      ['Tablero', 'Indicadores del SG-SST del proyecto.'],
+      ['Estándares mínimos 0312', 'Autoevaluación y plan de mejoramiento.'],
+      ['Capacitaciones', 'Temas, asistentes y acta con firmas.'],
+      ['Inspecciones', 'Hallazgos, acciones y fecha de cierre.'],
+      ['Incidentes y accidentes', 'Reporte con causa, acciones, incapacidad y reporte a ARL.'],
+      ['Revisión de equipos en alturas', 'Inspección de arneses, eslingas y equipos.'],
+      ['Permisos de trabajo en alturas', 'Permiso diario con trabajadores y equipos revisados.'],
+      ['Matriz de EPP', 'Entregas de elementos de protección por trabajador.'],
+      ['Contratistas', 'Documentos SST de cada contratista.']],
+    tareas:[
+      { t:'Hacer la autoevaluación 0312', pasos:[
+        'Abra «Estándares mínimos 0312».',
+        'Califique cada estándar y adjunte la evidencia.',
+        'Imprima con «PDF — Autoevaluación y plan de mejoramiento».'] },
+      { t:'Emitir un permiso de trabajo en alturas', pasos:[
+        'Revise primero los equipos en «Revisión de equipos en alturas» con «+ Revisión de equipo».',
+        'En «Permisos de trabajo en alturas» pulse «+ Permiso de trabajo en alturas».',
+        'Agregue los trabajadores con «+ Agregar trabajador» y vincule los equipos revisados.',
+        'Firme e imprima el permiso.'] },
+      { t:'Reportar un incidente o accidente', pasos:[
+        'Abra «Incidentes y accidentes» y regístrelo con la parte del cuerpo, la causa y las acciones.',
+        'Al guardar se dispara la alerta correspondiente.'] },
+      { t:'Entregar EPP', pasos:[
+        'En «Matriz de EPP» pulse «+ Registrar entrega» y elija trabajador y elementos.',
+        'Imprima la matriz con «Imprimir matriz».'] }],
+    consejos:['Los asistentes de las capacitaciones se toman del módulo 14.'],
+    cuidado:['Ningún trabajador debe subir a alturas sin permiso vigente y equipos revisados.'] },
+
+  { id:'12', ic:'licencia', lema:'El trámite de la licencia de construcción',
+    para:'Controla los documentos del trámite de licencia con semáforo de completitud, los datos de la licencia otorgada y el Formulario Único Nacional diligenciable.',
+    quien:'Dirección de proyecto y coordinación de trámites.',
+    pestanas:[['Licenciamiento', 'Datos de la licencia, lista de chequeo de documentos y Formulario Único Nacional.']],
+    tareas:[
+      { t:'Registrar los datos de la licencia', pasos:[
+        'Escriba radicación, número, fecha de expedición, curaduría, vigencia, prórrogas y modificaciones.',
+        'Pulse «Guardar datos de la licencia».'] },
+      { t:'Cargar los documentos del trámite', pasos:[
+        'En la lista de chequeo cargue cada documento con su fecha y vigencia.',
+        'Marque «no aplica» donde corresponda (matrícula del interventor, autorización de parcelación).',
+        'Imprima con «Imprimir lista de chequeo».'] },
+      { t:'Diligenciar el Formulario Único Nacional', pasos:[
+        'Pulse «Formulario digital».',
+        'Llene en pantalla las cuatro páginas; se guarda solo.',
+        'Imprímalo o expórtelo a PDF.'] }],
+    consejos:['Cada lunes a las 8:00 a. m. el sistema avisa si aún hay documentos pendientes.'],
+    cuidado:[] },
+
+  { id:'13', ic:'supervision', lema:'Calidad, supervisión técnica e interventoría',
+    para:'Reúne 49 formatos de supervisión e interventoría para todas las etapas de la obra, soportados en NSR-10, Ley 1796, RETIE, NTC, RAS y demás normas. Se diligencian en pantalla o se imprimen en blanco. Incluye la matriz de control por actividad, las consultas técnicas (RFI) y las no conformidades.',
+    quien:'Supervisión técnica, interventoría, dirección de obra y residentes.',
+    pestanas:[
+      ['Formatos del sistema', 'Catálogo por etapas, matriz de control y registros diligenciados.'],
+      ['Biblioteca de formatos', 'Formatos propios o externos de la empresa.'],
+      ['Consultas técnicas (RFI)', 'Preguntas al diseñador o interventor con respuesta y plazo.'],
+      ['No conformidades', 'Hallazgos con causa, acción correctiva, responsable y cierre.']],
+    tareas:[
+      { t:'Diligenciar un formato de supervisión', pasos:[
+        'En «Formatos del sistema» elija la etapa y el formato en el catálogo.',
+        'Pulse «+ Diligenciar».',
+        'Relacione la actividad del presupuesto, la ubicación y el elemento.',
+        'Califique cada punto como C (cumple), NC (no cumple) o NA (no aplica). El botón Marcar todos «Cumple» agiliza la calificación.',
+        'Agregue fotos con «+ Agregar foto» y guarde.'],
+        res:'Si queda un punto NC, el sistema ofrece abrir una no conformidad.' },
+      { t:'Imprimir formatos en blanco para obra', pasos:[
+        'Abra el formato y pulse «Imprimir en blanco».',
+        'Para todos a la vez pulse «Imprimir juego en blanco».'] },
+      { t:'Saber qué actividades no tienen control', pasos:[
+        'Cambie a la vista de matriz de control.',
+        'Filtre las actividades ejecutadas sin registro.',
+        'Imprima con «PDF de la matriz».'] },
+      { t:'Registrar una consulta técnica (RFI)', pasos:[
+        'En «Consultas técnicas (RFI)» cree la consulta con la pregunta, a quién va y la fecha límite.',
+        'Registre la respuesta cuando llegue y ciérrela.'] },
+      { t:'Crear un formato propio', pasos:[
+        'Pulse «Crear formato propio».',
+        'Defina etapa, campos, lista de chequeo (grupos con #), columnas de tabla y referencias.',
+        'Guárdelo: queda en el catálogo con los demás.'] }],
+    consejos:['«Marco normativo» imprime todas las normas que soportan los formatos.',
+      'En el control de concreto el sistema aplica el criterio de aceptación de la NSR-10 C.5.6.3.3.'],
+    cuidado:['Una no conformidad abierta debe cerrarse con evidencia antes de recibir la actividad.'] },
+
+  { id:'14', ic:'personal', lema:'Personal apto y documentado',
+    para:'Lleva la ficha de cada trabajador con sus documentos, el candado de aptitud, el carné, los permisos de salida y los formatos de la empresa.',
+    quien:'Recursos humanos, SISO y dirección de obra.',
+    pestanas:[['Trabajadores', 'Listado, ficha, documentos y carné de cada trabajador.']],
+    tareas:[
+      { t:'Vincular un trabajador', pasos:[
+        'Pulse «+ Trabajador».',
+        'Diligencie identificación, contacto, contratista, EPS, fondo de pensiones, contacto de emergencia y fecha de ingreso.',
+        'En «Documentos» cargue cédula, exámenes médicos de ingreso, certificado de EPS y de pensiones.'],
+        res:'Sin esos cuatro documentos el trabajador aparece en rojo como NO APTO.' },
+      { t:'Imprimir carnés', pasos:[
+        'Pulse «Imprimir carnés» y elija los trabajadores.',
+        'Salen en tamaño estándar con marcas de corte, varios por hoja.'] },
+      { t:'Dar un permiso de salida', pasos:[
+        'Pulse «Permiso de salida».',
+        'Elija el motivo, hora de salida y regreso, y quién autoriza.',
+        'Firme e imprima.'] }],
+    consejos:['«Importar de otro proyecto» trae trabajadores ya registrados sin volver a digitarlos.'],
+    cuidado:['No permita el ingreso de un trabajador NO APTO: no tiene la documentación mínima de ley.'] },
+
+  { id:'15', ic:'nomina', lema:'Salarios y prestaciones según la ley',
+    para:'Liquida la nómina del personal del módulo 14 con los parámetros legales vigentes: devengados, deducciones, aportes, provisiones y liquidaciones de retiro.',
+    quien:'Nómina, contabilidad y gerencia.',
+    pestanas:[
+      ['Trabajadores y salarios', 'Salario y forma de pago de cada trabajador.'],
+      ['Periodos de nómina', 'Liquidación del periodo y comprobantes de pago.'],
+      ['Liquidaciones de retiro', 'Cesantías, intereses, prima, vacaciones e indemnización.'],
+      ['Parámetros legales', 'Salario mínimo, auxilio de transporte, UVT y porcentajes de aportes por vigencia.']],
+    tareas:[
+      { t:'Cargar los parámetros legales del año', pasos:[
+        'Abra «Parámetros legales» y pulse «+ Vigencia».',
+        'Diligencie salario mínimo, auxilio de transporte, UVT, salud, pensión, caja, SENA e ICBF.',
+        'Guarde. Sin parámetros no se puede liquidar.'] },
+      { t:'Liquidar un periodo de nómina', pasos:[
+        'En «Periodos de nómina» pulse «+ Nómina del periodo».',
+        'Revise devengados y deducciones; agregue «+ Otro devengado» o «+ Deducción» si aplica.',
+        'Revise los «Comprobantes» uno por uno con «← Anterior» y «Siguiente →».',
+        'Imprima o guarde en PDF.'] },
+      { t:'Liquidar el retiro de un trabajador', pasos:[
+        'En «Liquidaciones de retiro» pulse «+ Liquidación de retiro».',
+        'Indique fecha y causa de terminación.',
+        'Revise cada valor; si ajusta uno a mano, la fórmula original queda visible.'] }],
+    consejos:['Cada nómina se calcula con la vigencia de su propia fecha.'],
+    cuidado:['El auxilio de transporte entra a la base de cesantías y prima, pero no a la de vacaciones: el sistema lo aplica solo.'] },
+
+  { id:'16', ic:'ayuda', lema:'Este centro de ayuda',
+    para:'Guías por módulo, rutas de trabajo de principio a fin, preguntas frecuentes, glosario y el manual de usuario en PDF. El botón «Ayuda del sistema» del menú lateral abre directamente la guía del módulo en el que usted está.',
+    quien:'Todos los usuarios.',
+    pestanas:[
+      ['Inicio', 'Buscador, primeros pasos, rutas de trabajo y acceso a cada guía.'],
+      ['Guías por módulo', 'Para qué sirve cada módulo, sus pestañas y cada tarea paso a paso.'],
+      ['Rutas de trabajo', 'Procesos completos que cruzan varios módulos.'],
+      ['Preguntas frecuentes', 'Respuestas detalladas, organizadas por tema.'],
+      ['Glosario', 'Los términos técnicos, contables y legales del sistema.'],
+      ['Información del software', 'Versión, licencia y aviso legal.']],
+    tareas:[
+      { t:'Encontrar cómo se hace algo', pasos:[
+        'Escriba una palabra en el buscador (por ejemplo «corte», «retención», «plano»).',
+        'Los resultados se agrupan en guías, preguntas y glosario.',
+        'Pulse un resultado para abrirlo.'] },
+      { t:'Descargar el manual de usuario', pasos:[
+        'En «Inicio» pulse «Manual de usuario (PDF)».',
+        'Se genera con portada, tabla de contenido, rutas de trabajo y todas las guías.'] }],
+    consejos:[], cuidado:[] },
+
+  { id:'adm', ic:'admin', lema:'Empresa, usuarios, permisos y respaldos',
+    para:'Panel exclusivo del Administrador general, en «Administración» de la barra superior. Configura la empresa, la licencia, los usuarios y sus permisos, las alertas, los parámetros tributarios, el PUC, la auditoría, los respaldos y el cifrado.',
+    quien:'Administrador general.',
+    pestanas:[
+      ['Empresa', 'Razón social, NIT, dirección, contacto y logo que aparece en todos los documentos.'],
+      ['Licencia', 'Carga, consulta y renovación de la licencia de uso.'],
+      ['Usuarios y permisos', 'Usuarios, claves, proyectos y módulos permitidos, y acciones sensibles.'],
+      ['Reglas de alerta', 'Alertas inmediatas y programadas, con destinatarios y plantillas.'],
+      ['Bandeja de salida', 'Alertas emitidas con su estado de envío.'],
+      ['Parámetros tributarios', 'Tarifas de retención, ICA e IVA por vigencias.'],
+      ['Plan Único de Cuentas', 'Cuentas contables usadas en el libro auxiliar.'],
+      ['Auditoría', 'Quién hizo qué y cuándo (últimos 5.000 eventos).'],
+      ['Datos y respaldos', 'Guardar el archivo con datos, exportar e importar respaldos.'],
+      ['Cifrado y copias', 'Cifrado AES-256 del archivo y copias de respaldo internas.']],
+    tareas:[
+      { t:'Crear un usuario y darle permisos', pasos:[
+        'En «Usuarios y permisos» pulse «+ Crear usuario».',
+        'Escriba usuario, contraseña, nombre, contacto y correo.',
+        'Pulse «Permisos»: marque los proyectos, los módulos de cada proyecto y las acciones sensibles.'],
+        res:'Un módulo no permitido no aparece en el menú de ese usuario.' },
+      { t:'Hacer un respaldo', pasos:[
+        'En «Datos y respaldos» pulse «Exportar respaldo (.json)» o «Guardar archivo HTML con los datos embebidos».',
+        'Guarde el archivo fuera del equipo (disco externo o nube de la empresa).'] },
+      { t:'Proteger el archivo con cifrado', pasos:[
+        'En «Cifrado y copias» active el cifrado con una frase segura.',
+        'Use «Crear copia ahora» para una copia interna; «Restaurar» la recupera.'] }],
+    consejos:['Guarde la frase de cifrado en un lugar seguro: sin ella no se pueden abrir los datos.'],
+    cuidado:['El administrador no puede quitarse el permiso de gestionar usuarios si es el único que lo tiene.'] }
+];
+
+/* Rutas de trabajo: procesos completos que cruzan varios módulos. Cada paso
+   lleva el módulo donde se hace, para ofrecer el botón «Ir». */
+const RUTAS_TRABAJO = [
+  { id:'empresa', t:'Poner en marcha el sistema', d:'Lo que se hace una sola vez, antes del primer proyecto.', pasos:[
+    ['adm', 'Registre la empresa (razón social, NIT, logo) en Administración › Empresa.'],
+    ['adm', 'Cargue la licencia en Administración › Licencia.'],
+    ['adm', 'Cree los usuarios y asigne proyectos, módulos y acciones sensibles.'],
+    ['adm', 'Revise los parámetros tributarios vigentes.'],
+    ['15', 'Cargue los parámetros legales de nómina del año.']] },
+  { id:'arranque', t:'Arrancar un proyecto', d:'De la idea al presupuesto aprobado y programado.', pasos:[
+    ['00', 'Cree el proyecto con el catálogo maestro o en blanco, y ábralo.'],
+    ['01', 'Diligencie la ficha y el equipo profesional.'],
+    ['12', 'Registre la licencia y cargue los documentos del trámite.'],
+    ['04', 'Ajuste los precios de la lista maestra.'],
+    ['03', 'Arme o importe el presupuesto y defina el AIU.'],
+    ['08', 'Fije el presupuesto inicial cuando esté aprobado.'],
+    ['09', 'Genere la programación desde el presupuesto y guarde la línea base.']] },
+  { id:'compras', t:'Comprar y llevar material a la obra', d:'Del pedido al costo imputado a la actividad.', pasos:[
+    ['05', 'Registre el proveedor con su ficha tributaria.'],
+    ['05', 'Cree el requerimiento y obtenga los dos vistos buenos.'],
+    ['05', 'Compare ofertas en un cuadro comparativo (opcional).'],
+    ['05', 'Cause la factura en Documentos de pago o léala en Lectura de documentos.'],
+    ['05', 'Despache del almacén a la actividad con una salida.'],
+    ['03', 'Verifique el invertido de la actividad en el presupuesto.']] },
+  { id:'contratos', t:'Contratar y pagar mano de obra', d:'Del contrato al pago del corte.', pasos:[
+    ['05', 'Cree el contrato con actividades, anticipo, retenido y pólizas.'],
+    ['05', 'Revise plazos y pólizas en Control contractual.'],
+    ['05', 'Liquide los cortes de obra con las cantidades ejecutadas.'],
+    ['07', 'Marque el corte como pagado cuando salga el dinero.'],
+    ['10', 'Consulte el movimiento en el libro auxiliar.'],
+    ['05', 'Al terminar, haga la devolución de retenido.']] },
+  { id:'diario', t:'El día a día en obra', d:'Lo que se registra todos los días.', pasos:[
+    ['06', 'Registre la bitácora del día con fotos y firmas.'],
+    ['06', 'Marque el clima y el personal en obra.'],
+    ['11', 'Emita los permisos de alturas y registre inspecciones.'],
+    ['14', 'Verifique que todo el personal esté apto.'],
+    ['09', 'Registre el avance medido de la semana.']] },
+  { id:'calidad', t:'Controlar la calidad', d:'Supervisión técnica e interventoría de cada actividad.', pasos:[
+    ['13', 'Imprima en blanco los formatos de la etapa que inicia.'],
+    ['13', 'Diligencie el formato de cada actividad (antes, durante y al recibir).'],
+    ['13', 'Abra una no conformidad por cada punto NC y ciérrela con evidencia.'],
+    ['13', 'Revise en la matriz de control qué actividades ejecutadas no tienen registro.'],
+    ['02', 'Incluya el capítulo de calidad en el informe técnico.']] },
+  { id:'seguimiento', t:'Seguimiento financiero y cobro', d:'Saber cómo va la plata del proyecto.', pasos:[
+    ['03', 'Revise la obra faltante: pagado, comprometido y por contratar.'],
+    ['08', 'Revise la variación contra el presupuesto inicial.'],
+    ['08', 'Actualice el flujo de fondos.'],
+    ['03', 'Registre los ingresos del cliente y emita el documento de cobro.'],
+    ['02', 'Genere el informe contable del periodo.']] },
+  { id:'entrega', t:'Cerrar y entregar la obra', d:'Lo que se entrega al cliente al terminar.', pasos:[
+    ['13', 'Diligencie los formatos de la etapa de entrega y recibo final.'],
+    ['02', 'Actualice la planoteca con los planos récord.'],
+    ['02', 'Registre los datos de entrega y genere el manual completo.'],
+    ['02', 'Genere el informe final completo.'],
+    ['05', 'Liquide contratos y devuelva retenidos.'],
+    ['adm', 'Guarde el archivo con todos los datos como respaldo de cierre.']] },
+  { id:'nomina', t:'Pagar la nómina', d:'Cada periodo de pago.', pasos:[
+    ['14', 'Verifique ingresos y retiros de trabajadores.'],
+    ['15', 'Revise salarios en Trabajadores y salarios.'],
+    ['15', 'Liquide el periodo y revise los comprobantes.'],
+    ['15', 'Liquide los retiros del periodo.']] }
+];
+
+/* Los seis primeros pasos de quien abre el programa por primera vez. */
+const PRIMEROS_PASOS = [
+  ['adm', 'Registre su empresa', 'Razón social, NIT y logo en Administración.'],
+  ['adm', 'Cree los usuarios', 'Cada persona con su rol y sus permisos.'],
+  ['00', 'Cree el proyecto', 'Con el catálogo maestro para no empezar de cero.'],
+  ['03', 'Arme el presupuesto', 'O impórtelo desde Excel con la plantilla.'],
+  ['05', 'Registre compras y contratos', 'Proveedores, documentos de pago y cortes.'],
+  ['06', 'Lleve la bitácora', 'Todos los días, con fotos y firmas.']
+];
+
+/* ═══════════════════ Módulo 16 · Centro de ayuda ═══════════════════ */
 const TABS_16 = [
+  { k:'inicio',   n:'Inicio' },
+  { k:'guias',    n:'Guías por módulo' },
+  { k:'rutas',    n:'Rutas de trabajo' },
+  { k:'faq',      n:'Preguntas frecuentes' },
+  { k:'glosario', n:'Glosario' },
+  { k:'info',     n:'Información del software' }
+];
+const FAQ_CATEGORIAS = [
   { k:'inicio',      n:'Cómo empezar' },
-  { k:'glosario',    n:'Glosario' },
   { k:'documentos',  n:'Manejo de documentos' },
   { k:'presupuesto', n:'Creación de presupuestos' },
   { k:'control',     n:'Programación, revisión y control' },
-  { k:'biblioteca',  n:'Módulo 02 · Biblioteca' },
-  { k:'causaciones', n:'Módulo 05 · Causaciones' },
-  { k:'bitacora',    n:'Módulo 06 · Bitácora' },
+  { k:'biblioteca',  n:'Biblioteca' },
+  { k:'causaciones', n:'Causaciones' },
+  { k:'bitacora',    n:'Bitácora' },
   { k:'otros',       n:'Otros módulos' },
   { k:'roles',       n:'Roles y permisos' },
-  { k:'licencia',    n:'Licencia de uso' },
-  { k:'info',        n:'Información del software' }
+  { k:'licencia',    n:'Licencia de uso' }
 ];
+const FAQ_POR_MODULO = { '00':['inicio'], '02':['biblioteca'], '03':['presupuesto'], '05':['causaciones'], '06':['bitacora'], 'adm':['roles','licencia'] };
 
+/* Trazos de 24 × 24 para el icono de cada guía (línea fina, color de texto). */
+const ICONOS_AYUDA = {
+  proyectos:'M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6M9 10h.01M15 10h.01',
+  info:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v6M12 7.5h.01',
+  biblioteca:'M4 4h5v16H4zM10 4h4v16h-4zM15.5 5l3.8-1 2.7 15.2-3.8 1z',
+  presupuesto:'M5 3h14v18H5zM8 7h8M8 11h8M8 15h3M14 15h2M8 18h3M14 18h2',
+  insumos:'M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10',
+  causaciones:'M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5M9 9h3',
+  bitacora:'M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM5 18a2 2 0 0 1 2-2h12M9 8h6M9 11h4',
+  facturacion:'M4 6h16v12H4zM4 10h16M8 15h3',
+  financiero:'M4 20V10M10 20V4M16 20v-7M22 20H2',
+  programacion:'M4 5h7M7 10h9M10 15h8M4 20h16M4 3v18',
+  contabilidad:'M5 3h14v18H5zM8 7h8v3H8zM8 13h2M11 13h2M14 13h2M8 16h2M11 16h2M14 16h2',
+  sst:'M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6zM9 12l2 2 4-4',
+  licencia:'M7 3h10v18H7zM10 7h4M10 11h4M9 15l2 2 4-4',
+  supervision:'M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12zM14.5 14.5L20 20M7.5 10l2 2 3-3.5',
+  personal:'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21c0-4 3-6.5 7-6.5s7 2.5 7 6.5M17 4.5a3.5 3.5 0 0 1 0 6.5M19 14.5c2 .8 3 2.6 3 5',
+  nomina:'M3 6h18v12H3zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM6 9v.01M18 15v.01',
+  ayuda:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01',
+  admin:'M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1L11 21h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4z',
+  ruta:'M5 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM7 17h6a3 3 0 0 0 0-6h-2a3 3 0 0 1 0-6h6',
+  lupa:'M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5L21 21',
+  libro:'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7',
+  pdf:'M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6'
+};
+function iconoAyuda(k, cls){
+  return '<svg class="' + (cls || 'ay-ic') + '" viewBox="0 0 24 24" aria-hidden="true"><path d="' + (ICONOS_AYUDA[k] || ICONOS_AYUDA.ayuda) + '"/></svg>';
+}
+
+/* «Texto» → etiqueta de botón. El texto se escapa antes. */
+function fmtAy(t){ return esc(t).replace(/«([^«»]+)»/g, '<span class="ay-chip">$1</span>'); }
+function guiaPorId(id){ return GUIAS_MODULO.find(g => g.id === id); }
+function nombreGuia(id){
+  if (id === 'adm') return 'Panel de administración';
+  const m = MODULOS.find(x => x.id === id); return m ? m.nom : id;
+}
+function cortoGuia(id){
+  if (id === 'adm') return 'Administración';
+  const m = MODULOS.find(x => x.id === id); return m ? m.corto : id;
+}
+function etiquetaGuia(id){ return id === 'adm' ? 'ADMINISTRACIÓN' : 'MÓDULO ' + id; }
+function irDesdeAyuda(id){
+  if (id === 'adm'){ Admin.abrir(); return; }
+  App.ir(id);
+}
+function abrirGuia(id, tarea){
+  Sesion.tab16 = 'guias'; Sesion.guia16 = id; Sesion.tarea16 = tarea == null ? null : tarea;
+  if (Sesion.moduloActivo !== '16') App.ir('16'); else App.render();
+}
+
+/* ─────────── Búsqueda ─────────── */
+function normAy(s){
+  // Igual que normaliza() pero conservando la longitud, para poder resaltar.
+  return [...String(s || '')].map(c => (c.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() || c)[0]).join('');
+}
+function resaltarAy(texto, terms, max){
+  let t = String(texto || '').replace(/[«»]/g, '"');
+  const n = normAy(t);
+  if (max && t.length > max){
+    let i = -1; terms.some(w => (i = n.indexOf(w)) >= 0);
+    const ini = Math.max(0, i - Math.round(max / 3));
+    t = (ini ? '…' : '') + t.slice(ini, ini + max) + (ini + max < texto.length ? '…' : '');
+    return resaltarAy(t, terms, 0);
+  }
+  const marcas = new Array(t.length).fill(false);
+  terms.forEach(w => { if (!w) return; let i = n.indexOf(w); while (i >= 0){ for (let k = i; k < i + w.length; k++) marcas[k] = true; i = n.indexOf(w, i + w.length); } });
+  let out = '', dentro = false;
+  for (let k = 0; k < t.length; k++){
+    if (marcas[k] && !dentro){ out += '<mark>'; dentro = true; }
+    if (!marcas[k] && dentro){ out += '</mark>'; dentro = false; }
+    out += esc(t[k]);
+  }
+  return out + (dentro ? '</mark>' : '');
+}
+function textoPlanoAy(html){ const d = document.createElement('div'); d.innerHTML = html || ''; return (d.textContent || '').replace(/\s+/g, ' ').trim(); }
+
+const PALABRAS_VACIAS_AY = ['de','la','el','en','y','a','los','las','del','un','una','por','con','para','que','al','se','lo','como','o','mi','su','sus'];
+function buscarEnAyuda(q){
+  const terms = normAy(q).split(/\s+/).filter(w => w.length > 1 && PALABRAS_VACIAS_AY.indexOf(w) < 0);
+  const R = { terms, guias:[], tareas:[], rutas:[], faq:[], glos:[] };
+  if (!terms.length) return R;
+  const cumple = txt => { const n = normAy(txt); return terms.every(w => n.indexOf(w) >= 0); };
+  GUIAS_MODULO.forEach(g => {
+    const cab = nombreGuia(g.id) + ' ' + g.lema + ' ' + g.para + ' ' + g.pestanas.map(p => p.join(' ')).join(' ');
+    if (cumple(cab)) R.guias.push(g);
+    g.tareas.forEach((t, i) => { const txt = t.t + ' ' + t.pasos.join(' ') + ' ' + (t.res || ''); if (cumple(txt)) R.tareas.push({ g, i, t, txt }); });
+  });
+  RUTAS_TRABAJO.forEach(r => { if (cumple(r.t + ' ' + r.d + ' ' + r.pasos.map(p => p[1]).join(' '))) R.rutas.push(r); });
+  FAQ_CATEGORIAS.forEach(c => (AYUDA_CONTENIDO[c.k] || []).forEach((x, i) => {
+    const plano = textoPlanoAy(x.a); if (cumple(x.q + ' ' + plano)) R.faq.push({ c, x, i, plano });
+  }));
+  (AYUDA_CONTENIDO.glosario || []).forEach(x => { const plano = textoPlanoAy(x.a); if (cumple(x.q + ' ' + plano)) R.glos.push({ x, plano }); });
+  return R;
+}
+
+function pintarResultadosAyuda(q, cont){
+  const R = buscarEnAyuda(q);
+  const total = R.guias.length + R.tareas.length + R.rutas.length + R.faq.length + R.glos.length;
+  if (!total){
+    cont.innerHTML = '<div class="ay-vacio">' + iconoAyuda('lupa', 'ay-ic xl') + '<h3>Sin resultados para «' + esc(q) + '»</h3>' +
+      '<p>Pruebe con una palabra más corta o más general: «corte», «factura», «plano», «nómina».</p></div>';
+    return;
+  }
+  const grupo = (tit, n, html) => n ? '<section class="ay-rgrupo"><h3>' + esc(tit) + ' <span>' + n + '</span></h3>' + html + '</section>' : '';
+  cont.innerHTML = '<div class="ay-rtotal">' + total + ' resultado' + (total === 1 ? '' : 's') + ' para «' + esc(q) + '»</div>' +
+    grupo('Cómo hacerlo, paso a paso', R.tareas.length, R.tareas.slice(0, 30).map(r =>
+      '<button class="ay-res" data-ayg="' + r.g.id + '" data-ayt="' + r.i + '" type="button">' + iconoAyuda(r.g.ic) +
+        '<span class="ay-res-c"><span class="ay-res-e">' + etiquetaGuia(r.g.id) + ' · ' + esc(cortoGuia(r.g.id)) + '</span>' +
+        '<b>' + resaltarAy(r.t.t, R.terms) + '</b><span class="ay-res-s">' + resaltarAy(r.t.pasos.join(' '), R.terms, 180) + '</span></span></button>').join('')) +
+    grupo('Guías de módulo', R.guias.length, R.guias.map(g =>
+      '<button class="ay-res" data-ayg="' + g.id + '" type="button">' + iconoAyuda(g.ic) +
+        '<span class="ay-res-c"><span class="ay-res-e">' + etiquetaGuia(g.id) + '</span><b>' + resaltarAy(nombreGuia(g.id), R.terms) + '</b>' +
+        '<span class="ay-res-s">' + resaltarAy(g.para, R.terms, 180) + '</span></span></button>').join('')) +
+    grupo('Rutas de trabajo', R.rutas.length, R.rutas.map(r =>
+      '<button class="ay-res" data-ayr="' + r.id + '" type="button">' + iconoAyuda('ruta') +
+        '<span class="ay-res-c"><span class="ay-res-e">RUTA · ' + r.pasos.length + ' PASOS</span><b>' + resaltarAy(r.t, R.terms) + '</b>' +
+        '<span class="ay-res-s">' + resaltarAy(r.d, R.terms) + '</span></span></button>').join('')) +
+    grupo('Preguntas frecuentes', R.faq.length, R.faq.slice(0, 30).map(r =>
+      '<details class="ay-item"><summary>' + resaltarAy(r.x.q, R.terms) + '<span class="ay-cat">' + esc(r.c.n) + '</span></summary>' +
+        '<div class="ay-body">' + r.x.a + '</div></details>').join('')) +
+    grupo('Glosario', R.glos.length, '<div class="ay-glos-grid">' + R.glos.map(r =>
+      '<div class="ay-term"><div class="ay-term-t">' + resaltarAy(r.x.q, R.terms) + '</div><div class="ay-term-d">' + resaltarAy(r.plano, R.terms) + '</div></div>').join('') + '</div>');
+  conectarEnlacesAyuda(cont);
+}
+
+function conectarEnlacesAyuda(cont){
+  $$('[data-ayg]', cont).forEach(b => b.onclick = () => abrirGuia(b.dataset.ayg, b.dataset.ayt != null && b.dataset.ayt !== '' ? Number(b.dataset.ayt) : null));
+  $$('[data-ayr]', cont).forEach(b => b.onclick = () => { Sesion.tab16 = 'rutas'; Sesion.ruta16 = b.dataset.ayr; App.render(); });
+  $$('[data-ayir]', cont).forEach(b => b.onclick = e => { e.stopPropagation(); irDesdeAyuda(b.dataset.ayir); });
+}
+
+/* ─────────── Vista principal ─────────── */
 Vistas.render16 = function(st){
-  const sub = Sesion.tab16 || 'inicio';
+  // Pestañas de versiones anteriores: eran categorías de preguntas.
+  if (FAQ_CATEGORIAS.some(c => c.k === Sesion.tab16) && Sesion.tab16 !== 'inicio' || Sesion.tab16 === 'roles'){
+    Sesion.faq16 = Sesion.tab16; Sesion.tab16 = 'faq';
+  }
+  if (!TABS_16.some(t => t.k === Sesion.tab16)) Sesion.tab16 = 'inicio';
+  const sub = Sesion.tab16;
+  const nPasos = GUIAS_MODULO.reduce((s, g) => s + g.tareas.length, 0);
+  const nFaq = FAQ_CATEGORIAS.reduce((s, c) => s + (AYUDA_CONTENIDO[c.k] || []).length, 0);
+  const nGlos = (AYUDA_CONTENIDO.glosario || []).length;
+  const buscador = '<div class="ay-buscar">' + iconoAyuda('lupa') +
+    '<input id="ayBuscar" type="search" autocomplete="off" placeholder="¿Qué necesita hacer? Escriba: corte de obra, factura, plano, retención…" value="' + esc(Sesion.q16 || '') + '"></div>';
+  const hero = sub === 'inicio'
+    ? '<div class="ay-hero"><div class="ay-hero-in">' +
+        '<div class="ay-hero-eb">Centro de ayuda · ARKEN CONTROL</div>' +
+        '<h2 class="ay-hero-t">¿Qué necesita hacer hoy?</h2>' +
+        '<p class="ay-hero-p">Guías paso a paso de cada módulo, rutas de trabajo de principio a fin, respuestas a las preguntas frecuentes y el significado de cada término.</p>' +
+        buscador +
+        '<div class="ay-sug">' + ['corte de obra', 'salida de almacén', 'retención', 'plano', 'manual', 'nómina', 'licencia', 'cifrado'].map(s =>
+          '<button class="ay-sug-b" data-aysug="' + esc(s) + '" type="button">' + esc(s) + '</button>').join('') + '</div>' +
+        '<div class="ay-hero-cifras">' +
+          '<div><b>' + GUIAS_MODULO.length + '</b><span>guías</span></div>' +
+          '<div><b>' + nPasos + '</b><span>tareas paso a paso</span></div>' +
+          '<div><b>' + RUTAS_TRABAJO.length + '</b><span>rutas de trabajo</span></div>' +
+          '<div><b>' + nFaq + '</b><span>preguntas</span></div>' +
+          '<div><b>' + nGlos + '</b><span>términos</span></div>' +
+        '</div></div></div>'
+    : '<div class="ay-barra">' + buscador + '</div>';
   st.innerHTML = App.cabecera('16', null,
-      'Guía de uso de ARKEN CONTROL: qué hace cada módulo, cómo se registra la información y qué significa cada término.') +
-    '<div class="toolbar"><div class="field grow"><label>Buscar en la ayuda</label>' +
-      '<input id="ayBuscar" type="search" placeholder="Escriba una palabra: «requerimiento», «AIU», «firma», «cierre»…"></div></div>' +
-    '<div id="ayResultados"></div>' +
-    UI.tabs(TABS_16, sub, k => { Sesion.tab16 = k; App.render(); }) +
-    '<div id="c16"></div>';
+      'Centro de ayuda: guías paso a paso de cada módulo, rutas de trabajo, preguntas frecuentes y glosario.') +
+    hero +
+    '<div id="ayResultados" class="ay-resultados"></div>' +
+    '<div id="ayCuerpo">' + UI.tabs(TABS_16, sub, k => { Sesion.tab16 = k; Sesion.q16 = ''; App.render(); }) +
+    '<div id="c16"></div></div>';
   pintarSeccionAyuda(sub, $('#c16'));
 
-  $('#ayBuscar').oninput = e => {
-    const q = normaliza(e.target.value.trim());
-    if (!q){ $('#ayResultados').innerHTML = ''; $('#c16').style.display = ''; pintarSeccionAyuda(sub, $('#c16')); return; }
-    const hits = buscarEnAyuda(q);
-    $('#c16').style.display = 'none';
-    $('#ayResultados').innerHTML = hits.length
-      ? '<div class="alert info"><div class="ic">ℹ</div><div class="bd">' + hits.length + ' resultado(s) para «' +
-        esc(e.target.value) + '»</div></div>' +
-        '<div class="card"><div class="card-body">' +
-        hits.map(h => '<details class="ay-item" open><summary>' + esc(h.q) +
-          '<span class="muted small"> · ' + esc(h.tabN) + '</span></summary><div class="ay-body">' + h.a + '</div></details>').join('') +
-        '</div></div>'
-      : '<div class="alert warn"><div class="ic">!</div><div class="bd">Sin resultados para «' + esc(e.target.value) +
-        '». Pruebe con una palabra más corta o más general.</div></div>';
+  const aplicar = v => {
+    Sesion.q16 = v;
+    const q = v.trim();
+    if (q.length < 2){ $('#ayResultados').innerHTML = ''; $('#ayCuerpo').style.display = ''; return; }
+    $('#ayCuerpo').style.display = 'none';
+    pintarResultadosAyuda(q, $('#ayResultados'));
   };
+  let tmr = null;
+  $('#ayBuscar').oninput = e => { clearTimeout(tmr); tmr = setTimeout(() => aplicar(e.target.value), 120); };
+  $$('[data-aysug]').forEach(b => b.onclick = () => { $('#ayBuscar').value = b.dataset.aysug; aplicar(b.dataset.aysug); $('#ayBuscar').focus(); });
+  if (Sesion.q16) aplicar(Sesion.q16);
 };
 
 function pintarSeccionAyuda(k, cont){
   cont.style.display = '';
-  const datos = AYUDA_CONTENIDO[k] || [];
   if (k === 'info'){ cont.innerHTML = ayudaInfoSoftware(); return; }
-  // En "Creación de presupuestos" se deja a la mano la plantilla de ejemplo,
-  // para quien apenas está armando su primer presupuesto y aún no ha abierto
-  // el flujo de "Importar desde Excel" dentro del módulo 03.
-  const descarga = k === 'presupuesto'
+  if (k === 'guias') return pintarGuiaAyuda(cont);
+  if (k === 'rutas') return pintarRutasAyuda(cont);
+  if (k === 'faq') return pintarFaqAyuda(cont);
+  if (k === 'glosario') return pintarGlosarioAyuda(cont);
+  pintarInicioAyuda(cont);
+}
+
+function tarjetaGuiaHTML(g){
+  return '<button class="ay-mod" data-ayg="' + g.id + '" type="button">' +
+    '<span class="ay-mod-n">' + (g.id === 'adm' ? 'ADM' : g.id) + '</span>' + iconoAyuda(g.ic, 'ay-ic lg') +
+    '<span class="ay-mod-t">' + esc(nombreGuia(g.id)) + '</span>' +
+    '<span class="ay-mod-l">' + esc(g.lema) + '</span>' +
+    '<span class="ay-mod-f">' + g.tareas.length + ' tareas guiadas  →</span></button>';
+}
+
+function pintarInicioAyuda(cont){
+  cont.innerHTML =
+    '<section class="ay-sec"><div class="ay-sec-h"><div><div class="ay-eb">Para empezar</div><h3>Primeros pasos</h3></div>' +
+      '<p>El orden recomendado para quien abre ARKEN CONTROL por primera vez.</p></div>' +
+      '<div class="ay-pasos6">' + PRIMEROS_PASOS.map((p, i) =>
+        '<button class="ay-paso" data-ayg="' + p[0] + '" type="button"><span class="ay-paso-n">' + (i + 1) + '</span>' +
+          '<span class="ay-paso-t">' + esc(p[1]) + '</span><span class="ay-paso-d">' + esc(p[2]) + '</span>' +
+          '<span class="ay-paso-m">' + esc(cortoGuia(p[0])) + '</span></button>').join('') + '</div></section>' +
+    '<section class="ay-sec"><div class="ay-sec-h"><div><div class="ay-eb">Procesos completos</div><h3>Rutas de trabajo</h3></div>' +
+      '<p>Cada ruta recorre, en orden, los módulos que intervienen en un proceso real de la obra.</p></div>' +
+      '<div class="ay-rutas-g">' + RUTAS_TRABAJO.map((r, i) =>
+        '<button class="ay-ruta-c" data-ayr="' + r.id + '" type="button"><span class="ay-ruta-n">' + String(i + 1).padStart(2, '0') + '</span>' +
+          '<span class="ay-ruta-t">' + esc(r.t) + '</span><span class="ay-ruta-d">' + esc(r.d) + '</span>' +
+          '<span class="ay-ruta-m">' + [...new Set(r.pasos.map(p => p[0]))].map(id => '<i>' + (id === 'adm' ? 'ADM' : id) + '</i>').join('') + '</span></button>').join('') + '</div></section>' +
+    '<section class="ay-sec"><div class="ay-sec-h"><div><div class="ay-eb">Módulo por módulo</div><h3>Guías del sistema</h3></div>' +
+      '<p>Para qué sirve cada módulo, qué hay en cada pestaña y cómo se hace cada tarea.</p></div>' +
+      '<div class="ay-mods">' + GUIAS_MODULO.map(tarjetaGuiaHTML).join('') + '</div></section>' +
+    '<section class="ay-banda"><div class="ay-banda-t">' + iconoAyuda('libro', 'ay-ic lg') +
+      '<div><b>Manual de usuario</b><span>Todo este centro de ayuda en un documento con portada, tabla de contenido, rutas de trabajo, guías y glosario, listo para imprimir o compartir.</span></div></div>' +
+      '<button class="btn brass" id="ayManual" type="button">Manual de usuario (PDF)</button></section>';
+  conectarEnlacesAyuda(cont);
+  $('#ayManual', cont).onclick = () => Documentos.previsualizar(docManualUsuario());
+}
+
+function faqRelacionadas(id){
+  const out = [], vistos = new Set();
+  const add = (c, x) => { if (vistos.has(x.q)) return; vistos.add(x.q); out.push({ c, x }); };
+  (FAQ_POR_MODULO[id] || []).forEach(k => (AYUDA_CONTENIDO[k] || []).forEach(x => add(FAQ_CATEGORIAS.find(c => c.k === k), x)));
+  if (id !== 'adm'){
+    const re = new RegExp('m[oó]dulo ' + id + '\\b', 'i');
+    FAQ_CATEGORIAS.forEach(c => (AYUDA_CONTENIDO[c.k] || []).forEach(x => { if (re.test(x.q)) add(c, x); }));
+  }
+  return out.slice(0, 14);
+}
+
+function pintarGuiaAyuda(cont){
+  const id = guiaPorId(Sesion.guia16) ? Sesion.guia16 : '00';
+  const g = guiaPorId(id);
+  const i = GUIAS_MODULO.indexOf(g);
+  const ant = GUIAS_MODULO[i - 1], sig = GUIAS_MODULO[i + 1];
+  const rel = faqRelacionadas(id);
+  const refT = (typeof Ayuda !== 'undefined' && Ayuda.T) ? Ayuda.T[id === 'adm' ? 'admin' : 'm' + id] : '';
+  const abierta = Sesion.tarea16;
+  cont.innerHTML = '<div class="ay-guia">' +
+    '<nav class="ay-gnav">' + GUIAS_MODULO.map(x =>
+      '<button class="ay-gnav-b' + (x.id === id ? ' on' : '') + '" data-ayg="' + x.id + '" type="button"><span>' + (x.id === 'adm' ? 'ADM' : x.id) + '</span>' + esc(cortoGuia(x.id)) + '</button>').join('') + '</nav>' +
+    '<article class="ay-gdoc">' +
+      '<header class="ay-ghead">' + iconoAyuda(g.ic, 'ay-ic xl') +
+        '<div class="ay-ghead-c"><div class="ay-eb">' + etiquetaGuia(id) + '</div><h2>' + esc(nombreGuia(id)) + '</h2><p>' + esc(g.lema) + '</p></div>' +
+        '<div class="ay-ghead-a">' + (id !== '16' ? '<button class="btn brass" data-ayir="' + id + '" type="button">' + (id === 'adm' ? 'Abrir administración' : 'Ir al módulo') + '</button>' : '') +
+          '<button class="btn" id="ayGuiaPdf" type="button">PDF de esta guía</button></div></header>' +
+      '<section class="ay-para"><div><div class="ay-eb">Para qué sirve</div><p>' + fmtAy(g.para) + '</p></div>' +
+        '<div class="ay-quien"><div class="ay-eb">Quién lo usa</div><p>' + esc(g.quien) + '</p></div></section>' +
+      '<section class="ay-gsec"><h3>' + (g.pestanas.length > 1 ? 'Sus ' + g.pestanas.length + ' pestañas' : 'Lo que encuentra') + '</h3>' +
+        '<div class="ay-pests">' + g.pestanas.map((p, k) => '<div class="ay-pest"><span class="ay-pest-n">' + String(k + 1).padStart(2, '0') + '</span><b>' + esc(p[0]) + '</b><span>' + fmtAy(p[1]) + '</span></div>').join('') + '</div></section>' +
+      '<section class="ay-gsec"><h3>Paso a paso</h3><div class="ay-tareas">' + g.tareas.map((t, k) =>
+        '<details class="ay-tarea" data-k="' + k + '"' + (abierta === k || (abierta == null && k === 0) ? ' open' : '') + '><summary><span class="ay-tarea-n">' + (k + 1) + '</span><span class="ay-tarea-t">' + esc(t.t) + '</span>' +
+          '<span class="ay-tarea-c">' + t.pasos.length + ' pasos</span></summary>' +
+          '<ol class="ay-pasos">' + t.pasos.map(s => '<li>' + fmtAy(s) + '</li>').join('') + '</ol>' +
+          (t.res ? '<div class="ay-res-final"><b>Resultado</b>' + fmtAy(t.res) + '</div>' : '') + '</details>').join('') + '</div></section>' +
+      (g.consejos.length || g.cuidado.length ? '<section class="ay-dos">' +
+        (g.consejos.length ? '<div class="ay-consejo"><div class="ay-eb">Consejos</div><ul>' + g.consejos.map(c => '<li>' + fmtAy(c) + '</li>').join('') + '</ul></div>' : '') +
+        (g.cuidado.length ? '<div class="ay-cuidado"><div class="ay-eb">Atención</div><ul>' + g.cuidado.map(c => '<li>' + fmtAy(c) + '</li>').join('') + '</ul></div>' : '') +
+        '</section>' : '') +
+      (rel.length ? '<section class="ay-gsec"><h3>Preguntas relacionadas</h3><div class="ay-faq-l">' + rel.map(r =>
+        '<details class="ay-item"><summary>' + esc(r.x.q) + '</summary><div class="ay-body">' + r.x.a + '</div></details>').join('') + '</div></section>' : '') +
+      (refT ? '<details class="ay-ref"><summary>Referencia técnica detallada del módulo</summary><div class="help">' + refT + '</div></details>' : '') +
+      '<nav class="ay-gpie">' +
+        (ant ? '<button class="ay-gpie-b" data-ayg="' + ant.id + '" type="button"><span>← Anterior</span>' + esc(nombreGuia(ant.id)) + '</button>' : '<span></span>') +
+        (sig ? '<button class="ay-gpie-b der" data-ayg="' + sig.id + '" type="button"><span>Siguiente →</span>' + esc(nombreGuia(sig.id)) + '</button>' : '<span></span>') +
+      '</nav>' +
+    '</article></div>';
+  conectarEnlacesAyuda(cont);
+  $('#ayGuiaPdf', cont).onclick = () => Documentos.previsualizar(docGuiaAyuda(g));
+  if (abierta != null){
+    const d = $('.ay-tarea[data-k="' + abierta + '"]', cont);
+    if (d) setTimeout(() => d.scrollIntoView({ block:'center', behavior:'smooth' }), 60);
+    Sesion.tarea16 = null;
+  }
+}
+
+function pintarRutasAyuda(cont){
+  const sel = Sesion.ruta16;
+  cont.innerHTML = '<div class="ay-rutas">' + RUTAS_TRABAJO.map((r, i) =>
+    '<section class="ay-ruta' + (r.id === sel ? ' on' : '') + '" id="ayRuta_' + r.id + '">' +
+      '<header><span class="ay-ruta-n">' + String(i + 1).padStart(2, '0') + '</span><div><h3>' + esc(r.t) + '</h3><p>' + esc(r.d) + '</p></div></header>' +
+      '<ol class="ay-linea">' + r.pasos.map(p =>
+        '<li><button class="ay-linea-m" data-ayg="' + p[0] + '" type="button" title="Ver la guía">' + (p[0] === 'adm' ? 'ADM' : p[0]) + '</button>' +
+          '<div class="ay-linea-c"><span class="ay-linea-mod">' + esc(nombreGuia(p[0])) + '</span>' + fmtAy(p[1]) + '</div>' +
+          (p[0] !== '16' ? '<button class="ay-ir" data-ayir="' + p[0] + '" type="button">Ir →</button>' : '') + '</li>').join('') +
+      '</ol></section>').join('') + '</div>';
+  conectarEnlacesAyuda(cont);
+  if (sel){ const s = $('#ayRuta_' + sel, cont); if (s) setTimeout(() => s.scrollIntoView({ block:'start', behavior:'smooth' }), 60); Sesion.ruta16 = null; }
+}
+
+function pintarFaqAyuda(cont){
+  const cat = FAQ_CATEGORIAS.some(c => c.k === Sesion.faq16) ? Sesion.faq16 : 'inicio';
+  const datos = AYUDA_CONTENIDO[cat] || [];
+  const descarga = cat === 'presupuesto'
     ? '<div class="alert info" style="margin-bottom:var(--gap)"><div class="ic">⇪</div><div class="bd">' +
       '<b>¿Tiene su presupuesto en Excel?</b> Desde el módulo 03 · Presupuesto, el botón «Importar desde Excel» lo ' +
       'trae con capítulos, subcapítulos, actividades, APU e insumos ya organizados.<br>' +
       '<button class="btn sm brass" id="ayDescargarPlantilla" type="button" style="margin-top:8px">Descargar la plantilla de ejemplo</button>' +
       '</div></div>'
     : '';
-  cont.innerHTML = descarga + '<div class="card"><div class="card-body">' +
-    datos.map(x => '<details class="ay-item"><summary>' + esc(x.q) + '</summary>' +
-      '<div class="ay-body">' + x.a + '</div></details>').join('') +
+  cont.innerHTML = '<div class="ay-faq">' +
+    '<nav class="ay-faq-cats">' + FAQ_CATEGORIAS.map(c =>
+      '<button class="ay-faq-cat' + (c.k === cat ? ' on' : '') + '" data-ayc="' + c.k + '" type="button">' + esc(c.n) + '<span>' + (AYUDA_CONTENIDO[c.k] || []).length + '</span></button>').join('') + '</nav>' +
+    '<div class="ay-faq-c">' + descarga +
+      '<div class="ay-faq-h"><h3>' + esc((FAQ_CATEGORIAS.find(c => c.k === cat) || {}).n) + '</h3>' +
+        '<button class="btn sm ghost" id="ayAbrirTodo" type="button">Abrir todas</button></div>' +
+      '<div class="ay-faq-l">' + datos.map(x => '<details class="ay-item"><summary>' + esc(x.q) + '</summary><div class="ay-body">' + x.a + '</div></details>').join('') + '</div>' +
     '</div></div>';
-  if (k === 'presupuesto') $('#ayDescargarPlantilla', cont).onclick = () => plantillaEjemploPresupuesto();
+  $$('[data-ayc]', cont).forEach(b => b.onclick = () => { Sesion.faq16 = b.dataset.ayc; pintarFaqAyuda(cont); });
+  $('#ayAbrirTodo', cont).onclick = () => { const abrir = !$$('.ay-faq-l details', cont).every(d => d.open); $$('.ay-faq-l details', cont).forEach(d => d.open = abrir); };
+  if (cat === 'presupuesto') $('#ayDescargarPlantilla', cont).onclick = () => plantillaEjemploPresupuesto();
 }
 
-function buscarEnAyuda(q){
-  const out = [];
-  Object.keys(AYUDA_CONTENIDO).forEach(k => {
-    const tabN = (TABS_16.find(t => t.k === k)||{}).n || k;
-    (AYUDA_CONTENIDO[k]||[]).forEach(x => {
-      const texto = normaliza(x.q + ' ' + x.a.replace(/<[^>]+>/g,' '));
-      if (texto.indexOf(q) >= 0) out.push(Object.assign({ tabN }, x));
-    });
+function pintarGlosarioAyuda(cont){
+  const lista = (AYUDA_CONTENIDO.glosario || []).map(x => ({ q:x.q, d:textoPlanoAy(x.a), l:normAy(x.q).charAt(0).toUpperCase() }))
+    .sort((a, b) => a.q.localeCompare(b.q, 'es'));
+  const letras = [...new Set(lista.map(x => x.l))];
+  cont.innerHTML = '<div class="ay-glos">' +
+    '<div class="ay-glos-bar"><div class="ay-letras">' + letras.map(l => '<button data-ayl="' + l + '" type="button">' + l + '</button>').join('') + '</div>' +
+      '<input id="ayGlosF" type="search" placeholder="Filtrar términos…"></div>' +
+    '<div id="ayGlosL">' + letras.map(l => '<section class="ay-glos-sec" id="ayL_' + l + '"><div class="ay-glos-l">' + l + '</div><div class="ay-glos-grid">' +
+      lista.filter(x => x.l === l).map(x => '<div class="ay-term" data-n="' + esc(normAy(x.q + ' ' + x.d)) + '"><div class="ay-term-t">' + esc(x.q) + '</div><div class="ay-term-d">' + esc(x.d) + '</div></div>').join('') +
+      '</div></section>').join('') + '</div></div>';
+  $$('[data-ayl]', cont).forEach(b => b.onclick = () => { const s = $('#ayL_' + b.dataset.ayl, cont); if (s) s.scrollIntoView({ block:'start', behavior:'smooth' }); });
+  $('#ayGlosF', cont).oninput = e => {
+    const q = normAy(e.target.value.trim());
+    $$('.ay-term', cont).forEach(t => t.style.display = !q || t.dataset.n.indexOf(q) >= 0 ? '' : 'none');
+    $$('.ay-glos-sec', cont).forEach(s => s.style.display = $$('.ay-term', s).some(t => t.style.display !== 'none') ? '' : 'none');
+  };
+}
+
+/* ─────────── Documentos: guía y manual de usuario ─────────── */
+function bloquesGuiaAyuda(g, num){
+  const B = [];
+  const pre = num ? num + '.' : '';
+  const sinMarcas = s => String(s).replace(/[«»]/g, '"');
+  B.push({ t:'texto', txt: g.lema, gris:true, tam:9 });
+  B.push({ t:'kv', cols:1, pares:[['Para qué sirve', g.para.replace(/[«»]/g, '"')], ['Quién lo usa', g.quien]] });
+  B.push({ t:'texto', txt: pre + (pre ? '1 ' : '') + 'Pestañas y contenido', negrita:true, tam:9.6 });
+  B.push({ t:'tabla', tam:7.6, anchos:{ 0:{ cellWidth:46 } }, head:[['Pestaña', 'Qué contiene']], body: g.pestanas.map(p => [p[0], sinMarcas(p[1])]) });
+  B.push({ t:'texto', txt: pre + (pre ? '2 ' : '') + 'Tareas paso a paso', negrita:true, tam:9.6 });
+  g.tareas.forEach((t, k) => {
+    B.push({ t:'texto', txt:(k + 1) + '. ' + t.t, negrita:true, tam:8.8 });
+    t.pasos.forEach((s, j) => B.push({ t:'texto', txt:'     ' + String.fromCharCode(97 + j) + ')  ' + sinMarcas(s), tam:8.2 }));
+    if (t.res) B.push({ t:'texto', txt:'     Resultado: ' + sinMarcas(t.res), tam:7.8, gris:true });
   });
-  return out;
+  if (g.consejos.length) B.push({ t:'nota', txt:'Consejos: ' + g.consejos.map(sinMarcas).join(' · ') });
+  if (g.cuidado.length) B.push({ t:'nota', txt:'Atención: ' + g.cuidado.map(sinMarcas).join(' · ') });
+  return B;
+}
+function docGuiaAyuda(g){
+  return { nombre:'ARKEN_guia_' + g.id, titulo:'GUÍA DE USO — ' + nombreGuia(g.id).toUpperCase(), documento:'Ayudas · Guía ' + cortoGuia(g.id),
+    proyecto: Modelo.activo ? Modelo.activo() : null, textoProyecto:'ARKEN CONTROL', bloques: bloquesGuiaAyuda(g, '') };
+}
+function docManualUsuario(){
+  const B = [], idx = []; let n = 0;
+  const sec = (txt, nivel) => { const id = 'mu' + (++n); idx.push({ id, txt, nivel: nivel || 1 }); B.push({ t:'ancla', id });
+    if ((nivel || 1) === 1) B.push({ t:'sec', txt }); else B.push({ t:'texto', txt, negrita:true, tam:10.6 }); };
+  const emp = S.empresa.razonSocial || 'Empresa constructora';
+  B.push({ t:'portada', titulo:'MANUAL DE USUARIO', subtitulo:'ARKEN CONTROL · Sistema integral para el control de obra', img:'',
+    pares:[['Empresa', emp + (S.empresa.nit ? ' · NIT ' + S.empresa.nit + (S.empresa.dv ? '-' + S.empresa.dv : '') : '')],
+      ['Contenido', GUIAS_MODULO.length + ' guías · ' + GUIAS_MODULO.reduce((s, g) => s + g.tareas.length, 0) + ' tareas · ' + RUTAS_TRABAJO.length + ' rutas de trabajo'],
+      ['Fecha de emisión', fmtFechaLarga(hoyISO())]],
+    pie:'Documento generado por ARKEN CONTROL desde su centro de ayuda. Describe el funcionamiento del sistema tal como aparece en pantalla.' });
+  B.push({ t:'salto' });
+  B.push({ t:'indice', items: idx });
+  B.push({ t:'salto' });
+  sec('1. Introducción');
+  B.push({ t:'texto', txt:'ARKEN CONTROL reúne en un solo archivo el control técnico, económico, contractual, de seguridad y documental de los proyectos de construcción. Funciona sin conexión a internet: los datos, los planos, las fotografías y los soportes viajan dentro del propio archivo.' });
+  B.push({ t:'texto', txt:'Este manual explica, módulo por módulo, para qué sirve cada parte del sistema y cómo se hace cada tarea, con los nombres de los botones tal como aparecen en pantalla (entre comillas). Las rutas de trabajo del capítulo 3 muestran el orden en que se encadenan los módulos en los procesos reales de la obra.' });
+  B.push({ t:'texto', txt:'La regla de oro del sistema: comprar un insumo llena el almacén y no consume presupuesto. El presupuesto se consume cuando el insumo sale del almacén hacia una actividad, o cuando se liquida un corte de obra.' });
+  sec('2. Primeros pasos');
+  B.push({ t:'tabla', tam:8, anchos:{ 0:{ cellWidth:10 }, 1:{ cellWidth:50 } }, head:[['#', 'Paso', 'Cómo', 'Dónde']], body: PRIMEROS_PASOS.map((p, i) => [String(i + 1), p[1], p[2], nombreGuia(p[0])]) });
+  sec('3. Rutas de trabajo');
+  RUTAS_TRABAJO.forEach((r, i) => {
+    sec('3.' + (i + 1) + ' ' + r.t, 2);
+    B.push({ t:'texto', txt:r.d, gris:true, tam:8.4 });
+    B.push({ t:'tabla', tam:7.8, anchos:{ 0:{ cellWidth:10 }, 1:{ cellWidth:48 } }, head:[['#', 'Módulo', 'Qué hacer']], body: r.pasos.map((p, k) => [String(k + 1), nombreGuia(p[0]), p[1]]) });
+  });
+  B.push({ t:'salto' });
+  sec('4. Guías por módulo');
+  GUIAS_MODULO.forEach((g, i) => {
+    if (i) B.push({ t:'salto' });
+    sec('4.' + (i + 1) + ' ' + (g.id === 'adm' ? '' : 'Módulo ' + g.id + ' · ') + nombreGuia(g.id), 2);
+    bloquesGuiaAyuda(g, '').forEach(b => B.push(b));
+  });
+  B.push({ t:'salto' });
+  sec('5. Glosario');
+  B.push({ t:'tabla', tam:7.4, anchos:{ 0:{ cellWidth:48 } }, head:[['Término', 'Significado']],
+    body: (AYUDA_CONTENIDO.glosario || []).slice().sort((a, b) => a.q.localeCompare(b.q, 'es')).map(x => [x.q, textoPlanoAy(x.a)]) });
+  return { nombre:'ARKEN_manual_de_usuario', titulo:'MANUAL DE USUARIO', documento:'Ayudas · Manual de usuario',
+    proyecto:null, textoProyecto:'ARKEN CONTROL', bloques:B };
 }
 
 /* ═══════════════════ Contenido ═══════════════════
@@ -55310,8 +56771,8 @@ const AYUDA_CONTENIDO = {
       a:'<p>Registra cada pago recibido del cliente: documento, fecha, medio de pago, valor y las retenciones que se le aplicaron — el <b>valor pagado</b> se calcula solo. Un cuadro compara ese dinero contra lo <b>invertido</b> en obra y muestra, en grande, si el proyecto tiene <b>liquidez</b> (número en verde) o <b>necesita capital</b> (aviso en rojo) — así se sabe de un vistazo si toca pedirle más plata al cliente. El botón «Documento de cobro» genera, aparte, la cuenta de cobro formal para solicitar ese giro.</p>' },
     { q:'Documento de cobro',
       a:'<p>Genera la cuenta de cobro que se le envía al cliente para pedirle un giro de capital: sus datos como empresa vienen prellenados desde Administración (editables), el valor se escribe también <b>en letras</b> como exige cualquier cuenta de cobro colombiana, y queda guardada en su propia lista, con la posibilidad de editarla o cerrarla igual que un corte de obra —una vez cerrada, sólo un usuario autorizado puede volver a abrirla.</p>' },
-    { q:'Pestaña Obra faltante — cada insumo, de lo presupuestado a lo pagado',
-      a:'<p>Muestra cada insumo del presupuesto, capítulo → subcapítulo → actividad, con sus columnas: presupuestada, contratada, <b>sin contratar</b> (resaltada en rojo si falta contratar algo), pagada y por pagar. «Pagada» suma lo que salió de almacén hacia esa actividad más lo liquidado en cortes de obra — las mismas dos fuentes que ya arma el <b>Invertido</b> del presupuesto, así que los dos cuadros siempre cuadran entre sí. Los capítulos y subcapítulos se expanden y contraen igual que en la pestaña Presupuesto, y todo se imprime o guarda en PDF con el botón de arriba.</p>' },
+    { q:'Pestaña Obra faltante — cuánto falta por contratar, comprar y pagar',
+      a:'<p>Arriba, una frase en lenguaje llano dice cuánto prevé el presupuesto en insumos, cuánto se ha pagado y cuánto falta, y cuánto de lo que falta ya está comprometido en contratos. La barra grande reparte la obra prevista en tres colores: <b>verde</b>, lo ejecutado y pagado (salidas de almacén y cortes de obra); <b>dorado</b>, lo contratado que aún no se paga; <b>gris</b>, lo que todavía no se ha contratado ni comprado.</p><p>Las tarjetas muestran presupuestado, pagado, saldo por pagar, comprometido, por contratar y lo pagado por encima del presupuesto. «Dónde está lo que falta» ordena los capítulos por saldo, y «Estado de los insumos» cuenta cuántos están completos, en ejecución, contratados, sin iniciar o con exceso; un clic en cualquiera filtra la tabla.</p><p>La tabla va por capítulo con su barra de avance; un clic abre sus actividades y otro clic en una actividad muestra cada insumo con cantidades presupuestada, contratada, pagada y por contratar. Los filtros dejan ver sólo lo que tiene saldo, lo comprometido, lo que falta contratar o lo que se pasó del presupuesto. «Cómo leer este tablero» explica cada término. «Pagado» sale de las mismas fuentes que el INVERTIDO del presupuesto, así que las dos pestañas cuadran.</p>' },
     { q:'Anticipos y deducciones — el Gran Total',
       a:'<p>Debajo de las tarjetas del presupuesto y de Obra faltante aparece este cuadro, el mismo en las dos pestañas: cuánto se ha girado en <b>anticipos</b>, cuánto de eso ya está <b>amortizado</b> (descontado en cortes y documentos de pago posteriores) y cuánto queda <b>por amortizar</b>, más cada deducción por separado — retención en la fuente, ICA, IVA, retenido de obra, descuento de obra y otras retenciones. El <b>GRAN TOTAL</b> es lo invertido más lo que aún está pendiente de amortizar: la cifra más cercana a «cuánto ha salido de caja en total» en todo el proyecto. Si la pantalla se siente muy llena, «Ocultar resumen» la recoge en una sola línea.</p>' }
   ],
@@ -58862,7 +60323,13 @@ const Arranque = (function(){
     $('#tbSaved').onclick = () => Admin.abrir('datos');
     $('#tbSaved').style.cursor = 'pointer';
     $('#tbSaved').title = 'Estado del archivo — clic para administrarlo';
-    $('#btnAyuda').onclick = () => Ayuda.abrir();
+    $('#btnAyuda').onclick = () => {
+      if (LicenciaUso.permiteModulo('16') && Reglas.veModulo('16')){
+        const m = Sesion.moduloActivo;
+        Sesion.tab16 = 'guias'; Sesion.q16 = ''; Sesion.guia16 = m && m !== '16' && GUIAS_MODULO.some(g => g.id === m) ? m : (Sesion.guia16 || '00');
+        App.ir('16');
+      } else Ayuda.abrir();
+    };
     $('#btnSalir').onclick = async () => {
       const ok = await UI.confirmar({ titulo:'Cerrar sesión',
         mensaje:'Los cambios ya están guardados. ¿Desea salir?', textoAceptar:'Salir' });
