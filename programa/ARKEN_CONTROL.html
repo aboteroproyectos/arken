@@ -1895,6 +1895,14 @@ tr.prog-casi > td:nth-child(2){ box-shadow:inset 3px 0 0 #C7782A; }
 .of-ins th{ white-space:normal; vertical-align:bottom; }
 
 </style>
+<style id="arken-conta-v8">
+/* v8 · Contabilidad por partida doble */
+.t tr.grp td{background:rgba(169,139,84,.12);font-weight:700}
+.t tr.clic:hover td{background:rgba(169,139,84,.08)}
+.t tr.sel td{background:rgba(169,139,84,.20)}
+#cmL select,#cmL input{font-size:12px}
+
+</style>
 </head>
 <body>
 
@@ -26367,26 +26375,36 @@ const Semilla = (function(){
     ['135515','Retención en la fuente','activo',6,'1355'],
     ['135517','Impuesto a las ventas retenido','activo',6,'1355'],
     ['135518','Impuesto de industria y comercio retenido','activo',6,'1355'],
-    ['1405','Materias primas','activo',4,''], ['1435','Mercancías no fabricadas por la empresa','activo',4,''],
+    ['1405','Materias primas','activo',4,''], ['1415','Obras de construcción en curso','activo',4,''],
+    ['1420','Contratos en ejecución','activo',4,''], ['1435','Mercancías no fabricadas por la empresa','activo',4,''],
     ['1455','Materiales, repuestos y accesorios','activo',4,''],
     ['1510','Construcciones y edificaciones','activo',4,''], ['1516','Construcciones en curso','activo',4,''],
     ['1524','Equipo de oficina','activo',4,''], ['1540','Flota y equipo de transporte','activo',4,''],
     ['2205','Proveedores nacionales','pasivo',4,''], ['2335','Costos y gastos por pagar','pasivo',4,''],
-    ['2365','Retención en la fuente por pagar','pasivo',4,''],
-    ['236540','Compras','pasivo',6,'2365'], ['236525','Honorarios','pasivo',6,'2365'],
-    ['236530','Servicios','pasivo',6,'2365'], ['236570','Otros conceptos','pasivo',6,'2365'],
+    ['2365','Retención en la fuente','pasivo',4,''],
+    ['236505','Salarios y pagos laborales','pasivo',6,'2365'], ['236515','Honorarios','pasivo',6,'2365'],
+    ['236520','Comisiones','pasivo',6,'2365'], ['236525','Servicios','pasivo',6,'2365'],
+    ['236530','Arrendamientos','pasivo',6,'2365'], ['236540','Compras','pasivo',6,'2365'],
+    ['236570','Otras retenciones y patrimonio','pasivo',6,'2365'], ['236575','Autorretenciones','pasivo',6,'2365'],
     ['2367','Impuesto a las ventas retenido','pasivo',4,''],
     ['2368','Impuesto de industria y comercio retenido','pasivo',4,''],
+    ['2370','Retenciones y aportes de nómina','pasivo',4,''],
+    ['2380','Acreedores varios — retenido de garantía y deducciones a contratistas','pasivo',4,''],
     ['2408','Impuesto sobre las ventas por pagar','pasivo',4,''],
     ['2412','De industria y comercio','pasivo',4,''],
-    ['2505','Salarios por pagar','pasivo',4,''], ['2610','Para obligaciones laborales','pasivo',4,''],
-    ['2815','Retenciones y anticipos de contratos (retenido de obra)','pasivo',4,''],
-    ['4145','Actividades de construcción','ingreso',4,''],
+    ['2505','Salarios por pagar','pasivo',4,''], ['2510','Cesantías consolidadas','pasivo',4,''],
+    ['2515','Intereses sobre cesantías','pasivo',4,''], ['2520','Prima de servicios','pasivo',4,''],
+    ['2525','Vacaciones consolidadas','pasivo',4,''], ['2610','Para obligaciones laborales','pasivo',4,''],
+    ['2805','Anticipos y avances recibidos','pasivo',4,''],
+    ['2815','Ingresos recibidos para terceros','pasivo',4,''],
+    ['3105','Capital suscrito y pagado','patrimonio',4,''], ['3605','Utilidad del ejercicio','patrimonio',4,''],
+    ['3610','Pérdida del ejercicio','patrimonio',4,''], ['3705','Utilidades acumuladas','patrimonio',4,''],
+    ['4145','Actividades de construcción','ingreso',4,''], ['4250','Recuperaciones','ingreso',4,''],
+    ['5105','Gastos de personal','gasto',4,''], ['5135','Servicios','gasto',4,''],
+    ['5195','Diversos','gasto',4,''],
     ['6135','Costo de construcción','costo',4,''],
     ['7205','Materia prima — obra','costo',4,''], ['7305','Mano de obra directa','costo',4,''],
-    ['7360','Contratos de obra','costo',4,''], ['7370','Depreciaciones','costo',4,''],
-    ['5105','Gastos de personal','gasto',4,''], ['5135','Servicios','gasto',4,''],
-    ['5195','Diversos','gasto',4,'']
+    ['7360','Contratos de obra','costo',4,''], ['7370','Depreciaciones','costo',4,'']
   ];
   function puc(){
     return PUC_BASE.map(r => ({ id: uid('pc'), codigo:r[0], nombre:r[1], naturaleza:r[2], nivel:r[3], padre:r[4] }));
@@ -29675,13 +29693,14 @@ function editarProveedor(p, id){
         { k:'direccion', lab:'Dirección', tipo:'text', val:v.direccion, col:2 },
         { k:'correo', lab:'Correo electrónico', tipo:'text', val:v.correo },
         { k:'contacto', lab:'Número de contacto', tipo:'text', val:v.contacto },
-        { k:'regimen', lab:'Régimen', tipo:'select', val:v.regimen, opts:[{v:'comun',n:'Común'},{v:'simplificado',n:'Simplificado'}] },
+        { k:'regimen', lab:'Régimen', tipo:'select', val:v.regimen, opts:[{v:'comun',n:'Responsable de IVA (antes común)'},{v:'simplificado',n:'No responsable de IVA (antes simplificado)'},{v:'simple',n:'Régimen simple de tributación (SIMPLE)'},{v:'especial',n:'Régimen tributario especial'}] },
         { k:'cuentaPUC', lab:'Cuenta PUC sugerida', tipo:'select', val:v.cuentaPUC,
           opts:[{v:'',n:'— sin asignar —'}].concat((S.puc||[]).map(c => ({ v:c.codigo, n:c.codigo + ' ' + c.nombre }))) },
         { k:'responsableIVA', lab:'Responsable de IVA', tipo:'check', val:v.responsableIVA },
         { k:'tarifaIVA', lab:'Tarifa de IVA de este proveedor (%)', tipo:'number', val:(v.tarifaIVA===undefined?19:v.tarifaIVA), step:'0.01',
           ayuda:'Con esta tarifa se calculan los precios que cotiza en los cuadros comparativos: los precios que se digiten allí ya incluyen IVA.' },
-        { k:'autorretenedor', lab:'Autorretenedor', tipo:'check', val:v.autorretenedor }
+        { k:'autorretenedor', lab:'Autorretenedor', tipo:'check', val:v.autorretenedor },
+        { k:'declarante', lab:'Declarante de renta', tipo:'check', val:v.declarante !== false }
       ], 4) +
       '<div class="p-sec">Retenciones aplicables</div>' +
       UI.formHTML([
@@ -29710,7 +29729,7 @@ function editarProveedor(p, id){
           Object.assign(reg, {
             identificacion:d.identificacion.trim(), dv:d.dv, razonSocial:d.razonSocial.trim(),
             tipoDocumento:d.tipoDocumento, tipoProveedor:d.tipoProveedor, correo:d.correo, contacto:d.contacto,
-            direccion:d.direccion, regimen:d.regimen, autorretenedor:d.autorretenedor, responsableIVA:d.responsableIVA,
+            direccion:d.direccion, regimen:d.regimen, autorretenedor:d.autorretenedor, responsableIVA:d.responsableIVA, declarante:d.declarante,
             tarifaIVA: Number(d.tarifaIVA)||0,
             cuentaPUC:d.cuentaPUC, banco:d.banco, tipoCuenta:d.tipoCuenta, numeroCuenta:d.numeroCuenta,
             retencionFuente:{ concepto:d.rfConcepto, tarifa:Number(d.rfTarifa)||0 },
@@ -30276,6 +30295,8 @@ function editarDocumentoPago(p, id, borrador){
         { k:'fechaVencimiento', lab:'Fecha de vencimiento', tipo:'date', val:doc.fechaVencimiento },
         { k:'cuentaPUC', lab:'Cuenta PUC', tipo:'select', val:doc.cuentaPUC, col:2,
           opts:[{v:'',n:'— sugerida por el proveedor —'}].concat((S.puc||[]).map(c => ({ v:c.codigo, n:c.codigo + ' ' + c.nombre }))) },
+        { k:'conceptoRet', lab:'Concepto de retención en la fuente', tipo:'select', val:doc.conceptoRet||'', col:2,
+          opts:[{v:'',n:'— el de la ficha del proveedor —'}].concat(conceptosVigentes(doc.fecha).map(c => ({ v:c.codigo, n:c.codigo + ' · ' + c.concepto }))) },
         { k:'idContrato', lab:'Contrato asociado (para anticipos)', tipo:'select', val:doc.idContrato||'', col:2,
           opts:[{v:'',n:'— sin contrato —'}].concat((p.contratos||[]).map(k => ({ v:k.id, n:k.consecutivo + ' · ' + (Modelo.proveedor(p,k.idProveedor)||{}).razonSocial }))) }
       ], 4) +
@@ -30288,7 +30309,7 @@ function editarDocumentoPago(p, id, borrador){
       '<div class="tw scroll" style="max-height:300px"><table class="t" id="dpLineas"><thead><tr>' +
       '<th>Insumo</th><th>Un</th><th>Actividad imputada</th><th class="n">Cantidad</th><th class="n">Precio antes de IVA</th>' +
       '<th class="n">IVA %</th><th class="n">Base</th><th class="n">Valor IVA</th>' +
-      '<th class="n">Valor del insumo</th><th></th></tr></thead><tbody></tbody></table></div>' +
+      '<th class="n">Valor del insumo</th><th>Concepto ret.</th><th></th></tr></thead><tbody></tbody></table></div>' +
       '<div id="dpTope"></div>' +
       '<div class="grid g2" style="margin-top:var(--gap)">' +
         '<div>' + UI.formHTML([
@@ -30297,7 +30318,8 @@ function editarDocumentoPago(p, id, borrador){
           { k:'rIva', lab:'Retención de IVA', tipo:'money', val:(doc.retenciones||{}).iva||0 },
           { k:'amortizacionAnticipo', lab:'(−) Amortización de anticipo', tipo:'money', val: doc.amortizacionAnticipo||0 },
           { k:'observaciones', lab:'Observaciones', tipo:'textarea', val:doc.observaciones, col:3, filas:2 }
-        ], 3) + '<button class="btn sm" id="dpRecalc" type="button">Calcular retenciones desde la ficha del proveedor</button></div>' +
+        ], 3) + '<button class="btn sm" id="dpRecalc" type="button">Calcular retenciones con la vigencia tributaria</button>' +
+        '<div id="dpRetNota" class="small muted" style="margin-top:6px"></div></div>' +
         '<div id="dpAviso"></div>' +
         '<div id="dpTot"></div>' +
       '</div>',
@@ -30351,8 +30373,10 @@ function editarDocumentoPago(p, id, borrador){
             '<td class="n"><input type="number" step="0.01" data-iv="' + k + '" value="' + (l.tarifaIVA||0) + '" style="width:70px"></td>' +
             '<td class="n small">' + money3(base) + '</td><td class="n small">' + money3(iva) + '</td>' +
             '<td class="n"><b>' + money3(base + iva) + '</b></td>' +
+            '<td><select data-cr="' + k + '" style="font-size:11.5px;width:100px" title="Concepto de retención de esta línea"><option value="">del documento</option>' +
+              conceptosVigentes(doc.fecha).map(c => '<option value="' + esc(c.codigo) + '"' + (l.conceptoRet === c.codigo ? ' selected' : '') + '>' + esc(c.codigo) + '</option>').join('') + '</select></td>' +
             '<td class="act"><button class="btn xs danger" data-rm="' + k + '" type="button">✕</button></td></tr>';
-        }).join('') || '<tr><td colspan="10" class="muted small" style="padding:14px">Agregue los insumos comprados.</td></tr>';
+        }).join('') || '<tr><td colspan="11" class="muted small" style="padding:14px">Agregue los insumos comprados.</td></tr>';
         $('#dpTope', m.el).innerHTML = excedidas.length
           ? '<div class="alert bad"><div class="ic">!</div><div class="bd"><b>Se supera el tope de la actividad imputada.</b><br>' +
             excedidas.map(esc).join('<br>') +
@@ -30361,6 +30385,7 @@ function editarDocumentoPago(p, id, borrador){
         $$('[data-pr]', m.el).forEach(e => e.onchange = () => { doc.lineas[+e.dataset.pr].precioSinIVA = redondear3(e.value); pintaLineas(); });
         $$('[data-iv]', m.el).forEach(e => e.onchange = () => { doc.lineas[+e.dataset.iv].tarifaIVA = Number(e.value)||0; pintaLineas(); });
         $$('[data-act]', m.el).forEach(e => e.onchange = () => { doc.lineas[+e.dataset.act].idActividad = e.value || null; pintaLineas(); });
+        $$('[data-cr]', m.el).forEach(e => e.onchange = () => { const ln = doc.lineas[+e.dataset.cr]; if (e.value) ln.conceptoRet = e.value; else delete ln.conceptoRet; doc.retencionesDetalle = null; });
         $$('[data-rm]', m.el).forEach(b => b.onclick = () => { doc.lineas.splice(+b.dataset.rm,1); pintaLineas(); });
         totales();
       }
@@ -30437,13 +30462,23 @@ function editarDocumentoPago(p, id, borrador){
       $('#dpRecalc', m.el).onclick = recalcRet;
       $$('[data-tipo="money"]', m.el).forEach(e => e.onchange = totales);
       $('#f_tipo', m.el).onchange = totales;
+      /* Retención por concepto con la vigencia de la fecha del documento: base mínima en UVT, tarifa de
+         declarante o no declarante, y sin retención a autorretenedores ni al régimen simple (art. 911 ET). */
       function recalcRet(){
         const v = prov(); if (!v) return;
-        const t = Calculo.totalesDocumento(doc);
-        $('#f_rFuente', m.el).value = redondear(Math.abs(t.base) * (Number((v.retencionFuente||{}).tarifa||0)/100));
-        $('#f_rIca', m.el).value = redondear(Math.abs(t.base) * (Number((v.retencionICA||{}).tarifaMilaje||0)/1000));
+        const fd = UI.leerForm(m.el);
+        doc.fecha = fd.fecha || doc.fecha; doc.conceptoRet = fd.conceptoRet || '';
+        const r = Conta.calcularRetenciones(p, doc, v);
+        $('#f_rFuente', m.el).value = r.fuente;
+        $('#f_rIca', m.el).value = r.ica;
+        if (r.iva) $('#f_rIva', m.el).value = r.iva;
+        doc.retencionesDetalle = r.detalle.filter(x => x.valor).map(x => ({ concepto:x.concepto, base:x.base, tarifa:x.tarifa, valor:x.valor }));
+        const nota = $('#dpRetNota', m.el);
+        if (nota) nota.innerHTML = r.detalle.map(x => '<div>' + esc(x.concepto + ' · ' + x.nombre) + ': base ' + money(x.base) + ' → <b>' + money(x.valor) + '</b> (' + esc(x.nota) + ')</div>').join('') +
+          r.notas.map(n => '<div>' + esc(n) + '</div>').join('');
         totales();
       }
+      $('#f_conceptoRet', m.el).onchange = () => { doc.retencionesDetalle = null; recalcRet(); };
       pintaProv(); pintaLineas();
       if (borrador) recalcRet();
     }
@@ -30483,7 +30518,9 @@ function editarDocumentoPago(p, id, borrador){
     Object.assign(doc, { idProveedor:d.idProveedor, tipo:d.tipo, numero:d.numero.trim(), fecha:d.fecha,
       fechaVencimiento:d.fechaVencimiento, cuentaPUC:d.cuentaPUC, observaciones:d.observaciones,
       retenciones:{ fuente:Number(d.rFuente)||0, ica:Number(d.rIca)||0, iva:Number(d.rIva)||0 },
-      amortizacionAnticipo: Number(d.amortizacionAnticipo)||0, idContrato: d.idContrato || null });
+      amortizacionAnticipo: Number(d.amortizacionAnticipo)||0, idContrato: d.idContrato || null, conceptoRet: d.conceptoRet || '' });
+    // Si la retención se digitó a mano después de calcularla, el reparto por concepto ya no aplica.
+    if (Array.isArray(doc.retencionesDetalle) && Math.abs(doc.retencionesDetalle.reduce((t,x) => t + Number(x.valor||0), 0) - (Number(d.rFuente)||0)) > 1) doc.retencionesDetalle = null;
     if (cerrar){
       doc.cerrado = true; doc.cerradoPor = Sesion.usuario ? Sesion.usuario.usuario : 'sistema';
       doc.fechaCierre = hoyISO();
@@ -32307,6 +32344,8 @@ function editarContrato(p, id){
         '<div class="field"><label>Retención en la fuente (%)</label><input id="ctRf" type="number" step="0.01" value="' + k.pctRetencionFuente + '"></div>' +
         '<div class="field"><label>ReteICA (por mil)</label><input id="ctIca" type="number" step="0.01" value="' + k.pctICA + '"></div>' +
         '<div class="field"><label>ReteIVA (% del IVA)</label><input id="ctRiva" type="number" step="0.01" value="' + k.pctReteIVA + '"></div>' +
+        '<div class="field"><label>Concepto de retención</label><select id="ctCr">' + UI.selectOpts([{v:'',n:'— el de la ficha del contratista —'}]
+          .concat(conceptosVigentes(k.fecha).map(c => ({ v:c.codigo, n:c.codigo + ' · ' + c.concepto }))), k.conceptoRet || '') + '</select></div>' +
         '<div class="field" style="grid-column:span 1"><label>&nbsp;</label><button class="btn sm block" id="ctAyudaIva" type="button">¿Qué IVA aplica?</button></div>' +
         '<div class="field" style="grid-column:span 4"><label>Condiciones de pago — método conciliado</label>' +
           '<textarea id="ctCond" rows="2">' + esc(k.condicionesPago) + '</textarea></div>' +
@@ -32448,6 +32487,7 @@ function editarContrato(p, id){
     k.pctRetencionFuente = Number($('#ctRf', m.el).value)||0;
     k.pctICA = Number($('#ctIca', m.el).value)||0;
     k.pctReteIVA = Number($('#ctRiva', m.el).value)||0;
+    if ($('#ctCr', m.el)) k.conceptoRet = $('#ctCr', m.el).value || '';
     k.condicionesPago = $('#ctCond', m.el).value;
   }
   function guardar(mm){
@@ -37157,6 +37197,10 @@ async function pdfGraficasFacturacion(p, finales, f, totalDocs){
    ══════════════════════════════════════════════════════════════════════════ */
 const VISTAS_10 = [
   { k:'auxiliar', n:'Libro auxiliar del proyecto' },
+  { k:'comprobantes', n:'Comprobantes' },
+  { k:'diario',   n:'Libro diario' },
+  { k:'mayor',    n:'Libro mayor' },
+  { k:'balance',  n:'Balance de prueba' },
   { k:'empresa',  n:'Consolidado empresa' },
   { k:'proveedor',n:'Por proveedor' },
   { k:'puc',      n:'Por cuenta PUC' },
@@ -37164,13 +37208,25 @@ const VISTAS_10 = [
   { k:'retenciones', n:'Retenciones por tercero' },
   { k:'salidas',  n:'Salidas para el contador' }
 ];
+const LIBROS_10 = ['comprobantes','diario','mayor','balance'];
+const TEXTO_VISTA_10 = {
+  auxiliar:'Libro auxiliar con toda la información de los documentos de pago y de los cortes de obra. Centro de costo = proyecto.',
+  comprobantes:'Comprobantes con débitos y créditos: los automáticos nacen de cada compra, salida, corte, pago, ingreso y nómina; los manuales, de ajustes y saldos iniciales.',
+  diario:'Libro diario: todos los asientos en orden cronológico, con comprobante, cuenta, tercero y centro de costo.',
+  mayor:'Libro mayor y balances: saldo anterior, débitos, créditos y saldo final de cada cuenta. Un clic abre los movimientos de la cuenta.',
+  balance:'Balance de prueba por clase, cuenta y subcuenta, con la prueba de sumas iguales y los controles del contador.',
+  empresa:'Movimientos de todos los proyectos de la empresa.',
+  retenciones:'Retenciones practicadas a cada tercero, revisión contra la vigencia tributaria y certificado anual por NIT.',
+  salidas:'Retenciones por concepto, control de declaraciones, certificados, IVA, cuentas por pagar y centros de costo.'
+};
 
 Vistas.render10 = function(st){
+  Conta.migrar();
   const p = Modelo.activo();
   const vista = Sesion.vista10 || 'auxiliar';
   const cc = p.cierreContable;
   st.innerHTML = App.cabecera('10', null,
-      'Libro auxiliar con toda la información de los documentos de pago y de los cortes de obra. Centro de costo = proyecto.',
+      TEXTO_VISTA_10[vista] || TEXTO_VISTA_10.auxiliar,
       '<button class="btn" id="c10Excel" type="button">Exportar a Excel</button>' +
       '<button class="btn" id="c10Pdf" type="button">Exportar a PDF</button>' +
       '<button class="btn' + (cc && cc.activo ? ' primary' : '') + '" id="c10Cierre" type="button">' +
@@ -37181,6 +37237,16 @@ Vistas.render10 = function(st){
     UI.tabs(VISTAS_10, vista, k => { Sesion.vista10 = k; App.render(); }) +
     '<div id="c10"></div>';
   const cont = $('#c10');
+  $('#c10Cierre').onclick = () => cierreContable(p);
+  if (LIBROS_10.includes(vista)){
+    if (vista === 'comprobantes') Conta.tabComprobantes(cont, p);
+    else if (vista === 'diario') Conta.tabDiario(cont, p);
+    else if (vista === 'mayor') Conta.tabMayor(cont, p);
+    else Conta.tabBalance(cont, p);
+    $('#c10Excel').onclick = () => Conta.exportar(p, vista, 'xlsx');
+    $('#c10Pdf').onclick = () => Conta.exportar(p, vista, 'pdf');
+    return;
+  }
   const fuente = vista === 'empresa'
     ? [].concat.apply([], (S.proyectos||[]).filter(x => Reglas.veProyecto(x.id))
         .map(x => documentosUnificados(x).map(d => Object.assign({ proyecto:x.nombre, idProyecto:x.id }, d))))
@@ -37195,7 +37261,6 @@ Vistas.render10 = function(st){
 
   $('#c10Excel').onclick = () => excelContabilidad(p, fuente, vista);
   $('#c10Pdf').onclick = () => pdfContabilidad(p, fuente, vista);
-  $('#c10Cierre').onclick = () => cierreContable(p);
 };
 
 function filaAuxiliar(d){
@@ -37276,26 +37341,29 @@ function porPeriodo(cont, fuente){
 }
 
 function salidasContador(cont, p, fuente){
+  Conta.migrar();
+  const r = Conta.reglas();
   const pend = fuente.filter(d => !d.pagado);
   const tramos = { '0-30':[], '31-60':[], '61-90':[], '+90':[] };
   pend.forEach(d => tramos[tramoAntiguedad(diasEntre(d.fecha, hoyISO()))].push(d));
-  const retPorConcepto = new Map();
-  fuente.forEach(d => {
-    if (Math.abs(d.retefuente) < TOL) return;
-    const k = d.tipo === 'Corte de obra' ? 'Contratos de construcción' : 'Compras y servicios';
-    const a = retPorConcepto.get(k) || { base:0, valor:0, n:0 };
-    a.base += d.base; a.valor += d.retefuente; a.n++; retPorConcepto.set(k, a);
-  });
+  const conceptos = retencionesPorConceptoConta(fuente);
+  const anioDec = Sesion.anioDec10 || String(new Date().getFullYear());
+  const meses = declaracionesMesConta(anioDec);
+  const dec = Conta.estado().declaraciones;
+  const editable = Conta.puedeContabilizar();
+  const nits = new Map();
+  fuenteEmpresaConta().forEach(d => { if (d.nit && (Math.abs(d.retefuente) + Math.abs(d.reteica) + Math.abs(d.reteiva)) > TOL && !nits.has(d.nit)) nits.set(d.nit, d.prov); });
+  const ivaCosto = Conta.ivaEsCosto(p);
   cont.innerHTML =
     '<div class="grid g2">' +
-      '<div class="card"><div class="card-head"><h3>Relación de retenciones practicadas</h3>' +
+      '<div class="card"><div class="card-head"><h3>Retenciones practicadas por concepto</h3>' +
         '<button class="btn sm" id="s10Ret" type="button">PDF</button></div><div class="card-body flush">' +
-        '<div class="tw"><table class="t"><thead><tr><th>Concepto</th><th class="n">Documentos</th>' +
+        '<div class="tw"><table class="t"><thead><tr><th>Concepto</th><th>Cuenta</th><th class="n">Documentos</th>' +
         '<th class="n">Base</th><th class="n">Valor retenido</th></tr></thead><tbody>' +
-        (retPorConcepto.size ? Array.from(retPorConcepto.entries()).map(([k,a]) =>
-          '<tr><td>' + esc(k) + '</td><td class="n">' + a.n + '</td><td class="n">' + money(a.base) + '</td>' +
+        (conceptos.length ? conceptos.map(a =>
+          '<tr><td>' + esc(a.concepto + ' · ' + a.nombre) + '</td><td class="mono small">' + esc(a.cuenta) + '</td><td class="n">' + a.n + '</td><td class="n">' + money(a.base) + '</td>' +
           '<td class="n">' + money(a.valor) + '</td></tr>').join('')
-          : '<tr><td colspan="4" class="muted small" style="padding:14px">Sin retenciones practicadas.</td></tr>') +
+          : '<tr><td colspan="5" class="muted small" style="padding:14px">Sin retenciones en la fuente practicadas.</td></tr>') +
         '</tbody></table></div></div></div>' +
       '<div class="card"><div class="card-head"><h3>Cuentas por pagar — antigüedad</h3>' +
         '<button class="btn sm" id="s10Cxp" type="button">PDF</button></div><div class="card-body flush">' +
@@ -37306,18 +37374,33 @@ function salidasContador(cont, p, fuente){
         '</tbody><tfoot><tr><td>TOTAL</td><td class="n">' + pend.length + '</td><td class="n">' +
         money(pend.reduce((t,d)=>t+d.neto,0)) + '</td></tr></tfoot></table></div></div></div>' +
     '</div>' +
-    '<div class="card"><div class="card-head"><h3>Certificados de retención en la fuente</h3>' +
+    '<div class="card"><div class="card-head"><h3>Control de declaraciones de retención — toda la empresa</h3>' +
+      '<div class="row"><select id="s10AnioDec" style="width:auto">' + UI.selectOpts(aniosDisponibles(fuenteEmpresaConta()), anioDec) + '</select>' +
+      '<button class="btn sm" id="s10Dec" type="button">PDF</button></div></div>' +
+      '<div class="card-body flush"><div class="tw"><table class="t" id="tDec"><thead><tr><th>Periodo</th><th class="n">Retención renta</th><th class="n">ReteIVA</th>' +
+        '<th class="n">Total formulario 350</th><th class="n">ReteICA (municipal)</th><th>Presentada</th><th>Fecha</th><th>N.º formulario</th><th>Pagada</th></tr></thead><tbody>' +
+      meses.map(m => { const x = dec[m.ym] || {}; const hay = m.rf + m.riva + m.ica > 0.5; const dis = editable ? '' : ' disabled';
+        return '<tr' + (hay && !(x.presentada && x.pagada) && m.ym < hoyISO().slice(0,7) ? ' class="over"' : '') + '><td>' + esc(MESES[m.mes - 1] + ' ' + anioDec) + '</td>' +
+          '<td class="n">' + money(m.rf) + '</td><td class="n">' + money(m.riva) + '</td><td class="n"><b>' + money(m.rf + m.riva) + '</b></td><td class="n">' + money(m.ica) + '</td>' +
+          '<td><input type="checkbox" data-dp="' + m.ym + '"' + (x.presentada ? ' checked' : '') + dis + '></td>' +
+          '<td><input type="date" data-df="' + m.ym + '" value="' + esc(x.fecha || '') + '" style="width:140px"' + dis + '></td>' +
+          '<td><input data-dn="' + m.ym + '" value="' + esc(x.formulario || '') + '" style="width:130px"' + dis + '></td>' +
+          '<td><input type="checkbox" data-dg="' + m.ym + '"' + (x.pagada ? ' checked' : '') + dis + '></td></tr>'; }).join('') +
+      '</tbody></table></div>' +
+      '<p class="small muted" style="padding:8px 14px">Marque cada mes cuando la declaración esté presentada y pagada. Los certificados de retención solo afirman que los valores fueron declarados y consignados si todos sus meses están marcados.</p></div></div>' +
+    '<div class="card"><div class="card-head"><h3>Certificados de retención — por NIT, todos los proyectos</h3>' +
       '<div class="row"><select id="s10Prov" style="width:auto">' +
-        UI.selectOpts((p.proveedores||[]).map(x => ({ v:x.id, n:x.razonSocial })), '', '— proveedor —') + '</select>' +
-      '<select id="s10Anio" style="width:auto">' + UI.selectOpts(aniosDisponibles(fuente), String(new Date().getFullYear())) + '</select>' +
+        UI.selectOpts([...nits.entries()].sort((a,b) => String(a[1]).localeCompare(String(b[1]), 'es')).map(([n,t]) => ({ v:n, n:t + ' · ' + n })), '', '— tercero —') + '</select>' +
+      '<select id="s10Anio" style="width:auto">' + UI.selectOpts(aniosDisponibles(fuenteEmpresaConta()), String(new Date().getFullYear())) + '</select>' +
       '<button class="btn sm primary" id="s10Cert" type="button">Generar certificado</button></div></div>' +
-      '<div class="card-body"><p class="muted small">El certificado relaciona todas las retenciones practicadas al proveedor en el periodo seleccionado, con base, tarifa y valor.</p></div></div>' +
-    '<div class="card"><div class="card-head"><h3>Relación de IVA descontable</h3>' +
+      '<div class="card-body"><p class="muted small">El certificado suma lo retenido al tercero en todos los proyectos de la empresa durante el año, por concepto, con la ciudad donde se consignó (' + esc(Conta.ciudadRetencion()) + ').</p></div></div>' +
+    '<div class="card"><div class="card-head"><h3>Relación de IVA en compras y contratos</h3>' +
       '<button class="btn sm" id="s10Iva" type="button">PDF</button></div><div class="card-body">' +
-      '<div class="grid g3">' +
+      '<div class="grid g4">' +
       '<div class="stat"><div class="lab">Base gravable</div><div class="val">' + money(fuente.reduce((t,d)=>t+d.base,0)) + '</div></div>' +
       '<div class="stat"><div class="lab">IVA registrado</div><div class="val">' + money(fuente.reduce((t,d)=>t+d.iva,0)) + '</div></div>' +
       '<div class="stat"><div class="lab">ReteIVA practicado</div><div class="val">' + money(fuente.reduce((t,d)=>t+d.reteiva,0)) + '</div></div>' +
+      '<div class="stat"><div class="lab">Tratamiento del IVA</div><div class="val" style="font-size:15px">' + (ivaCosto ? 'Mayor valor del costo' : 'Descontable') + '</div><div class="foot">Administración › Plan de cuentas</div></div>' +
       '</div></div></div>' +
     '<div class="card"><div class="card-head"><h3>Centro de costos — desagregación por capítulo</h3>' +
       '<button class="btn sm" id="s10Cc" type="button">PDF</button></div><div class="card-body flush">' +
@@ -37332,50 +37415,73 @@ function salidasContador(cont, p, fuente){
     '<div class="card"><div class="card-body"><div class="alert info"><div class="ic">ℹ</div><div class="bd">' +
       '<b>Aviso obligatorio</b><div class="small">' + esc(AVISO_TRIBUTARIO) + '</div></div></div></div></div>';
 
+  const der = { halign:'right' };
   $('#s10Ret').onclick = () => Documentos.previsualizar({
-    nombre:'ARKEN_retenciones', titulo:'RELACIÓN DE RETENCIONES PRACTICADAS', documento:'Retenciones', proyecto:p, orientacion:'p',
-    bloques:[{ t:'tabla', head:[['Fecha','Documento','Proveedor','NIT','Base','Tarifa','Retefuente','ReteICA','ReteIVA']],
-      anchos:{4:{halign:'right'},5:{halign:'right'},6:{halign:'right'},7:{halign:'right'},8:{halign:'right'}},
-      body: fuente.filter(d => Math.abs(d.retefuente)+Math.abs(d.reteica)+Math.abs(d.reteiva) > TOL).map(d =>
-        [fmtFecha(d.fecha), d.tipo + ' ' + d.numero, d.prov, d.nit,
-         { content:money(d.base), styles:{halign:'right'} }, { content:pct(d.pctRetefuente), styles:{halign:'right'} },
-         { content:money(d.retefuente), styles:{halign:'right'} }, { content:money(d.reteica), styles:{halign:'right'} },
-         { content:money(d.reteiva), styles:{halign:'right'} }]) },
+    nombre:'ARKEN_retenciones_por_concepto', titulo:'RELACIÓN DE RETENCIONES PRACTICADAS', documento:'Retenciones', proyecto:p, orientacion:'p',
+    bloques:[
+      { t:'tabla', head:[['Concepto','Cuenta','Documentos','Base','Valor retenido']], anchos:{2:der,3:der,4:der},
+        body: conceptos.map(a => [a.concepto + ' · ' + a.nombre, a.cuenta, { content:String(a.n), styles:der }, { content:money(a.base), styles:der }, { content:money(a.valor), styles:der }]) },
+      { t:'tabla', head:[['Fecha','Documento','Proveedor','NIT','Concepto','Base','Retefuente','ReteICA','ReteIVA']],
+        anchos:{5:der,6:der,7:der,8:der},
+        body: fuente.filter(d => Math.abs(d.retefuente)+Math.abs(d.reteica)+Math.abs(d.reteiva) > TOL).map(d => {
+          const pr = Modelo.proyecto(d.idProyecto) || p;
+          const cs = Conta.retencionPorConcepto(pr, d).map(x => x.concepto).join(', ') || '—';
+          return [fmtFecha(d.fecha), d.tipo + ' ' + d.numero, d.prov, d.nit, cs,
+            { content:money(d.base), styles:der }, { content:money(d.retefuente), styles:der }, { content:money(d.reteica), styles:der }, { content:money(d.reteiva), styles:der }]; }) },
       { t:'nota', txt:AVISO_TRIBUTARIO }]
   });
   $('#s10Cxp').onclick = () => Documentos.previsualizar({
     nombre:'ARKEN_cuentas_por_pagar', titulo:'CUENTAS POR PAGAR CON ANTIGÜEDAD DE SALDOS',
     documento:'Cuentas por pagar', proyecto:p, orientacion:'l',
     bloques:[{ t:'tabla', head:[['Tramo','Fecha','Documento','Proveedor','NIT','Total','Neto pendiente','Días']],
-      anchos:{5:{halign:'right'},6:{halign:'right'},7:{halign:'right'}},
+      anchos:{5:der,6:der,7:der},
       body: pend.sort((a,b)=>diasEntre(b.fecha,hoyISO())-diasEntre(a.fecha,hoyISO())).map(d =>
         [tramoAntiguedad(diasEntre(d.fecha,hoyISO())), fmtFecha(d.fecha), d.tipo + ' ' + d.numero, d.prov, d.nit,
-         { content:money(d.total), styles:{halign:'right'} }, { content:money(d.neto), styles:{halign:'right'} },
-         { content:String(diasEntre(d.fecha,hoyISO())), styles:{halign:'right'} }]) },
+         { content:money(d.total), styles:der }, { content:money(d.neto), styles:der },
+         { content:String(diasEntre(d.fecha,hoyISO())), styles:der }]) },
       { t:'totales', ancho:88, lineas:[{ lab:'TOTAL PENDIENTE', val:money(pend.reduce((t,d)=>t+d.neto,0)), fuerte:true }] }]
   });
   $('#s10Iva').onclick = () => Documentos.previsualizar({
-    nombre:'ARKEN_iva_descontable', titulo:'RELACIÓN DE IVA', documento:'IVA', proyecto:p, orientacion:'p',
+    nombre:'ARKEN_iva', titulo:'RELACIÓN DE IVA EN COMPRAS Y CONTRATOS', documento:'IVA', proyecto:p, orientacion:'p',
+    subtitulo:'Tratamiento: ' + (ivaCosto ? 'mayor valor del costo' : 'IVA descontable'),
     bloques:[{ t:'tabla', head:[['Fecha','Documento','Proveedor','Base gravable','Tarifa','IVA','ReteIVA']],
-      anchos:{3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'}},
+      anchos:{3:der,4:der,5:der,6:der},
       body: fuente.filter(d => Math.abs(d.iva) > TOL).map(d => [fmtFecha(d.fecha), d.tipo + ' ' + d.numero, d.prov,
-        { content:money(d.base), styles:{halign:'right'} }, { content:pct(d.tarifaIVA), styles:{halign:'right'} },
-        { content:money(d.iva), styles:{halign:'right'} }, { content:money(d.reteiva), styles:{halign:'right'} }]) },
-      { t:'nota', txt:AVISO_TRIBUTARIO }]
+        { content:money(d.base), styles:der }, { content:pct(d.tarifaIVA), styles:der },
+        { content:money(d.iva), styles:der }, { content:money(d.reteiva), styles:der }]) },
+      { t:'nota', txt:(ivaCosto ? 'El IVA pagado se lleva como mayor valor del costo porque las ventas del proyecto no generan IVA (arts. 488 y 490 ET). ' : 'El IVA pagado se trata como descontable en la declaración de IVA (art. 485 ET). ') + AVISO_TRIBUTARIO }]
   });
   $('#s10Cc').onclick = () => Documentos.previsualizar({
     nombre:'ARKEN_centro_costos', titulo:'CENTRO DE COSTOS POR CAPÍTULO', documento:'Centro de costos', proyecto:p, orientacion:'p',
     bloques:[{ t:'tabla', head:[['Capítulo','Presupuestado','Invertido','Por invertir','%']],
-      anchos:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}},
+      anchos:{1:der,2:der,3:der,4:der},
       body:(p.capitulos||[]).map(c => { const v = Calculo.valorCapitulo(p,c), i = Calculo.invertidoCapitulo(p,c);
-        return [c.codigo + ' ' + c.nombre, { content:money(v), styles:{halign:'right'} },
-          { content:money(i), styles:{halign:'right'} }, { content:money(v-i), styles:{halign:'right'} },
-          { content:pct(Calculo.avanceCosto(v,i)), styles:{halign:'right'} }]; }) }]
+        return [c.codigo + ' ' + c.nombre, { content:money(v), styles:der },
+          { content:money(i), styles:der }, { content:money(v-i), styles:der },
+          { content:pct(Calculo.avanceCosto(v,i)), styles:der }]; }) }]
   });
+  $('#s10Dec').onclick = () => Documentos.previsualizar({
+    nombre:'ARKEN_control_declaraciones_' + anioDec, titulo:'CONTROL DE DECLARACIONES DE RETENCIÓN ' + anioDec, documento:'Declaraciones', proyecto:null, textoProyecto:'Consolidado empresa', orientacion:'l',
+    bloques:[{ t:'tabla', head:[['Periodo','Retención renta','ReteIVA','Total formulario 350','ReteICA','Presentada','Fecha','Formulario','Pagada']], anchos:{1:der,2:der,3:der,4:der},
+      body: meses.map(m => { const x = dec[m.ym] || {}; return [MESES[m.mes - 1], { content:money(m.rf), styles:der }, { content:money(m.riva), styles:der }, { content:money(m.rf + m.riva), styles:der },
+        { content:money(m.ica), styles:der }, x.presentada ? 'Sí' : 'No', x.fecha ? fmtFecha(x.fecha) : '', x.formulario || '', x.pagada ? 'Sí' : 'No']; }) },
+      { t:'nota', txt:'Valores tomados de los documentos de pago y cortes de obra de todos los proyectos. La ReteICA se declara en cada municipio. ' + AVISO_TRIBUTARIO }]
+  });
+  $('#s10AnioDec').onchange = e => { Sesion.anioDec10 = e.target.value; App.render(); };
+  const guardarDec = (ym, campo, valor) => {
+    const d = Conta.estado().declaraciones;
+    d[ym] = Object.assign({}, d[ym] || {}, { [campo]:valor, usuario:Sesion.usuario ? Sesion.usuario.usuario : 'sistema', ts:Date.now() });
+    Modelo.auditar('editar', 'declaración de retención', ym + ' · ' + campo + ' → ' + valor);
+    App.guardar();
+  };
+  $$('[data-dp]', cont).forEach(e => e.onchange = () => guardarDec(e.dataset.dp, 'presentada', e.checked));
+  $$('[data-dg]', cont).forEach(e => e.onchange = () => guardarDec(e.dataset.dg, 'pagada', e.checked));
+  $$('[data-df]', cont).forEach(e => e.onchange = () => guardarDec(e.dataset.df, 'fecha', e.value));
+  $$('[data-dn]', cont).forEach(e => e.onchange = () => guardarDec(e.dataset.dn, 'formulario', e.value.trim()));
   $('#s10Cert').onclick = () => {
-    const idProv = $('#s10Prov').value, anio = $('#s10Anio').value;
-    if (!idProv){ UI.toast('Seleccione el proveedor', 'bad'); return; }
-    certificadoRetencion(p, idProv, anio, fuente);
+    const nit = $('#s10Prov').value, anio = $('#s10Anio').value;
+    if (!nit){ UI.toast('Seleccione el tercero', 'bad'); return; }
+    certificadoRetencion(p, { nit }, anio);
   };
 }
 function aniosDisponibles(fuente){
@@ -37383,38 +37489,100 @@ function aniosDisponibles(fuente){
   s.add(String(new Date().getFullYear()));
   return Array.from(s).sort().reverse();
 }
-function certificadoRetencion(p, idProv, anio, fuente){
-  const pv = Modelo.proveedor(p, idProv) || {};
-  const l = fuente.filter(d => d.idProv === idProv && String(d.fecha||'').slice(0,4) === String(anio) &&
-    (Math.abs(d.retefuente) + Math.abs(d.reteica) + Math.abs(d.reteiva)) > TOL);
-  const t = l.reduce((a,d) => ({ base:a.base+d.base, rf:a.rf+d.retefuente, ica:a.ica+d.reteica, riva:a.riva+d.reteiva }),
-    { base:0, rf:0, ica:0, riva:0 });
-  Documentos.previsualizar({
-    nombre:'ARKEN_certificado_retencion_' + anio, titulo:'CERTIFICADO DE RETENCIÓN EN LA FUENTE',
-    documento:'Certificado de retención', proyecto:p, orientacion:'p',
-    subtitulo:'Año gravable ' + anio,
-    bloques:[
-      { t:'kv', cols:2, pares:[
-        ['Agente retenedor', S.empresa.razonSocial||'—'], ['NIT', (S.empresa.nit||'') + (S.empresa.dv?'-'+S.empresa.dv:'')],
-        ['Retenido', pv.razonSocial||'—'], ['Identificación', (pv.identificacion||'') + (pv.dv?'-'+pv.dv:'')],
-        ['Dirección', pv.direccion||'—'], ['Ciudad', pv.ciudad||'—']
-      ]},
-      { t:'texto', txt:'La empresa certifica que durante el año gravable ' + anio + ' practicó al beneficiario las retenciones que se relacionan a continuación, correspondientes a los pagos o abonos en cuenta efectuados en el proyecto ' + p.nombre + '.' },
-      { t:'tabla', head:[['Fecha','Documento','Concepto','Base','Tarifa','Retefuente','ReteICA','ReteIVA']],
-        anchos:{3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'},7:{halign:'right'}},
-        body: l.length ? l.map(d => [fmtFecha(d.fecha), d.tipo + ' ' + d.numero, d.concepto,
-          { content:money(d.base), styles:{halign:'right'} }, { content:pct(d.pctRetefuente), styles:{halign:'right'} },
-          { content:money(d.retefuente), styles:{halign:'right'} }, { content:money(d.reteica), styles:{halign:'right'} },
-          { content:money(d.reteiva), styles:{halign:'right'} }])
-          : [[{ content:'Sin retenciones practicadas en el periodo.', colSpan:8 }]] },
-      { t:'totales', ancho:92, lineas:[
-        { lab:'Total base', val:money(t.base) }, { lab:'Total retención en la fuente', val:money(t.rf) },
-        { lab:'Total ReteICA', val:money(t.ica) }, { lab:'Total ReteIVA', val:money(t.riva) },
-        { lab:'TOTAL RETENIDO', val:money(t.rf + t.ica + t.riva), fuerte:true } ] },
-      { t:'nota', txt:AVISO_TRIBUTARIO },
-      { t:'firmas', firmas:[{ n:'Representante legal o contador', s:S.empresa.razonSocial||'' }] }
-    ]
+/** Movimientos de todos los proyectos que el usuario puede ver. */
+function fuenteEmpresaConta(){
+  return [].concat.apply([], (S.proyectos||[]).filter(x => Reglas.veProyecto(x.id))
+    .map(x => documentosUnificados(x).map(d => Object.assign({ proyecto:x.nombre, idProyecto:x.id }, d))));
+}
+/** Retención en la fuente agrupada por concepto, con su cuenta contable. */
+function retencionesPorConceptoConta(filas){
+  const r = Conta.reglas();
+  const g = new Map();
+  filas.forEach(d => {
+    const pr = Modelo.proyecto(d.idProyecto) || Modelo.activo();
+    Conta.retencionPorConcepto(pr, d).forEach(x => {
+      const a = g.get(x.concepto) || { concepto:x.concepto, nombre:Conta.nombreConcepto(x.concepto, d.fecha), cuenta:r.retPorConcepto[x.concepto] || r.retPorConcepto.OTR, base:0, valor:0, n:0 };
+      a.base += x.base; a.valor += x.valor; a.n++; g.set(x.concepto, a);
+    });
   });
+  return [...g.values()].sort((a,b) => b.valor - a.valor);
+}
+/** Totales mensuales de retenciones de toda la empresa, para el formulario 350 y el ICA. */
+function declaracionesMesConta(anio){
+  const meses = Array.from({ length:12 }, (_, i) => ({ mes:i + 1, ym:anio + '-' + String(i + 1).padStart(2,'0'), rf:0, riva:0, ica:0 }));
+  fuenteEmpresaConta().forEach(d => {
+    const f = String(d.fecha || '');
+    if (f.slice(0,4) !== String(anio)) return;
+    const m = meses[+f.slice(5,7) - 1]; if (!m) return;
+    m.rf += d.retefuente; m.riva += d.reteiva; m.ica += d.reteica;
+  });
+  return meses;
+}
+
+/** Certificado de retenciones de un tercero (por NIT) en un año, sumando todos los proyectos de la empresa. */
+function certificadoRetencion(p, ter, anio){
+  if (!ter) return;
+  if (typeof ter === 'string'){ const pv = Modelo.proveedor(p, ter) || {}; ter = { nit:pv.identificacion }; }
+  const nitN = normaliza(String(ter.nit || '').split('-')[0]);
+  if (!nitN){ UI.toast('El tercero no tiene NIT o cédula', 'bad'); return; }
+  const e = S.empresa || {};
+  const der = { halign:'right' };
+  const filas = fuenteEmpresaConta().filter(d => normaliza(String(d.nit || '').split('-')[0]) === nitN && String(d.fecha || '').slice(0,4) === String(anio) &&
+    (Math.abs(d.retefuente) + Math.abs(d.reteica) + Math.abs(d.reteiva)) > TOL);
+  let pvDatos = null;
+  (S.proyectos || []).some(x => (x.proveedores || []).some(v => { if (normaliza(v.identificacion) === nitN){ pvDatos = v; return true; } return false; }));
+  pvDatos = pvDatos || {};
+  const conceptos = new Map(), ica = new Map(), proyectos = new Map();
+  let riva = { base:0, valor:0 };
+  const mesesRet = new Set();
+  filas.forEach(d => {
+    const pr = Modelo.proyecto(d.idProyecto) || p;
+    mesesRet.add(String(d.fecha).slice(0,7));
+    Conta.retencionPorConcepto(pr, d).forEach(x => {
+      const a = conceptos.get(x.concepto) || { nombre:Conta.nombreConcepto(x.concepto, d.fecha), base:0, valor:0 };
+      a.base += x.base; a.valor += x.valor; conceptos.set(x.concepto, a);
+    });
+    if (Math.abs(d.reteica) > TOL){
+      let mun = '';
+      if (d.clase === 'doc'){ const pv = Modelo.proveedor(pr, d.ref.idProveedor) || {}; mun = (pv.retencionICA || {}).municipio || ''; }
+      mun = mun || String(((pr.info || {}).ubicacion) || '').split(/[-,]/)[0].trim() || Conta.ciudadRetencion();
+      const a = ica.get(mun) || { base:0, valor:0 }; a.base += d.base; a.valor += d.reteica; ica.set(mun, a);
+    }
+    if (Math.abs(d.reteiva) > TOL){ riva.base += d.iva; riva.valor += d.reteiva; }
+    const pp = proyectos.get(pr.nombre) || { n:0, base:0, rf:0, ica:0, riva:0 };
+    pp.n++; pp.base += d.base; pp.rf += d.retefuente; pp.ica += d.reteica; pp.riva += d.reteiva; proyectos.set(pr.nombre, pp);
+  });
+  const dec = Conta.estado().declaraciones;
+  const meses = [...mesesRet].sort();
+  const pendientes = meses.filter(ym => !((dec[ym] || {}).presentada && (dec[ym] || {}).pagada));
+  const nomMes = ym => MESES[+ym.slice(5,7) - 1];
+  const total = [...conceptos.values()].reduce((t,x) => t + x.valor, 0) + [...ica.values()].reduce((t,x) => t + x.valor, 0) + riva.valor;
+  const cuerpoTabla = [...conceptos.entries()].map(([k, a]) => ['Retención en la fuente a título de renta · ' + a.nombre, { content:money(a.base), styles:der },
+      { content:a.base ? pct(a.valor / a.base * 100, 2) : '—', styles:der }, { content:money(a.valor), styles:der }])
+    .concat([...ica.entries()].map(([mun, a]) => ['Retención de industria y comercio · ' + mun, { content:money(a.base), styles:der }, { content:a.base ? cant(a.valor / a.base * 1000) + ' ‰' : '—', styles:der }, { content:money(a.valor), styles:der }]))
+    .concat(riva.valor ? [['Retención de IVA', { content:money(riva.base), styles:der }, { content:riva.base ? pct(riva.valor / riva.base * 100, 0) : '—', styles:der }, { content:money(riva.valor), styles:der }]] : []);
+  const ciudad = Conta.ciudadRetencion();
+  const declaracion = !filas.length ? 'No se practicaron retenciones a este tercero en el año gravable ' + anio + '.'
+    : !pendientes.length
+      ? 'Los valores retenidos fueron declarados y consignados en ' + ciudad + ', en las declaraciones de retención de los periodos ' + meses.map(nomMes).join(', ') + ' de ' + anio + '.'
+      : 'BORRADOR. Las retenciones de ' + pendientes.map(nomMes).join(', ') + ' de ' + anio + ' aún no figuran como declaradas y pagadas en ARKEN CONTROL (módulo 10 › Salidas para el contador). Confirme su presentación antes de entregar este certificado.';
+  Documentos.previsualizar({ nombre:'ARKEN_certificado_retencion_' + nitN + '_' + anio,
+    titulo:'CERTIFICADO DE RETENCIONES — AÑO GRAVABLE ' + anio + (pendientes.length && filas.length ? ' (BORRADOR)' : ''),
+    documento:'Certificado de retención', proyecto:null, textoProyecto:'Todos los proyectos de la empresa', orientacion:'p', bloques:[
+      { t:'kv', cols:2, pares:[['Agente retenedor', e.razonSocial || '—'], ['NIT', (e.nit || '') + (e.dv ? '-' + e.dv : '')],
+        ['Dirección', e.direccion || '—'], ['Ciudad donde se consignó', ciudad],
+        ['Retenido', pvDatos.razonSocial || (filas[0] || {}).prov || '—'], [pvDatos.tipoDocumento === 'NIT' || !pvDatos.tipoDocumento ? 'NIT' : pvDatos.tipoDocumento, (pvDatos.identificacion || nitN) + (pvDatos.dv ? '-' + pvDatos.dv : '')],
+        ['Periodo', 'Enero 1 a diciembre 31 de ' + anio], ['Fecha de expedición', fmtFecha(hoyISO())]] },
+      { t:'tabla', head:[['Concepto','Base sometida a retención','Tarifa efectiva','Valor retenido']], anchos:{1:der,2:der,3:der},
+        body: (cuerpoTabla.length ? cuerpoTabla : [[{ content:'Sin retenciones practicadas en el periodo.', colSpan:4 }]])
+          .concat([[{ content:'TOTAL RETENIDO', colSpan:3, styles:{ fontStyle:'bold' } }, { content:money(total), styles:{ halign:'right', fontStyle:'bold' } }]]) },
+      { t:'tabla', head:[['Proyecto (centro de costo)','Documentos','Base','Retefuente','ReteICA','ReteIVA']], anchos:{1:der,2:der,3:der,4:der,5:der},
+        body:[...proyectos.entries()].map(([n, a]) => [n, { content:String(a.n), styles:der }, { content:money(a.base), styles:der }, { content:money(a.rf), styles:der }, { content:money(a.ica), styles:der }, { content:money(a.riva), styles:der }]) },
+      { t:'texto', txt:declaracion + ' Se expide en cumplimiento de los artículos 378 a 381 del Estatuto Tributario.' },
+      { t:'nota', txt:AVISO_TRIBUTARIO },
+      { t:'firmas', firmas:[{ n:'Agente retenedor — representante legal o contador', s:e.razonSocial || '' }] }
+    ] });
+  Modelo.auditar('generar', 'certificado de retención', (pvDatos.razonSocial || nitN) + ' · ' + anio + (pendientes.length ? ' · borrador' : ''));
 }
 
 function excelContabilidad(p, fuente, vista){
@@ -42389,62 +42557,58 @@ function pdfControlContractual(p, F){
     ] });
 }
 
-/* ── Contabilidad: retenciones practicadas por tercero y certificado ── */
+/* ── Contabilidad: retenciones practicadas por tercero, revisión y certificado ── */
 function tabRetencionesTerceros(cont, fuente, p){
+  Conta.migrar();
   const anios = [...new Set(fuente.map(d => String(d.fecha || '').slice(0, 4)).filter(Boolean))].sort().reverse();
   const anio = Sesion.anioRet && anios.includes(Sesion.anioRet) ? Sesion.anioRet : (anios[0] || String(new Date().getFullYear()));
   const mapa = new Map();
-  fuente.filter(d => String(d.fecha || '').startsWith(anio)).forEach(d => {
-    const r = mapa.get(d.idProv) || { idProv:d.idProv, prov:d.prov, nit:d.nit, dv:d.dv, n:0, base:0, iva:0, rf:0, ica:0, riva:0, pagos:0 };
+  const delAnio = fuente.filter(d => String(d.fecha || '').startsWith(anio));
+  delAnio.forEach(d => {
+    const k = d.nit || d.idProv;
+    const r = mapa.get(k) || { idProv:d.idProv, prov:d.prov, nit:d.nit, dv:d.dv, n:0, base:0, iva:0, rf:0, ica:0, riva:0, pagos:0, conceptos:new Set() };
     r.n++; r.base += d.base; r.iva += d.iva; r.rf += d.retefuente; r.ica += d.reteica; r.riva += d.reteiva; r.pagos += d.neto;
-    mapa.set(d.idProv, r);
+    const pr = Modelo.proyecto(d.idProyecto) || p;
+    Conta.retencionPorConcepto(pr, d).forEach(x => r.conceptos.add(x.concepto));
+    mapa.set(k, r);
   });
   const R = [...mapa.values()].sort((a,b) => b.base - a.base);
   const T = R.reduce((a,r) => ({ base:a.base + r.base, rf:a.rf + r.rf, ica:a.ica + r.ica, riva:a.riva + r.riva }), { base:0, rf:0, ica:0, riva:0 });
   const sinRet = R.filter(r => r.base > 4000000 && !r.rf);
+  const revision = [];
+  const porProyecto = new Map();
+  delAnio.forEach(d => { const k = d.idProyecto || p.id; if (!porProyecto.has(k)) porProyecto.set(k, []); porProyecto.get(k).push(d); });
+  porProyecto.forEach((filas, idp) => { const pr = Modelo.proyecto(idp) || p; Conta.revisarRetenciones(pr, filas).forEach(x => revision.push(x)); });
   cont.innerHTML =
     '<div class="toolbar"><div class="field"><label>Año gravable</label><select id="rtAnio">' + UI.selectOpts(anios.length ? anios : [anio], anio) + '</select></div>' +
       '<button class="btn" id="rtXls" type="button">Excel — Retenciones por tercero</button>' +
-      '<span class="small muted">Sirve para la declaración mensual de retenciones, la información exógena y los certificados a cada tercero.</span></div>' +
+      '<span class="small muted">Sirve para la declaración mensual de retenciones, la información exógena y los certificados. El certificado suma todos los proyectos de la empresa.</span></div>' +
     '<div class="grid g4" style="margin-bottom:var(--gap)">' +
       '<div class="stat"><div class="lab">Base de pagos</div><div class="val">' + money(T.base) + '</div><div class="foot">' + R.length + ' tercero(s)</div></div>' +
       '<div class="stat"><div class="lab">Retención en la fuente</div><div class="val">' + money(T.rf) + '</div></div>' +
       '<div class="stat"><div class="lab">ReteICA · ReteIVA</div><div class="val">' + money(T.ica + T.riva) + '</div><div class="foot">ICA ' + money(T.ica) + ' · IVA ' + money(T.riva) + '</div></div>' +
-      '<div class="stat' + (sinRet.length ? ' accent' : '') + '"><div class="lab">Terceros sin retención</div><div class="val">' + sinRet.length + '</div><div class="foot">con pagos de más de $4 millones en el año</div></div>' +
+      '<div class="stat' + (sinRet.length || revision.length ? ' accent' : '') + '"><div class="lab">Por revisar</div><div class="val">' + (sinRet.length + revision.length) + '</div><div class="foot">' + sinRet.length + ' sin retención con pagos de más de $4 millones · ' + revision.length + ' con diferencias</div></div>' +
     '</div>' +
-    '<div class="card"><div class="tw scroll"><table class="t"><thead><tr><th>Tercero</th><th>NIT</th><th class="n">Documentos</th><th class="n">Base</th><th class="n">IVA</th>' +
+    '<div class="card"><div class="tw scroll"><table class="t"><thead><tr><th>Tercero</th><th>NIT</th><th>Conceptos</th><th class="n">Documentos</th><th class="n">Base</th><th class="n">IVA</th>' +
       '<th class="n">Retefuente</th><th class="n">% efectivo</th><th class="n">ReteICA</th><th class="n">ReteIVA</th><th></th></tr></thead><tbody>' +
-      R.map(r => '<tr' + (r.base > 4000000 && !r.rf ? ' class="over"' : '') + '><td>' + esc(r.prov) + '</td><td class="mono">' + esc(r.nit + (r.dv ? '-' + r.dv : '')) + '</td>' +
+      R.map((r,i) => '<tr' + (r.base > 4000000 && !r.rf ? ' class="over"' : '') + '><td>' + esc(r.prov) + '</td><td class="mono">' + esc(r.nit + (r.dv ? '-' + r.dv : '')) + '</td>' +
+        '<td class="small mono">' + esc([...r.conceptos].join(', ') || '—') + '</td>' +
         '<td class="n">' + r.n + '</td><td class="n">' + money(r.base) + '</td><td class="n">' + money(r.iva) + '</td><td class="n">' + money(r.rf) + '</td>' +
         '<td class="n">' + (r.base ? pct(r.rf / r.base * 100, 2) : '—') + '</td><td class="n">' + money(r.ica) + '</td><td class="n">' + money(r.riva) + '</td>' +
-        '<td>' + (r.rf || r.ica || r.riva ? '<button class="btn xs" data-cert="' + r.idProv + '" type="button">Certificado</button>' : '') + '</td></tr>').join('') +
-    '</tbody><tfoot><tr><td colspan="3">TOTAL ' + anio + '</td><td class="n">' + money(T.base) + '</td><td></td><td class="n">' + money(T.rf) + '</td><td></td>' +
-      '<td class="n">' + money(T.ica) + '</td><td class="n">' + money(T.riva) + '</td><td></td></tr></tfoot></table></div></div>';
+        '<td>' + (r.rf || r.ica || r.riva ? '<button class="btn xs" data-cert="' + i + '" type="button">Certificado</button>' : '') + '</td></tr>').join('') +
+    '</tbody><tfoot><tr><td colspan="4">TOTAL ' + anio + '</td><td class="n">' + money(T.base) + '</td><td></td><td class="n">' + money(T.rf) + '</td><td></td>' +
+      '<td class="n">' + money(T.ica) + '</td><td class="n">' + money(T.riva) + '</td><td></td></tr></tfoot></table></div></div>' +
+    '<div class="card"><div class="card-head"><h3>Revisión de retenciones</h3><span class="small muted">Compara lo retenido con la vigencia tributaria, el régimen y la calidad de autorretenedor del tercero</span></div>' +
+      '<div class="card-body flush"><div class="tw"><table class="t"><thead><tr><th>Fecha</th><th>Documento</th><th>Tercero</th><th>Hallazgo</th><th class="n">Retenido</th><th class="n">Calculado</th></tr></thead><tbody>' +
+      (revision.length ? revision.map(x => '<tr><td class="small">' + fmtFecha(x.u.fecha) + '</td><td class="small">' + esc(x.u.tipo + ' ' + x.u.numero) + (x.u.proyecto ? '<div class="muted">' + esc(x.u.proyecto) + '</div>' : '') + '</td>' +
+        '<td class="small">' + esc(x.u.prov) + '</td><td class="small"><b>' + esc(x.motivo) + '</b></td><td class="n">' + money(x.aplicada) + '</td><td class="n">' + money(x.esperada) + '</td></tr>').join('')
+        : '<tr><td colspan="6" class="muted small" style="padding:14px">Sin diferencias. ' + (Number((vigenciaPara(anio + '-06-30') || {}).uvt || 0) ? '' : 'La vigencia ' + anio + ' no tiene UVT ni tarifas configuradas: configúrelas en Administración › Parámetros tributarios para que esta revisión compare contra la norma.') + '</td></tr>') +
+      '</tbody></table></div></div></div>';
   $('#rtAnio').onchange = e => { Sesion.anioRet = e.target.value; App.render(); };
-  $$('[data-cert]', cont).forEach(b => b.onclick = () => certificadoRetencion(p, R.find(r => r.idProv === b.dataset.cert), anio));
+  $$('[data-cert]', cont).forEach(b => b.onclick = () => certificadoRetencion(p, R[+b.dataset.cert], anio));
   $('#rtXls').onclick = () => Documentos.excel('ARKEN_retenciones_' + anio, [{ nombre:'Retenciones ' + anio, titulo:'Retenciones practicadas por tercero — ' + anio,
-    anchos:[40,14,6,10,16,16,16,16,16], filas:[['Tercero','NIT','DV','Documentos','Base','IVA','Retefuente','ReteICA','ReteIVA']].concat(R.map(r =>
-      [r.prov, r.nit, r.dv, r.n, redondear(r.base), redondear(r.iva), redondear(r.rf), redondear(r.ica), redondear(r.riva)])) }]);
-}
-
-function certificadoRetencion(p, r, anio){
-  if (!r) return;
-  const e = S.empresa || {};
-  const der = { halign:'right' };
-  const filas = [['Retención en la fuente a título de renta', r.base, r.rf], ['Retención de industria y comercio (ICA)', r.base, r.ica], ['Retención de IVA', r.iva, r.riva]]
-    .filter(f => f[2]);
-  Documentos.previsualizar({ nombre:'ARKEN_certificado_retencion_' + (r.nit || 'tercero') + '_' + anio, titulo:'CERTIFICADO DE RETENCIONES — AÑO GRAVABLE ' + anio,
-    documento:'Certificado de retención', proyecto:p, orientacion:'p', bloques:[
-      { t:'kv', cols:2, pares:[['Agente retenedor', e.razonSocial || '—'], ['NIT', (e.nit || '') + (e.dv ? '-' + e.dv : '')],
-        ['Dirección', e.direccion || '—'], ['Ciudad donde se consignó', (e.direccion || '').split('-').pop().trim() || '—'],
-        ['Retenido', r.prov], ['NIT / cédula', r.nit + (r.dv ? '-' + r.dv : '')], ['Periodo', 'Enero 1 a diciembre 31 de ' + anio], ['Proyecto', p.nombre]] },
-      { t:'tabla', head:[['Concepto','Base sometida a retención','Valor retenido']], anchos:{1:der,2:der},
-        body: filas.map(f => [f[0], { content:money(f[1]), styles:der }, { content:money(f[2]), styles:der }])
-          .concat([[{ content:'TOTAL RETENIDO', styles:{fontStyle:'bold'} }, '', { content:money(filas.reduce((t,f) => t + f[2], 0)), styles:{halign:'right', fontStyle:'bold'} }]]) },
-      { t:'texto', txt:'Los valores retenidos fueron declarados y consignados oportunamente a favor de la Dirección de Impuestos y Aduanas Nacionales y del municipio respectivo, según corresponda. ' +
-        'Se expide de conformidad con el artículo 381 del Estatuto Tributario. Las personas jurídicas podrán entregar los certificados de retención en la fuente en forma impresa o digital, sin firma autógrafa (art. 10 Decreto 836 de 1991).' },
-      { t:'firmas', firmas:[{ n:'Representante legal o contador' }] }
-    ] });
+    anchos:[40,14,6,14,10,16,16,16,16,16], filas:[['Tercero','NIT','DV','Conceptos','Documentos','Base','IVA','Retefuente','ReteICA','ReteIVA']].concat(R.map(r =>
+      [r.prov, r.nit, r.dv, [...r.conceptos].join(', '), r.n, redondear(r.base), redondear(r.iva), redondear(r.rf), redondear(r.ica), redondear(r.riva)])) }]);
 }
 
 
@@ -52698,17 +52862,16 @@ const Ayuda = (function(){
 
   T.m10 =
     '<h3>Módulo 10 · Contabilidad</h3>' +
-    '<p>Libro auxiliar con toda la información de los documentos de pago y de los cortes de obra: fecha, tipo, ' +
-    'consecutivo, número, NIT, DV, razón social, régimen, concepto, cuenta PUC, centro de costo, capítulo, base ' +
-    'gravable, tarifa y valor de IVA, retenciones, total y neto a pagar.</p>' +
-    '<h4>Vistas</h4><p>Libro auxiliar del proyecto, consolidado de empresa, por proveedor, por cuenta PUC y por periodo.</p>' +
-    '<h4>Salidas para el contador</h4><p>Relación de retenciones practicadas, certificados de retención en la ' +
-    'fuente por proveedor y periodo, relación de IVA, cuentas por pagar con antigüedad de saldos y centro de ' +
-    'costos por capítulo. Todo exportable a Excel y a PDF.</p>' +
+    '<p>Cada compra, salida de almacén, corte de obra, pago, ingreso del cliente, nómina y liquidación genera su ' +
+    '<b>comprobante contable por partida doble</b>, con las cuentas de las reglas de causación (Administración › Plan de cuentas). ' +
+    'Con esos comprobantes y los manuales (ajustes y saldos iniciales) salen el <b>libro diario</b>, el <b>libro mayor</b> y el ' +
+    '<b>balance de prueba</b>, por proyecto o de toda la empresa, en PDF y Excel.</p>' +
+    '<h4>Retenciones</h4><p>La retención se calcula por concepto con la vigencia de la fecha del documento: base mínima en UVT, ' +
+    'tarifa de declarante o no declarante, y sin retención a autorretenedores ni al régimen simple (art. 911 ET). ' +
+    'El certificado se expide por NIT sumando todos los proyectos, y solo afirma que lo retenido fue declarado y consignado ' +
+    'cuando los meses están marcados en el control de declaraciones.</p>' +
     '<h4>Parámetros tributarios</h4><p><b>Ninguna tarifa está escrita en el código.</b> Todas viven en una tabla ' +
-    'editable con vigencias fechadas, en el panel de administración. Cada documento se calcula con la vigencia ' +
-    'correspondiente a su fecha, no con la vigente hoy: un documento de un año anterior no se recalcula porque ' +
-    'cambió la tarifa después.</p>';
+    'editable con vigencias fechadas, en el panel de administración.</p>';
 
   T.m11 =
     '<h3>Módulo 11 · SG-SST</h3>' +
@@ -55754,27 +55917,56 @@ const GUIAS_MODULO = [
     consejos:['«ABRIR ARKEN PLANNER» conecta con la planeación semanal Last Planner (PPC).'],
     cuidado:['Mover una predecesora corre sus dependientes: revise la ruta crítica después de cada cambio grande.'] },
 
-  { id:'10', ic:'contabilidad', lema:'El libro auxiliar y las salidas para el contador',
-    para:'Arma el libro auxiliar con todos los documentos de pago y cortes, y entrega al contador las relaciones de retenciones, IVA, cuentas por pagar y certificados.',
-    quien:'Contabilidad y gerencia.',
+  { id:'10', ic:'contabilidad', lema:'Contabilidad por partida doble, libros y salidas para el contador',
+    para:'Convierte cada compra, salida, corte, pago, ingreso y nómina en comprobantes con débitos y créditos, y con ellos arma el libro diario, el libro mayor y el balance de prueba. Además entrega al contador las retenciones por concepto, el control de declaraciones, los certificados por NIT, el IVA, las cuentas por pagar y los centros de costo.',
+    quien:'Contabilidad, gerencia y revisoría.',
     pestanas:[
       ['Libro auxiliar del proyecto', 'Todos los movimientos con NIT, cuenta PUC, base, IVA, retenciones y neto.'],
+      ['Comprobantes', 'Comprobantes automáticos y manuales con su cuadre; ver, imprimir, crear ajustes y saldos iniciales.'],
+      ['Libro diario', 'Todos los asientos en orden cronológico.'],
+      ['Libro mayor', 'Saldo anterior, débitos, créditos y saldo de cada cuenta; un clic muestra sus movimientos.'],
+      ['Balance de prueba', 'Saldos por clase, cuenta y subcuenta con la prueba de sumas iguales y los controles.'],
       ['Consolidado empresa', 'Los movimientos de todos los proyectos.'],
       ['Por proveedor', 'Movimientos agrupados por tercero.'],
-      ['Por cuenta PUC', 'Movimientos agrupados por cuenta contable.'],
+      ['Por cuenta PUC', 'Movimientos agrupados por la cuenta del documento.'],
       ['Por periodo', 'Movimientos agrupados por mes.'],
-      ['Retenciones por tercero', 'Retenciones practicadas a cada proveedor y su certificado.'],
-      ['Salidas para el contador', 'Relaciones de retenciones, IVA, cuentas por pagar y centros de costo.']],
+      ['Retenciones por tercero', 'Retenciones por tercero y concepto, revisión contra la vigencia y certificado.'],
+      ['Salidas para el contador', 'Retenciones por concepto, control de declaraciones, certificados, IVA, cuentas por pagar y centros de costo.']],
     tareas:[
+      { t:'Consultar el balance de prueba', pasos:[
+        'Abra «Balance de prueba».',
+        'Elija el ámbito (proyecto activo o toda la empresa) y el periodo con «Desde» y «Hasta».',
+        'Revise que diga «Cuadrado» y lea los «Controles del contador».',
+        'Pulse «Exportar a PDF» o «Exportar a Excel».'] },
+      { t:'Ver los movimientos de una cuenta', pasos:[
+        'Abra «Libro mayor».',
+        'Haga clic en la cuenta.',
+        'Pulse «PDF de la cuenta» si necesita el auxiliar impreso.'] },
+      { t:'Registrar un ajuste o los saldos iniciales', pasos:[
+        'Abra «Comprobantes».',
+        'Pulse «+ Comprobante manual» o «+ Saldos iniciales».',
+        'Elija la fecha, el centro de costo y escriba el concepto y el soporte.',
+        'Agregue los renglones con cuenta, tercero, débito o crédito hasta que diga «Cuadrado».',
+        'Pulse «Guardar comprobante».'] },
+      { t:'Ajustar las cuentas de causación', pasos:[
+        'Vaya a Administración › Plan de cuentas.',
+        'Baje a «Reglas de causación automática».',
+        'Cambie la cuenta de cada hecho o la del concepto de retención; los libros se recalculan.'] },
+      { t:'Marcar las declaraciones de retención', pasos:[
+        'Abra «Salidas para el contador».',
+        'En «Control de declaraciones de retención» marque «Presentada» y «Pagada» en cada mes, con la fecha y el número del formulario.'] },
       { t:'Generar un certificado de retención', pasos:[
-        'Abra «Retenciones por tercero».',
-        'Elija el proveedor y el periodo.',
-        'Pulse «Generar certificado» o «Certificado».'] },
-      { t:'Entregar la información al contador', pasos:[
-        'Abra la vista que necesite.',
-        'Pulse «Exportar a Excel» o «Exportar a PDF».'] }],
-    consejos:['Las tarifas tributarias se editan en Administración › Parámetros tributarios, con vigencias por fechas.'],
-    cuidado:['Cada documento se calcula con la tarifa vigente en su fecha; cambiar una tarifa no recalcula documentos anteriores.'] },
+        'Abra «Retenciones por tercero» y pulse «Certificado», o use «Salidas para el contador».',
+        'Elija el tercero y el año.',
+        'El certificado suma todos los proyectos; sale como borrador si algún mes no está marcado como declarado y pagado.'] },
+      { t:'Calcular la retención de un documento', pasos:[
+        'En el módulo 05, abra el documento de pago.',
+        'Elija el «Concepto de retención en la fuente» y, si hace falta, el de cada línea.',
+        'Pulse «Calcular retenciones con la vigencia tributaria» y revise la explicación debajo del botón.'] }],
+    consejos:['Las tarifas y la UVT se editan en Administración › Parámetros tributarios, con vigencias por fechas.',
+      'En la ficha del proveedor marque si es declarante, autorretenedor o del régimen simple: el cálculo de la retención depende de eso.'],
+    cuidado:['Los comprobantes automáticos se rehacen desde el documento de origen: para corregir uno, corrija el documento en su módulo.',
+      'Cada documento se calcula con la tarifa vigente en su fecha; cambiar una tarifa no recalcula documentos ya guardados.'] },
 
   { id:'11', ic:'sst', lema:'Seguridad y salud en el trabajo',
     para:'Lleva el SG-SST de la obra: autoevaluación de estándares mínimos (Res. 0312 de 2019), capacitaciones, inspecciones, incidentes, trabajo en alturas, entrega de EPP y documentación de contratistas.',
@@ -56936,8 +57128,9 @@ const AYUDA_CONTENIDO = {
         'escribir la curva a mano, en valores o en porcentaje del costo total con AIU — la escala del gráfico ' +
         'siempre se muestra en moneda, sin importar cómo se haya digitado.</p>' },
     { q:'Módulo 10 · Contabilidad',
-      a:'<p>Libro auxiliar con todos los documentos de pago y cortes. El botón <b>Cierre contable</b> congela el ' +
-        'periodo completo de todos los módulos y bloquea el registro retroactivo en Causaciones.</p>' },
+      a:'<p>Libro auxiliar, comprobantes por partida doble, libro diario, libro mayor y balance de prueba. Los comprobantes ' +
+        'automáticos nacen de los documentos de los demás módulos; los manuales sirven para ajustes y saldos iniciales. ' +
+        'El botón <b>Cierre contable</b> congela el periodo completo de todos los módulos y bloquea el registro retroactivo en Causaciones.</p>' },
     { q:'Módulo 11 · SG-SST',
       a:'<p>Capacitaciones, inspecciones, incidentes, y los dos formatos de trabajo en alturas —revisión de equipo y ' +
         'permiso—, cada uno con sus firmas correspondientes guardadas e impresas.</p>' },
@@ -60159,6 +60352,7 @@ const Arranque = (function(){
       S = Modelo.migrar(r.datos);
       if (!(S.alertas.reglas||[]).length) S.alertas.reglas = Alertas.reglasBase();
       if (!(S.puc||[]).length) S.puc = Semilla.puc();
+      try { Conta.migrar(); } catch(e){ console.error(e); }
     } else {
       S = Modelo.estadoNuevo();
       S.alertas.reglas = Alertas.reglasBase();
@@ -60404,4 +60598,967 @@ function ocultarSplash(){
 </script>
 
 
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   MÓDULO 10 · CONTABILIDAD POR PARTIDA DOBLE
+   Cada hecho que el sistema ya registra (compra, salida de almacén, corte de
+   obra, pago, ingreso del cliente, nómina, liquidación, devolución de
+   retenido) produce su comprobante contable con débitos y créditos, según
+   las reglas de causación que el contador ajusta en Administración › Plan de
+   cuentas. Los comprobantes automáticos se recalculan a partir del documento
+   de origen: no se guardan copias que puedan desfasarse. Los comprobantes
+   manuales (ajustes y saldos iniciales) sí se guardan, y exigen cuadrar.
+   Con todos ellos salen el libro diario, el libro mayor y el balance de prueba.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const TIPOS_COMPROBANTE = {
+  CP:{ n:'Causación de compra', auto:true }, SA:{ n:'Salida de almacén', auto:true },
+  CO:{ n:'Causación de corte de obra', auto:true }, EG:{ n:'Comprobante de egreso', auto:true },
+  RC:{ n:'Recibo de caja', auto:true }, NO:{ n:'Causación de nómina', auto:true },
+  LQ:{ n:'Liquidación de prestaciones', auto:true }, DV:{ n:'Devolución de retenido', auto:true },
+  CM:{ n:'Comprobante manual (ajuste)', auto:false }, AP:{ n:'Saldos iniciales', auto:false }
+};
+
+const CLASES_PUC = { '1':'Activo', '2':'Pasivo', '3':'Patrimonio', '4':'Ingresos', '5':'Gastos',
+  '6':'Costos de ventas', '7':'Costos de producción o de operación', '8':'Cuentas de orden deudoras', '9':'Cuentas de orden acreedoras' };
+
+/* Reglas de causación: qué cuenta se usa en cada hecho. El contador las cambia. */
+const REGLAS_CONTA_BASE = {
+  banco:'1110', inventario:'1405', anticipoProveedor:'1330', ivaDescontable:'2408', proveedores:'2205',
+  costosPorPagar:'2335', costoMateriales:'7205', costoContratos:'7360', costoManoObra:'7305',
+  reteICA:'2368', reteIVA:'2367', retenidoGarantia:'2380', otrasDeducciones:'2380', descuentoObra:'4250',
+  ingresoCliente:'2805', retencionCliente:'135515', otrasRetCliente:'1355',
+  salariosPorPagar:'2505', aportesNomina:'2370', retencionNomina:'236505', provisionPrestaciones:'2610',
+  retPorConcepto:{ COM:'236540', SER:'236525', CON:'236525', HON:'236515', ARR:'236530', OTR:'236570' },
+  tratamientoIVA:'descontable', agenteReteIVA:false, ciudadRetencion:'', ivaCostoProyectos:{}
+};
+const REGLAS_CONTA_ETIQ = [
+  ['Compras y almacén', [['inventario','Inventario de materiales (compras para almacén)'], ['ivaDescontable','IVA descontable en compras'],
+    ['proveedores','Proveedores por pagar'], ['anticipoProveedor','Anticipos girados a proveedores y contratistas'],
+    ['costoMateriales','Costo de materiales enviados a la obra (salidas)']]],
+  ['Contratos y cortes de obra', [['costoContratos','Costo de contratos de obra'], ['costosPorPagar','Costos por pagar a contratistas'],
+    ['retenidoGarantia','Retenido de garantía a contratistas'], ['otrasDeducciones','Otras deducciones a contratistas'],
+    ['descuentoObra','Descuentos de obra cobrados al contratista']]],
+  ['Retenciones practicadas', [['reteICA','ReteICA por pagar'], ['reteIVA','ReteIVA por pagar']]],
+  ['Tesorería e ingresos', [['banco','Bancos'], ['ingresoCliente','Pagos recibidos del cliente'],
+    ['retencionCliente','Retención que nos practica el cliente'], ['otrasRetCliente','Otras retenciones que nos practica el cliente']]],
+  ['Nómina', [['costoManoObra','Costo de mano de obra'], ['salariosPorPagar','Salarios por pagar'], ['aportesNomina','Aportes de seguridad social y parafiscales'],
+    ['retencionNomina','Retención en la fuente de asalariados'], ['provisionPrestaciones','Provisión de prestaciones sociales']]]
+];
+
+/* Cuentas que el plan corregido agrega o renombra (versión 8). */
+const PUC_V8_RENOMBRES = [
+  ['236525', /honorario/i, 'Servicios'],
+  ['236530', /servicio/i, 'Arrendamientos'],
+  ['2815', /retenid|anticipos de contratos/i, 'Ingresos recibidos para terceros']
+];
+
+const Conta = (function(){
+
+  /* ─────────────── Estado, migración y reglas ─────────────── */
+  function estado(){
+    if (!S.contabilidad) S.contabilidad = {};
+    const c = S.contabilidad;
+    if (!c.reglas) c.reglas = {};
+    if (!Array.isArray(c.comprobantes)) c.comprobantes = [];
+    if (!c.declaraciones) c.declaraciones = {};
+    if (!c.consecutivos) c.consecutivos = {};
+    return c;
+  }
+  function reglas(){
+    const r = Object.assign({}, REGLAS_CONTA_BASE, estado().reglas || {});
+    r.retPorConcepto = Object.assign({}, REGLAS_CONTA_BASE.retPorConcepto, (estado().reglas || {}).retPorConcepto || {});
+    r.ivaCostoProyectos = Object.assign({}, (estado().reglas || {}).ivaCostoProyectos || {});
+    return r;
+  }
+  /** Corrige el plan de cuentas guardado y agrega las cuentas que faltan. Idempotente. */
+  function migrar(){
+    if (!S) return;
+    const c = estado();
+    if (!Array.isArray(S.puc)) S.puc = [];
+    let cambios = 0;
+    if (!c.pucV8){
+      PUC_V8_RENOMBRES.forEach(([cod, re, nombre]) => {
+        const x = S.puc.find(y => y.codigo === cod);
+        if (x && re.test(x.nombre || '')){ x.nombre = nombre; cambios++; }
+      });
+    }
+    const base = Semilla.puc();
+    base.forEach(b => { if (!S.puc.some(y => y.codigo === b.codigo)){ S.puc.push(b); cambios++; } });
+    S.puc.sort((a,b) => String(a.codigo).localeCompare(String(b.codigo)));
+    if (!c.pucV8){
+      c.pucV8 = true;
+      if (cambios) try { Modelo.auditar('actualizar', 'plan de cuentas', 'Corrección del PUC (236525 servicios, 236530 arrendamientos, 2380 retenido de garantía) y ' + cambios + ' ajuste(s)'); } catch(e){}
+    }
+    return cambios;
+  }
+  function puedeContabilizar(){
+    const u = Sesion.usuario;
+    return !!u && ['administrador','gerencia','contador'].includes(u.rol);
+  }
+  function nombreCuenta(cod){
+    const x = (S.puc || []).find(y => y.codigo === cod);
+    return x ? x.nombre : '';
+  }
+  function naturalezaDebito(cod){ return ['1','5','6','7','8'].includes(String(cod || '').charAt(0)); }
+  function ivaEsCosto(p){
+    const r = reglas();
+    const k = r.ivaCostoProyectos[p.id];
+    if (k === true || k === false) return k;
+    return r.tratamientoIVA === 'costo';
+  }
+  function ciudadRetencion(){
+    const r = reglas();
+    if (r.ciudadRetencion) return r.ciudadRetencion;
+    const d = String((S.empresa || {}).direccion || '');
+    return (d.split(/[-,]/)[0] || '').trim() || '—';
+  }
+
+  /* ─────────────── Conceptos de retención ─────────────── */
+  function codigoConcepto(txt, fecha){
+    const t = String(txt || '').trim();
+    if (!t) return '';
+    const lista = conceptosVigentes(fecha);
+    const exacto = lista.find(c => normaliza(c.codigo) === normaliza(t) || normaliza(c.concepto) === normaliza(t));
+    if (exacto) return exacto.codigo;
+    const n = normaliza(t);
+    if (/constru|obra/.test(n)) return 'CON';
+    if (/honorar|comision/.test(n)) return 'HON';
+    if (/arrend|alquil/.test(n)) return 'ARR';
+    if (/servic|transport/.test(n)) return 'SER';
+    if (/compra/.test(n)) return 'COM';
+    return t.toUpperCase().slice(0, 6);
+  }
+  function nombreConcepto(cod, fecha){
+    const c = conceptosVigentes(fecha).find(x => x.codigo === cod);
+    if (c) return c.concepto;
+    return ({ COM:'Compras', SER:'Servicios', CON:'Contratos de construcción', HON:'Honorarios y comisiones', ARR:'Arrendamientos', OTR:'Otros conceptos' })[cod] || cod || 'Sin concepto';
+  }
+  function conceptoProveedor(pv, fecha){
+    const c = codigoConcepto(((pv || {}).retencionFuente || {}).concepto, fecha);
+    if (c) return c;
+    return (pv || {}).tipoProveedor === 'contratista' ? 'CON' : 'COM';
+  }
+  /** Retención en la fuente de un movimiento (fila de documentosUnificados) repartida por concepto. */
+  function retencionPorConcepto(p, u){
+    const rf = Number(u.retefuente || 0);
+    if (Math.abs(rf) < TOL) return [];
+    const ref = u.ref || {};
+    if (u.clase === 'doc' && Array.isArray(ref.retencionesDetalle) && ref.retencionesDetalle.length){
+      const suma = ref.retencionesDetalle.reduce((t,x) => t + Number(x.valor || 0), 0);
+      if (Math.abs(suma - Math.abs(rf)) <= 1)
+        return ref.retencionesDetalle.filter(x => Number(x.valor || 0)).map(x => ({ concepto:x.concepto || 'OTR',
+          base: Number(x.base || 0) * Math.sign(rf || 1), valor: Number(x.valor || 0) * Math.sign(rf || 1), tarifa:Number(x.tarifa || 0) }));
+    }
+    let cod = '';
+    if (u.clase === 'doc'){
+      const pv = Modelo.proveedor(p, ref.idProveedor) || {};
+      cod = ref.conceptoRet || conceptoProveedor(pv, u.fecha);
+    } else {
+      const k = Modelo.contrato(p, ref.idContrato) || {};
+      const pv = Modelo.proveedor(p, k.idProveedor) || {};
+      cod = k.conceptoRet || codigoConcepto((pv.retencionFuente || {}).concepto, u.fecha) || 'CON';
+    }
+    return [{ concepto:cod, base:u.base, valor:rf, tarifa:u.base ? Math.abs(rf / u.base) * 100 : 0 }];
+  }
+
+  /** Retenciones que corresponden a un documento de pago según la vigencia de su fecha. */
+  function calcularRetenciones(p, doc, pv){
+    pv = pv || {};
+    const v = vigenciaPara(doc.fecha) || {};
+    const uvt = Number(v.uvt || 0);
+    const r = reglas();
+    const conceptos = v.conceptosRetencionFuente || [];
+    const defecto = doc.conceptoRet || conceptoProveedor(pv, doc.fecha);
+    const grupos = new Map();
+    let baseTotal = 0, ivaTotal = 0;
+    (doc.lineas || []).forEach(l => {
+      const b = Number(l.cantidad || 0) * Number(l.precioSinIVA || 0);
+      baseTotal += b; ivaTotal += b * Number(l.tarifaIVA || 0) / 100;
+      const c = l.conceptoRet || defecto;
+      grupos.set(c, (grupos.get(c) || 0) + b);
+    });
+    const notas = [];
+    const detalle = [];
+    const exento = pv.autorretenedor ? 'autorretenedor' : (pv.regimen === 'simple' ? 'simple' : '');
+    if (pv.autorretenedor) notas.push('El proveedor es autorretenedor: no se le practica retención en la fuente.');
+    if (pv.regimen === 'simple') notas.push('El proveedor pertenece al régimen simple de tributación: no es sujeto de retención en la fuente (art. 911 ET).');
+    grupos.forEach((base, cod) => {
+      const def = conceptos.find(c => c.codigo === cod);
+      let tarifa = def ? Number(pv.declarante === false ? def.tarifaNoDeclarante : def.tarifaDeclarante) || 0 : 0;
+      let origen = 'vigencia ' + (v.anio || '');
+      if (!tarifa && (pv.retencionFuente || {}).tarifa && conceptoProveedor(pv, doc.fecha) === cod){
+        tarifa = Number(pv.retencionFuente.tarifa) || 0; origen = 'ficha del proveedor';
+      }
+      const minimo = def ? Number(def.baseMinimaUVT || 0) * uvt : 0;
+      let valor = 0, nota = '';
+      if (exento) nota = exento === 'simple' ? 'Régimen simple' : 'Autorretenedor';
+      else if (!tarifa) nota = 'Sin tarifa configurada';
+      else if (minimo && Math.abs(baseTotal) < minimo) nota = 'No supera la base mínima de ' + cant(def.baseMinimaUVT) + ' UVT (' + money(minimo) + ')';
+      else { valor = redondear(Math.abs(base) * tarifa / 100); nota = cant(tarifa) + ' % según ' + origen; }
+      detalle.push({ concepto:cod, nombre:nombreConcepto(cod, doc.fecha), base:redondear(Math.abs(base)), tarifa: valor ? tarifa : 0, valor, nota });
+    });
+    const fuente = detalle.reduce((t,x) => t + x.valor, 0);
+    const ica = Math.abs(baseTotal) > 0 ? redondear(Math.abs(baseTotal) * Number((pv.retencionICA || {}).tarifaMilaje || 0) / 1000) : 0;
+    let iva = 0;
+    const tRiva = Number((v.reteIVA || {}).tarifaSobreIVA || 0);
+    const minRiva = Number((v.reteIVA || {}).baseMinimaUVT || 0) * uvt;
+    if (r.agenteReteIVA && tRiva > 0 && pv.responsableIVA && ivaTotal > 0 && (!minRiva || Math.abs(baseTotal) >= minRiva)){
+      iva = redondear(Math.abs(ivaTotal) * tRiva / 100);
+      notas.push('ReteIVA del ' + cant(tRiva) + ' % sobre el IVA facturado.');
+    }
+    if (!uvt) notas.push('La vigencia ' + (v.anio || '') + ' no tiene UVT configurada: no se verifican bases mínimas.');
+    return { fuente, ica, iva, detalle, notas };
+  }
+
+  /** Controles sobre la retención aplicada a cada movimiento. */
+  function revisarRetenciones(p, filas){
+    const out = [];
+    filas.forEach(u => {
+      if (u.clase !== 'doc' && u.clase !== 'corte') return;
+      let pv;
+      if (u.clase === 'doc') pv = Modelo.proveedor(p, u.ref.idProveedor) || {};
+      else { const k = Modelo.contrato(p, u.ref.idContrato) || {}; pv = Modelo.proveedor(p, k.idProveedor) || {}; }
+      const aplicada = Math.abs(Number(u.retefuente || 0));
+      const add = (motivo, esperada) => out.push({ u, pv, aplicada, esperada, motivo });
+      if (pv.autorretenedor && aplicada > 1) return add('Autorretenedor con retención practicada', 0);
+      if (pv.regimen === 'simple' && aplicada > 1) return add('Régimen simple: no es sujeto de retención (art. 911 ET)', 0);
+      if (u.clase === 'doc' && u.tipoK !== 'anticipo'){
+        const c = calcularRetenciones(p, u.ref, pv);
+        const configurada = c.detalle.some(x => !/Sin tarifa/.test(x.nota));
+        if (configurada && Math.abs(c.fuente - aplicada) > 1)
+          add(c.fuente > aplicada ? (aplicada ? 'Retención menor a la calculada con la vigencia' : 'Se esperaba retención y no se practicó')
+                                  : 'Retención mayor a la calculada con la vigencia', c.fuente);
+      }
+    });
+    return out;
+  }
+
+  /* ─────────────── Generación de comprobantes ─────────────── */
+  function fechaDeTs(ts, minimo){
+    if (!ts) return minimo;
+    const d = new Date(Number(ts));
+    if (isNaN(d)) return minimo;
+    const iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    return minimo && iso < minimo ? minimo : iso;
+  }
+  function nuevo(p, tipo, numero, fecha, concepto, origen, tercero){
+    return { id:'auto_' + tipo + '_' + origen.id + (origen.sufijo || ''), tipo, numero:String(numero || '—'), fecha:fecha || '',
+      idProyecto:p ? p.id : '', proyecto:p ? p.nombre : 'Empresa', concepto, origen, automatico:true,
+      tercero: tercero || { nit:'', nombre:'' }, lineas:[] };
+  }
+  /** Agrega un renglón; los valores negativos pasan a la columna contraria. */
+  function mov(c, cuenta, debito, credito, detalle, extra){
+    debito = redondear(debito || 0); credito = redondear(credito || 0);
+    if (debito < 0){ credito += -debito; debito = 0; }
+    if (credito < 0){ debito += -credito; credito = 0; }
+    if (!debito && !credito) return;
+    const t = (extra && extra.tercero) || c.tercero || {};
+    c.lineas.push({ cuenta:String(cuenta || ''), nit:t.nit || '', tercero:t.nombre || '', cc:c.proyecto,
+      sub:(extra && extra.sub) || '', detalle:detalle || c.concepto, debito, credito });
+  }
+  function totales(c){
+    return c.lineas.reduce((a,l) => ({ d:a.d + l.debito, c:a.c + l.credito }), { d:0, c:0 });
+  }
+  function terceroDe(pv){ return { nit:(pv.identificacion || '') + (pv.dv ? '-' + pv.dv : ''), nombre:pv.razonSocial || '' }; }
+
+  function comprobantesProyecto(p){
+    const r = reglas();
+    const ivaCosto = ivaEsCosto(p);
+    const out = [];
+    const signoDoc = d => { const t = TIPOS_DOC_PAGO.find(x => x.k === d.tipo); return t ? t.signo : 1; };
+
+    /* Compras y documentos de pago */
+    (p.documentos || []).forEach(d => {
+      if (d.anulado) return;
+      const pv = Modelo.proveedor(p, d.idProveedor) || {};
+      const t = Calculo.totalesDocumento(d);
+      const ter = terceroDe(pv);
+      const tipoN = tipoDocNombre(d.tipo);
+      const c = nuevo(p, 'CP', d.consecutivo || d.numero, d.fecha, tipoN + ' ' + (d.numero || '') + ' · ' + (pv.razonSocial || ''), { clase:'doc', id:d.id }, ter);
+      const esAnticipo = d.tipo === 'anticipo';
+      const cuentaDebito = esAnticipo ? r.anticipoProveedor : r.inventario;
+      mov(c, cuentaDebito, t.base + (ivaCosto ? t.iva : 0), 0, esAnticipo ? 'Anticipo girado' : 'Entrada a almacén');
+      if (!ivaCosto) mov(c, r.ivaDescontable, t.iva, 0, 'IVA descontable');
+      const u = { clase:'doc', ref:d, retefuente:t.retefuente, base:t.base, fecha:d.fecha };
+      retencionPorConcepto(p, u).forEach(x => mov(c, r.retPorConcepto[x.concepto] || r.retPorConcepto.OTR, 0, x.valor, 'Retención en la fuente · ' + nombreConcepto(x.concepto, d.fecha)));
+      mov(c, r.reteICA, 0, t.reteica, 'ReteICA');
+      mov(c, r.reteIVA, 0, t.reteiva, 'ReteIVA');
+      mov(c, r.anticipoProveedor, 0, t.amortizacion, 'Amortización de anticipo');
+      mov(c, r.proveedores, 0, t.neto, 'Neto por pagar');
+      out.push(c);
+      if (d.pagado && Math.abs(t.neto) > TOL){
+        const e = nuevo(p, 'EG', d.consecutivo || d.numero, fechaDeTs(d.fechaPago || d.fechaAutorizacion, d.fecha), 'Pago ' + tipoN + ' ' + (d.numero || '') + ' · ' + (pv.razonSocial || ''), { clase:'doc', id:d.id, sufijo:'_pago' }, ter);
+        e.pagoInferido = !d.fechaPago;
+        mov(e, r.proveedores, t.neto, 0, 'Pago al proveedor');
+        mov(e, r.banco, 0, t.neto, (pv.banco ? 'Giro a ' + pv.banco + ' ' + (pv.numeroCuenta || '') : 'Giro bancario'));
+        out.push(e);
+      }
+      void signoDoc;
+    });
+
+    /* Salidas de almacén → costo de la obra por capítulo, al costo promedio ponderado de compra */
+    const costos = costoSalidas(p, ivaCosto);
+    (p.salidas || []).forEach(s => {
+      if (s.anulado) return;
+      const c = nuevo(p, 'SA', s.consecutivo, s.fecha, 'Salida de almacén ' + (s.consecutivo || '') + (s.frente ? ' · ' + s.frente : ''), { clase:'salida', id:s.id });
+      const k = costos.get(s.id) || { porCap:new Map() };
+      let total = 0;
+      k.porCap.forEach((v, cap) => { const x = redondear(v); total += x; mov(c, r.costoMateriales, x, 0, 'Materiales a la obra', { sub:cap }); });
+      mov(c, r.inventario, 0, total, 'Salida de inventario al costo promedio');
+      if (k.sinCosto && k.sinCosto.length) c.sinCosto = k.sinCosto;
+      if (c.lineas.length) out.push(c);
+    });
+
+    /* Cortes de obra y su pago */
+    (p.cortes || []).forEach(co => {
+      if (co.anulado) return;
+      const k = Modelo.contrato(p, co.idContrato) || {};
+      const pv = Modelo.proveedor(p, k.idProveedor) || {};
+      const l = Calculo.liquidacionCorte(p, co);
+      const ter = terceroDe(pv);
+      const cap = capituloDeCorte(p, co, k);
+      const c = nuevo(p, 'CO', co.consecutivo, co.fecha, 'Corte ' + (co.numeroCorte || 1) + ' · contrato ' + (k.consecutivo || '') + ' · ' + (pv.razonSocial || ''), { clase:'corte', id:co.id }, ter);
+      mov(c, r.costoContratos, l.valorSinIVA + (ivaCosto ? l.iva : 0), 0, 'Obra ejecutada', { sub:cap !== '—' ? cap : '' });
+      if (!ivaCosto) mov(c, r.ivaDescontable, l.iva, 0, 'IVA descontable');
+      mov(c, r.anticipoProveedor, l.pagoAnticipo, 0, 'Anticipo girado con el corte');
+      const u = { clase:'corte', ref:co, retefuente:l.retefuente, base:l.valorSinIVA, fecha:co.fecha };
+      retencionPorConcepto(p, u).forEach(x => mov(c, r.retPorConcepto[x.concepto] || r.retPorConcepto.OTR, 0, x.valor, 'Retención en la fuente · ' + nombreConcepto(x.concepto, co.fecha)));
+      mov(c, r.reteICA, 0, l.reteica, 'ReteICA');
+      mov(c, r.reteIVA, 0, l.reteiva, 'ReteIVA');
+      mov(c, r.retenidoGarantia, 0, l.retenido, 'Retenido de garantía');
+      mov(c, r.descuentoObra, 0, l.descuento, 'Descuento de obra');
+      mov(c, r.otrasDeducciones, 0, l.otras, 'Otras deducciones');
+      mov(c, r.anticipoProveedor, 0, l.amortizacion, 'Amortización de anticipo');
+      mov(c, r.costosPorPagar, 0, l.neto, 'Neto por pagar');
+      out.push(c);
+      if (co.pagado && Math.abs(l.neto) > TOL){
+        const e = nuevo(p, 'EG', co.consecutivo, fechaDeTs(co.fechaPago || co.fechaAutorizacionPago, co.fecha), 'Pago corte ' + (co.numeroCorte || 1) + ' · ' + (pv.razonSocial || ''), { clase:'corte', id:co.id, sufijo:'_pago' }, ter);
+        e.pagoInferido = !co.fechaPago;
+        mov(e, r.costosPorPagar, l.neto, 0, 'Pago al contratista');
+        mov(e, r.banco, 0, l.neto, (k.banco || pv.banco) ? 'Giro a ' + (k.banco || pv.banco) + ' ' + (k.numeroCuenta || pv.numeroCuenta || '') : 'Giro bancario');
+        out.push(e);
+      }
+    });
+
+    /* Devolución del retenido de garantía */
+    (p.devoluciones || []).forEach(dv => {
+      if (dv.anulado) return;
+      const k = Modelo.contrato(p, dv.idContrato) || {};
+      const pv = Modelo.proveedor(p, k.idProveedor) || {};
+      const c = nuevo(p, 'DV', dv.consecutivo, dv.fecha, 'Devolución de retenido · contrato ' + (k.consecutivo || '') + ' · ' + (pv.razonSocial || ''), { clase:'devolucion', id:dv.id }, terceroDe(pv));
+      mov(c, r.retenidoGarantia, dv.valor, 0, 'Devolución del retenido');
+      mov(c, r.banco, 0, dv.valor, 'Giro bancario');
+      if (c.lineas.length) out.push(c);
+    });
+
+    /* Pagos recibidos del cliente */
+    (p.ingresos || []).forEach(ig => {
+      const valor = Number(ig.valor || 0);
+      if (!valor) return;
+      const ret = redondear(valor * (Number(ig.retencionPct) || 0) / 100);
+      const otras = redondear(Number(ig.otrasRetValor) > 0 ? Number(ig.otrasRetValor) : valor * (Number(ig.otrasRetPct) || 0) / 100);
+      const cli = (p.info || {}).cliente || (p.info || {}).nombreCliente || '';
+      const c = nuevo(p, 'RC', ig.documento || ig.id.slice(-6), ig.fecha, 'Pago del cliente ' + (ig.documento || ''), { clase:'ingreso', id:ig.id },
+        { nit:(p.info || {}).nitCliente || '', nombre:cli });
+      mov(c, r.banco, valor - ret - otras, 0, 'Consignación ' + (ig.banco || ''));
+      mov(c, r.retencionCliente, ret, 0, 'Retención que nos practicó el cliente');
+      mov(c, r.otrasRetCliente, otras, 0, 'Otras retenciones del cliente');
+      mov(c, r.ingresoCliente, 0, valor, 'Pago recibido del cliente');
+      out.push(c);
+    });
+
+    /* Nómina: causación y pago (nómina cerrada = pagada en su fecha de pago) */
+    (p.nominas || []).forEach(n => {
+      let v; try { v = parametrosNomina(S, n.hasta); } catch(e){ v = null; }
+      if (!v) return;
+      const a = { aportes:0, rf:0, otras:0, neto:0, prest:0 };
+      (n.renglones || []).forEach(rg => {
+        const w = (p.personal || []).find(x => x.id === rg.idTrabajador) || {};
+        const l = Nomina.liquidar(rg, w, v);
+        const e = l.empleador;
+        a.aportes += l.deducciones.salud + l.deducciones.pension + (l.deducciones.solidaridad || 0) +
+          e.saludEmpleador + e.pensionEmpleador + e.arl + e.caja + e.sena + e.icbf;
+        a.rf += l.deducciones.retencion || 0; a.otras += l.deducciones.otras || 0; a.neto += l.neto;
+        a.prest += e.cesantias + e.interesesCesantias + e.prima + e.vacaciones;
+      });
+      Object.keys(a).forEach(k2 => a[k2] = redondear(a[k2]));
+      const costo = a.aportes + a.rf + a.otras + a.neto + a.prest;
+      if (!costo) return;
+      const c = nuevo(p, 'NO', n.consecutivo, n.hasta, 'Nómina del ' + fmtFecha(n.desde) + ' al ' + fmtFecha(n.hasta), { clase:'nomina', id:n.id }, { nit:'', nombre:'Trabajadores de la obra' });
+      mov(c, r.costoManoObra, costo, 0, 'Costo laboral del periodo');
+      mov(c, r.aportesNomina, 0, a.aportes, 'Aportes de seguridad social y parafiscales');
+      mov(c, r.retencionNomina, 0, a.rf, 'Retención en la fuente de asalariados');
+      mov(c, r.otrasDeducciones, 0, a.otras, 'Otras deducciones de nómina');
+      mov(c, r.provisionPrestaciones, 0, a.prest, 'Provisión de prestaciones sociales');
+      mov(c, r.salariosPorPagar, 0, a.neto, 'Neto a pagar a los trabajadores');
+      out.push(c);
+      if (n.cerrado && a.neto){
+        const e = nuevo(p, 'EG', n.consecutivo, n.fechaPago || n.hasta, 'Pago de nómina ' + (n.consecutivo || ''), { clase:'nomina', id:n.id, sufijo:'_pago' }, { nit:'', nombre:'Trabajadores de la obra' });
+        e.pagoInferido = true;
+        mov(e, r.salariosPorPagar, a.neto, 0, 'Pago de la nómina');
+        mov(e, r.banco, 0, a.neto, 'Giro bancario');
+        out.push(e);
+      }
+    });
+
+    /* Liquidación de prestaciones por retiro (cerrada) */
+    (p.liquidaciones || []).forEach(lq => {
+      if (!lq.cerrado) return;
+      let v; try { v = parametrosNomina(S, lq.fechaRetiro); } catch(e){ v = null; }
+      const w = (p.personal || []).find(x => x.id === lq.idTrabajador) || {};
+      let l; try { l = Nomina.liquidacionRetiro(lq, w, v); } catch(e){ return; }
+      const nombre = [w.nombres, w.apellidos].filter(Boolean).join(' ') || w.nombre || 'Trabajador';
+      const c = nuevo(p, 'LQ', lq.consecutivo, lq.fechaRetiro, 'Liquidación de prestaciones · ' + nombre, { clase:'liquidacion', id:lq.id }, { nit:w.documento || w.cedula || '', nombre });
+      mov(c, r.provisionPrestaciones, l.cesantias + l.intereses + l.prima + l.vacaciones, 0, 'Prestaciones consolidadas');
+      mov(c, r.costoManoObra, (l.indemnizacion || {}).valor + l.salarioPendiente + l.otrosDevengados, 0, 'Indemnización, salario pendiente y otros');
+      mov(c, r.otrasDeducciones, 0, l.deducciones, 'Deducciones');
+      mov(c, r.salariosPorPagar, 0, l.neto, 'Neto a pagar');
+      if (c.lineas.length) out.push(c);
+    });
+    return out;
+  }
+
+  /** Costo de cada salida de almacén con el método del promedio ponderado (NIIF para PYMES, Sección 13):
+      cada compra actualiza el costo unitario del insumo y cada salida sale a ese costo. Si un insumo sale
+      sin haberse comprado en el proyecto, se toma el precio de la salida y se informa en los controles. */
+  function costoSalidas(p, ivaCosto){
+    const ev = [];
+    (p.documentos || []).forEach(d => {
+      if (d.anulado || d.tipo === 'anticipo') return;
+      const t = TIPOS_DOC_PAGO.find(x => x.k === d.tipo); const sg = t ? t.signo : 1;
+      (d.lineas || []).forEach(l => ev.push({ f:d.fecha || '', o:0, ins:l.idInsumo, q:sg * Number(l.cantidad || 0),
+        v:sg * Number(l.cantidad || 0) * Number(l.precioSinIVA || 0) * (ivaCosto ? 1 + Number(l.tarifaIVA || 0) / 100 : 1) }));
+    });
+    (p.salidas || []).forEach(s => { if (!s.anulado) (s.lineas || []).forEach(l => ev.push({ f:s.fecha || '', o:1, s, l })); });
+    ev.sort((a,b) => String(a.f).localeCompare(String(b.f)) || a.o - b.o);
+    const stock = new Map(), out = new Map();
+    ev.forEach(e => {
+      if (e.o === 0){ const k = stock.get(e.ins) || { q:0, v:0 }; k.q += e.q; k.v += e.v; stock.set(e.ins, k); return; }
+      const l = e.l, q = Number(l.cantidad || 0);
+      const k = stock.get(l.idInsumo) || { q:0, v:0 };
+      const precioSalida = Number(l.precioSinIVA != null ? l.precioSinIVA : l.precioUnitario || 0) * (ivaCosto ? 1 + Number(l.tarifaIVA || 0) / 100 : 1);
+      let v;
+      const o = out.get(e.s.id) || { porCap:new Map(), sinCosto:[] };
+      if (k.q > 1e-6 && k.v > 0){
+        const unit = k.v / k.q;
+        const qq = Math.min(q, k.q);
+        v = qq * unit + (q - qq) * (precioSalida || unit);
+        if (q - qq > 1e-6) o.sinCosto.push(l.idInsumo);
+        k.v -= qq * unit; k.q -= qq;
+      } else { v = q * precioSalida; o.sinCosto.push(l.idInsumo); }
+      stock.set(l.idInsumo, k);
+      const a = l.idActividad ? Modelo.actividad(p, l.idActividad) : null;
+      const cap = a ? a.cap.codigo + ' ' + a.cap.nombre : 'Sin capítulo';
+      o.porCap.set(cap, (o.porCap.get(cap) || 0) + v);
+      out.set(e.s.id, o);
+    });
+    return out;
+  }
+
+  /** Comprobantes del ámbito: 'proyecto' (el activo) o 'empresa' (todos los visibles + los de empresa). */
+  function comprobantes(ambito, p){
+    let lista = [];
+    const proyectos = ambito === 'empresa' ? (S.proyectos || []).filter(x => Reglas.veProyecto(x.id)) : [p];
+    proyectos.forEach(x => { lista = lista.concat(comprobantesProyecto(x)); });
+    const ids = new Set(proyectos.map(x => x.id));
+    estado().comprobantes.forEach(m => {
+      if (m.anulado) return;
+      if (ambito === 'empresa' ? (!m.idProyecto || ids.has(m.idProyecto)) : m.idProyecto === p.id) {
+        const px = m.idProyecto ? Modelo.proyecto(m.idProyecto) : null;
+        lista.push(Object.assign({}, m, { automatico:false, proyecto: px ? px.nombre : 'Empresa',
+          lineas:(m.lineas || []).map(l => Object.assign({ cc: px ? px.nombre : 'Empresa' }, l, { debito:redondear(l.debito || 0), credito:redondear(l.credito || 0) })) }));
+      }
+    });
+    const orden = { AP:0, CP:1, CO:2, SA:3, NO:4, LQ:5, RC:6, EG:7, DV:8, CM:9 };
+    return lista.sort((a,b) => String(a.fecha).localeCompare(String(b.fecha)) || (orden[a.tipo] - orden[b.tipo]) || String(a.numero).localeCompare(String(b.numero)));
+  }
+  function enPeriodo(fecha, desde, hasta){
+    const f = String(fecha || '');
+    return (!desde || f >= desde + '-01') && (!hasta || f <= hasta + '-31');
+  }
+  /** Saldos por cuenta: saldo anterior (débito − crédito antes del periodo), débitos y créditos del periodo. */
+  function saldos(lista, desde, hasta){
+    const m = new Map();
+    lista.forEach(c => {
+      const antes = desde && String(c.fecha || '') < desde + '-01';
+      const dentro = enPeriodo(c.fecha, desde, hasta);
+      if (!antes && !dentro) return;
+      c.lineas.forEach(l => {
+        const a = m.get(l.cuenta) || { cuenta:l.cuenta, ant:0, deb:0, cre:0, n:0 };
+        if (antes) a.ant += l.debito - l.credito;
+        else { a.deb += l.debito; a.cre += l.credito; a.n++; }
+        m.set(l.cuenta, a);
+      });
+    });
+    return [...m.values()].sort((a,b) => String(a.cuenta).localeCompare(String(b.cuenta)));
+  }
+  function controles(lista, ambito, p){
+    const descuadrados = lista.filter(c => { const t = totales(c); return Math.abs(t.d - t.c) > 0.5; });
+    const usadas = new Set(); lista.forEach(c => c.lineas.forEach(l => usadas.add(l.cuenta)));
+    const sinPUC = [...usadas].filter(cod => !nombreCuenta(cod));
+    const proyectos = ambito === 'empresa' ? (S.proyectos || []).filter(x => Reglas.veProyecto(x.id)) : [p];
+    const pucRaro = [];
+    proyectos.forEach(x => (x.documentos || []).forEach(d => {
+      const cod = String(d.cuentaPUC || ''); if (!cod) return;
+      if (/^2/.test(cod)) pucRaro.push({ p:x, d, cod });
+    }));
+    const inferidos = lista.filter(c => c.pagoInferido).length;
+    const sinCosto = lista.filter(c => c.sinCosto && c.sinCosto.length).length;
+    const contrarios = saldos(lista, '', '').filter(a => { const sd = a.ant + a.deb - a.cre; const cl = String(a.cuenta).charAt(0);
+      return Math.abs(sd) > 1000 && ((['1','5','6','7'].includes(cl) && sd < 0) || (['2','3','4'].includes(cl) && sd > 0)); })
+      .map(a => ({ cuenta:a.cuenta, saldo:a.ant + a.deb - a.cre }));
+    return { descuadrados, sinPUC, pucRaro, inferidos, sinCosto, contrarios };
+  }
+
+  /* ─────────────── Comprobantes manuales ─────────────── */
+  function siguienteNumero(tipo){
+    const c = estado();
+    c.consecutivos[tipo] = (c.consecutivos[tipo] || 0) + 1;
+    return tipo + '-' + String(c.consecutivos[tipo]).padStart(4, '0');
+  }
+  function editarManual(p, id, tipoInicial){
+    if (!puedeContabilizar()){ UI.aviso('Sin permiso', '<p>Sólo el administrador, la gerencia o el contador registran comprobantes manuales.</p>'); return; }
+    const c = estado();
+    const x = id ? c.comprobantes.find(y => y.id === id) : null;
+    const pxx = x && x.idProyecto ? Modelo.proyecto(x.idProyecto) : null;
+    if (x && pxx && dentroCierreContable(pxx, x.fecha)){ UI.aviso('Periodo cerrado', '<p>El comprobante está en un periodo cerrado y no se puede modificar.</p>'); return; }
+    const reg = x ? JSON.parse(JSON.stringify(x)) : { id:uid('cm'), tipo:tipoInicial || 'CM', fecha:hoyISO(), idProyecto:p ? p.id : '', concepto:'', soporte:'',
+      lineas:[{ cuenta:'', nit:'', tercero:'', detalle:'', debito:0, credito:0 }, { cuenta:'', nit:'', tercero:'', detalle:'', debito:0, credito:0 }] };
+    const terceros = new Map();
+    (S.proyectos || []).forEach(px => (px.proveedores || []).forEach(v => { if (v.identificacion) terceros.set(v.identificacion, v.razonSocial); }));
+    const optsCuenta = cod => '<option value="">— cuenta —</option>' + (S.puc || []).map(q => '<option value="' + esc(q.codigo) + '"' + (q.codigo === cod ? ' selected' : '') + '>' + esc(q.codigo + ' ' + q.nombre) + '</option>').join('');
+    UI.modal({ titulo: x ? 'Comprobante ' + x.numero : (reg.tipo === 'AP' ? 'Saldos iniciales' : 'Nuevo comprobante manual'), eyebrow:'Módulo 10 · Contabilidad', ancho:'xwide', fijo:true,
+      cuerpo:
+        '<div class="alert info"><div class="ic">ℹ</div><div class="bd">' + (reg.tipo === 'AP'
+          ? 'Registre el saldo de cada cuenta a la fecha de inicio. Los activos, costos y gastos van al débito; pasivos, patrimonio e ingresos al crédito.'
+          : 'Use los comprobantes manuales para ajustes, reclasificaciones y causaciones que no nacen de un documento del sistema. Cada uno debe cuadrar y llevar su soporte.') + '</div></div>' +
+        UI.formHTML([
+          { k:'tipo', lab:'Tipo', tipo:'select', val:reg.tipo, opts:[{ v:'CM', n:'Comprobante manual (ajuste)' }, { v:'AP', n:'Saldos iniciales' }] },
+          { k:'fecha', lab:'Fecha', tipo:'date', val:reg.fecha, req:true },
+          { k:'idProyecto', lab:'Centro de costo', tipo:'select', val:reg.idProyecto, col:2,
+            opts:[{ v:'', n:'Empresa (gastos generales)' }].concat((S.proyectos || []).filter(px => Reglas.veProyecto(px.id)).map(px => ({ v:px.id, n:px.nombre }))) },
+          { k:'concepto', lab:'Concepto', tipo:'text', val:reg.concepto, req:true, col:3 },
+          { k:'soporte', lab:'Documento soporte', tipo:'text', val:reg.soporte }
+        ], 4) +
+        '<datalist id="cmTer">' + [...terceros.entries()].map(([n,t]) => '<option value="' + esc(n) + '">' + esc(t) + '</option>').join('') + '</datalist>' +
+        '<div class="tw scroll" style="max-height:330px"><table class="t" id="cmL"><thead><tr><th>Cuenta</th><th>NIT del tercero</th><th>Detalle</th>' +
+        '<th class="n">Débito</th><th class="n">Crédito</th><th></th></tr></thead><tbody></tbody></table></div>' +
+        '<div class="toolbar"><button class="btn sm" id="cmAdd" type="button">+ Renglón</button><div class="grow"></div><div id="cmTot"></div></div>',
+      botones:[{ texto:'Cancelar' }, { texto:'Guardar comprobante', clase:'primary', accion: m => {
+          const d = UI.leerForm(m.el);
+          reg.lineas = reg.lineas.filter(l => l.cuenta && (Number(l.debito) || Number(l.credito)));
+          const t = reg.lineas.reduce((a,l) => ({ d:a.d + (Number(l.debito) || 0), c:a.c + (Number(l.credito) || 0) }), { d:0, c:0 });
+          if (!d.fecha || !String(d.concepto || '').trim()){ UI.toast('Indique la fecha y el concepto', 'bad'); return; }
+          if (reg.lineas.length < 2){ UI.toast('El comprobante necesita al menos dos renglones', 'bad'); return; }
+          if (Math.abs(t.d - t.c) > 0.5){ UI.toast('El comprobante no cuadra: diferencia ' + money(t.d - t.c), 'bad'); return; }
+          const px = d.idProyecto ? Modelo.proyecto(d.idProyecto) : null;
+          if (px && !fechaPermitida(px, d.fecha, 'comprobantes contables')) return;
+          Object.assign(reg, { tipo:d.tipo, fecha:d.fecha, idProyecto:d.idProyecto || '', concepto:d.concepto.trim(), soporte:d.soporte || '',
+            usuario:Sesion.usuario ? Sesion.usuario.usuario : 'sistema', ts:Date.now() });
+          reg.lineas.forEach(l => { l.debito = redondear(l.debito || 0); l.credito = redondear(l.credito || 0); l.tercero = terceros.get(l.nit) || l.tercero || ''; });
+          if (x){ Object.assign(x, reg); Modelo.auditar('editar', 'comprobante contable', x.numero + ' · ' + x.concepto, x.idProyecto); }
+          else { reg.numero = siguienteNumero(reg.tipo); c.comprobantes.push(reg); Modelo.auditar('crear', 'comprobante contable', reg.numero + ' · ' + reg.concepto + ' · ' + money(t.d), reg.idProyecto); }
+          App.guardar(); m.cerrar(); App.render();
+        } }],
+      alAbrir: m => {
+        const pinta = () => {
+          $('#cmL tbody', m.el).innerHTML = reg.lineas.map((l,i) => '<tr>' +
+            '<td><select data-cu="' + i + '" style="min-width:230px">' + optsCuenta(l.cuenta) + '</select></td>' +
+            '<td><input data-ni="' + i + '" list="cmTer" value="' + esc(l.nit || '') + '" style="width:130px"></td>' +
+            '<td><input data-de="' + i + '" value="' + esc(l.detalle || '') + '" style="min-width:180px"></td>' +
+            '<td class="n"><input type="number" step="1" data-db="' + i + '" value="' + (l.debito || 0) + '" style="width:130px"></td>' +
+            '<td class="n"><input type="number" step="1" data-cr="' + i + '" value="' + (l.credito || 0) + '" style="width:130px"></td>' +
+            '<td class="act"><button class="btn xs danger" data-rm="' + i + '" type="button">✕</button></td></tr>').join('');
+          const on = (sel, f) => $$(sel, m.el).forEach(e => e.onchange = () => { f(e); tot(); });
+          on('[data-cu]', e => reg.lineas[+e.dataset.cu].cuenta = e.value);
+          on('[data-ni]', e => reg.lineas[+e.dataset.ni].nit = e.value.trim());
+          on('[data-de]', e => reg.lineas[+e.dataset.de].detalle = e.value);
+          on('[data-db]', e => { reg.lineas[+e.dataset.db].debito = Number(e.value) || 0; if (Number(e.value)) { reg.lineas[+e.dataset.db].credito = 0; pinta(); } });
+          on('[data-cr]', e => { reg.lineas[+e.dataset.cr].credito = Number(e.value) || 0; if (Number(e.value)) { reg.lineas[+e.dataset.cr].debito = 0; pinta(); } });
+          $$('[data-rm]', m.el).forEach(b => b.onclick = () => { reg.lineas.splice(+b.dataset.rm, 1); pinta(); });
+          tot();
+        };
+        const tot = () => {
+          const t = reg.lineas.reduce((a,l) => ({ d:a.d + (Number(l.debito) || 0), c:a.c + (Number(l.credito) || 0) }), { d:0, c:0 });
+          const dif = t.d - t.c;
+          $('#cmTot', m.el).innerHTML = '<span class="small">Débitos <b>' + money(t.d) + '</b> · Créditos <b>' + money(t.c) + '</b> · ' +
+            (Math.abs(dif) <= 0.5 ? '<span class="tag ok">Cuadrado</span>' : '<span class="tag bad">Diferencia ' + money(dif) + '</span>') + '</span>';
+        };
+        $('#cmAdd', m.el).onclick = () => { reg.lineas.push({ cuenta:'', nit:'', tercero:'', detalle:'', debito:0, credito:0 }); pinta(); };
+        pinta();
+      } });
+  }
+  async function anularManual(id){
+    const c = estado();
+    const x = c.comprobantes.find(y => y.id === id); if (!x) return;
+    if (!puedeContabilizar()){ UI.toast('Sin permiso para anular comprobantes', 'bad'); return; }
+    const px = x.idProyecto ? Modelo.proyecto(x.idProyecto) : null;
+    if (px && dentroCierreContable(px, x.fecha)){ UI.aviso('Periodo cerrado', '<p>No se puede anular un comprobante de un periodo cerrado.</p>'); return; }
+    const d = await UI.pedir({ titulo:'Anular ' + x.numero, campos:[{ k:'motivo', lab:'Motivo de la anulación', tipo:'text', req:true }] });
+    if (!d || !String(d.motivo || '').trim()) return;
+    x.anulado = { ts:Date.now(), usuario:Sesion.usuario ? Sesion.usuario.usuario : 'sistema', motivo:d.motivo.trim() };
+    Modelo.auditar('anular', 'comprobante contable', x.numero + ' · ' + d.motivo, x.idProyecto);
+    App.guardar(); App.render();
+  }
+
+  /* ─────────────── Documentos impresos ─────────────── */
+  const der = { halign:'right' };
+  function docComprobante(c){
+    const t = totales(c);
+    const px = c.idProyecto ? Modelo.proyecto(c.idProyecto) : null;
+    return { nombre:'ARKEN_comprobante_' + c.tipo + '_' + String(c.numero).replace(/[^\w-]+/g,'_'), titulo:(TIPOS_COMPROBANTE[c.tipo] || {}).n.toUpperCase() + ' ' + c.numero,
+      documento:'Comprobante contable', proyecto:px, textoProyecto: px ? px.nombre : 'Empresa', orientacion:'p',
+      bloques:[
+        { t:'kv', cols:2, pares:[['Fecha', fmtFecha(c.fecha)], ['Comprobante', c.tipo + ' ' + c.numero], ['Concepto', c.concepto],
+          ['Tercero', (c.tercero && c.tercero.nombre ? c.tercero.nombre + (c.tercero.nit ? ' · ' + c.tercero.nit : '') : '—')],
+          ['Centro de costo', c.proyecto], ['Origen', c.automatico ? 'Generado por el sistema desde el documento de origen' : 'Manual · ' + (c.usuario || '') + (c.soporte ? ' · soporte ' + c.soporte : '')]] },
+        { t:'tabla', head:[['Cuenta','Nombre','Tercero','Detalle','Débito','Crédito']], anchos:{0:{ cellWidth:16 }, 4:{ halign:'right', cellWidth:30 }, 5:{ halign:'right', cellWidth:30 }},
+          body:c.lineas.map(l => [l.cuenta, nombreCuenta(l.cuenta) || '(sin crear en el PUC)', (l.tercero || '') + (l.nit ? '\n' + l.nit : ''), l.detalle + (l.sub ? '\n' + l.sub : ''),
+            { content:l.debito ? money(l.debito) : '', styles:der }, { content:l.credito ? money(l.credito) : '', styles:der }])
+            .concat([[{ content:'SUMAS IGUALES', colSpan:4, styles:{ fontStyle:'bold' } }, { content:money(t.d), styles:{ halign:'right', fontStyle:'bold' } }, { content:money(t.c), styles:{ halign:'right', fontStyle:'bold' } }]]) },
+        { t:'firmas', firmas:[{ n:'Elaboró' }, { n:'Revisó' }, { n:'Contador' }] }
+      ] };
+  }
+
+  /* ─────────────── Vistas ─────────────── */
+  function filtros(){
+    const hoy = hoyISO().slice(0, 7);
+    const f = Sesion.conta10 || (Sesion.conta10 = { ambito:'proyecto', desde:hoy.slice(0,4) + '-01', hasta:hoy, tipo:'', cuenta:'' });
+    return f;
+  }
+  function barraFiltros(conTipo){
+    const f = filtros();
+    return '<div class="toolbar">' +
+      '<div class="field"><label>Ámbito</label><select id="cfAmb">' + UI.selectOpts([{ v:'proyecto', n:'Proyecto activo' }, { v:'empresa', n:'Toda la empresa' }], f.ambito) + '</select></div>' +
+      '<div class="field"><label>Desde</label><input id="cfDes" type="month" value="' + esc(f.desde || '') + '"></div>' +
+      '<div class="field"><label>Hasta</label><input id="cfHas" type="month" value="' + esc(f.hasta || '') + '"></div>' +
+      (conTipo ? '<div class="field"><label>Tipo</label><select id="cfTip">' + UI.selectOpts([{ v:'', n:'Todos' }].concat(Object.keys(TIPOS_COMPROBANTE).map(k => ({ v:k, n:k + ' · ' + TIPOS_COMPROBANTE[k].n }))), f.tipo) + '</select></div>' : '') +
+      '<div class="field grow"><label>Buscar</label><input id="cfBus" type="search" placeholder="Comprobante, tercero, cuenta…"></div></div>';
+  }
+  function conectarFiltros(){
+    const f = filtros();
+    const set = (id, k) => { const e = $('#' + id); if (e) e.onchange = () => { f[k] = e.value; App.render(); }; };
+    set('cfAmb','ambito'); set('cfDes','desde'); set('cfHas','hasta'); set('cfTip','tipo');
+  }
+  function etiquetaPeriodo(f){
+    const m = x => { const z = String(x || '').split('-'); return z[1] ? MESES[+z[1] - 1] + ' de ' + z[0] : ''; };
+    return (f.desde ? m(f.desde) : 'el inicio') + ' a ' + (f.hasta ? m(f.hasta) : 'hoy');
+  }
+  function datos(p){
+    const f = filtros();
+    const todos = comprobantes(f.ambito, p);
+    const lista = todos.filter(c => enPeriodo(c.fecha, f.desde, f.hasta) && (!f.tipo || c.tipo === f.tipo));
+    return { f, todos, lista };
+  }
+
+  function tabComprobantes(cont, p){
+    const { f, todos, lista } = datos(p);
+    const ctl = controles(todos, f.ambito, p);
+    const T = lista.reduce((a,c) => { const t = totales(c); return { d:a.d + t.d, c:a.c + t.c }; }, { d:0, c:0 });
+    const manuales = lista.filter(c => !c.automatico).length;
+    cont.innerHTML = barraFiltros(true) +
+      '<div class="grid g4" style="margin-bottom:var(--gap)">' +
+        stat('Comprobantes del periodo', lista.length, (lista.length - manuales) + ' automáticos · ' + manuales + ' manuales') +
+        stat('Débitos', money(T.d), 'sumas iguales') + stat('Créditos', money(T.c), Math.abs(T.d - T.c) <= 0.5 ? 'cuadra con los débitos' : 'diferencia ' + money(T.d - T.c)) +
+        stat('Descuadrados', ctl.descuadrados.length, ctl.descuadrados.length ? 'revise el comprobante' : 'todos cuadran', ctl.descuadrados.length ? ' accent' : '') +
+      '</div>' +
+      '<div class="toolbar"><button class="btn primary" id="cmNuevo" type="button">+ Comprobante manual</button>' +
+        '<button class="btn" id="cmAp" type="button">+ Saldos iniciales</button>' +
+        '<span class="small muted">Los comprobantes automáticos nacen de compras, salidas, cortes, pagos, ingresos y nómina, y cambian si se corrige el documento de origen.</span></div>' +
+      '<div class="card"><div class="tw scroll"><table class="t" id="tCm"><thead><tr><th>Fecha</th><th>Comprobante</th><th>Concepto</th><th>Tercero</th>' +
+        '<th>Centro de costo</th><th class="n">Débitos</th><th class="n">Créditos</th><th>Origen</th><th></th></tr></thead><tbody>' +
+        (lista.length ? lista.map((c,i) => { const t = totales(c); const desc = Math.abs(t.d - t.c) > 0.5;
+          return '<tr' + (desc ? ' class="over"' : '') + '><td class="small">' + fmtFecha(c.fecha) + '</td><td class="mono small"><b>' + esc(c.tipo) + '</b> ' + esc(c.numero) + '</td>' +
+            '<td class="small">' + esc(c.concepto) + '</td><td class="small">' + esc((c.tercero || {}).nombre || '') + '</td><td class="small">' + esc(c.proyecto) + '</td>' +
+            '<td class="n">' + money(t.d) + '</td><td class="n">' + money(t.c) + '</td>' +
+            '<td>' + (c.automatico ? '<span class="tag">' + esc((TIPOS_COMPROBANTE[c.tipo] || {}).n || c.tipo) + '</span>' + (c.pagoInferido ? ' <span class="tag warn" title="Fecha tomada de la autorización del pago">pago por marca</span>' : '')
+              : '<span class="tag brass">Manual</span>') + '</td>' +
+            '<td class="act"><button class="btn xs" data-cv="' + i + '" type="button">Ver</button>' +
+              (!c.automatico ? ' <button class="btn xs" data-ce="' + esc(c.id) + '" type="button">Editar</button> <button class="btn xs danger" data-cx="' + esc(c.id) + '" type="button">Anular</button>' : '') + '</td></tr>'; }).join('')
+          : '<tr><td colspan="9" class="muted small" style="padding:18px">Sin comprobantes en el periodo.</td></tr>') +
+      '</tbody></table></div></div>';
+    conectarFiltros();
+    UI.conectarBusqueda('#cfBus', '#tCm');
+    $('#cmNuevo').onclick = () => editarManual(p, null, 'CM');
+    $('#cmAp').onclick = () => editarManual(p, null, 'AP');
+    $$('[data-cv]', cont).forEach(b => b.onclick = () => verComprobante(lista[+b.dataset.cv]));
+    $$('[data-ce]', cont).forEach(b => b.onclick = () => editarManual(p, b.dataset.ce));
+    $$('[data-cx]', cont).forEach(b => b.onclick = () => anularManual(b.dataset.cx));
+  }
+  function stat(lab, val, foot, extra){
+    return '<div class="stat' + (extra || '') + '"><div class="lab">' + esc(lab) + '</div><div class="val">' + (typeof val === 'number' ? val.toLocaleString('es-CO') : val) + '</div>' +
+      (foot ? '<div class="foot">' + esc(foot) + '</div>' : '') + '</div>';
+  }
+  function verComprobante(c){
+    const t = totales(c);
+    UI.modal({ titulo:(TIPOS_COMPROBANTE[c.tipo] || {}).n + ' ' + c.numero, eyebrow:fmtFecha(c.fecha) + ' · ' + c.proyecto, ancho:'xwide',
+      cuerpo:'<p class="small">' + esc(c.concepto) + (c.pagoInferido ? '<br><span class="muted">La fecha del pago se tomó de la autorización del pago; confírmela con el extracto bancario.</span>' : '') + '</p>' +
+        '<div class="tw"><table class="t"><thead><tr><th>Cuenta</th><th>Nombre</th><th>Tercero</th><th>Detalle</th><th class="n">Débito</th><th class="n">Crédito</th></tr></thead><tbody>' +
+        c.lineas.map(l => '<tr><td class="mono">' + esc(l.cuenta) + '</td><td class="small">' + esc(nombreCuenta(l.cuenta) || '(sin crear en el PUC)') + '</td>' +
+          '<td class="small">' + esc(l.tercero || '') + (l.nit ? '<div class="muted mono">' + esc(l.nit) + '</div>' : '') + '</td>' +
+          '<td class="small">' + esc(l.detalle) + (l.sub ? '<div class="muted">' + esc(l.sub) + '</div>' : '') + '</td>' +
+          '<td class="n">' + (l.debito ? money(l.debito) : '') + '</td><td class="n">' + (l.credito ? money(l.credito) : '') + '</td></tr>').join('') +
+        '</tbody><tfoot><tr><td colspan="4">SUMAS IGUALES</td><td class="n">' + money(t.d) + '</td><td class="n">' + money(t.c) + '</td></tr></tfoot></table></div>',
+      botones:[{ texto:'Cerrar' }, { texto:'PDF del comprobante', clase:'primary', accion: m => { m.cerrar(); Documentos.previsualizar(docComprobante(c)); } }] });
+  }
+
+  function lineasDiario(lista){
+    const out = [];
+    lista.forEach(c => c.lineas.forEach(l => out.push({ c, l })));
+    return out;
+  }
+  function tabDiario(cont, p){
+    const { lista } = datos(p);
+    const L = lineasDiario(lista);
+    const T = L.reduce((a,x) => ({ d:a.d + x.l.debito, c:a.c + x.l.credito }), { d:0, c:0 });
+    cont.innerHTML = barraFiltros(true) +
+      '<div class="nota-tab"><span class="clave">Libro diario</span>Todos los asientos en orden cronológico, con su comprobante, cuenta, tercero y centro de costo. ' +
+        lista.length + ' comprobantes · ' + L.length + ' renglones · sumas ' + money(T.d) + ' = ' + money(T.c) + '.</div>' +
+      '<div class="card"><div class="tw scroll" style="max-height:66vh"><table class="t" id="tDi"><thead><tr><th>Fecha</th><th>Comprobante</th><th>Cuenta</th><th>Nombre de la cuenta</th>' +
+        '<th>Tercero</th><th>Centro de costo</th><th>Detalle</th><th class="n">Débito</th><th class="n">Crédito</th></tr></thead><tbody>' +
+        (L.length ? L.slice(0, 4000).map(x => '<tr><td class="small">' + fmtFecha(x.c.fecha) + '</td><td class="mono small">' + esc(x.c.tipo + ' ' + x.c.numero) + '</td>' +
+          '<td class="mono">' + esc(x.l.cuenta) + '</td><td class="small">' + esc(nombreCuenta(x.l.cuenta)) + '</td>' +
+          '<td class="small">' + esc(x.l.tercero || '') + (x.l.nit ? ' <span class="muted mono">' + esc(x.l.nit) + '</span>' : '') + '</td>' +
+          '<td class="small">' + esc(x.l.cc || x.c.proyecto) + (x.l.sub ? '<div class="muted">' + esc(x.l.sub) + '</div>' : '') + '</td>' +
+          '<td class="small">' + esc(x.l.detalle) + '</td><td class="n">' + (x.l.debito ? money(x.l.debito) : '') + '</td><td class="n">' + (x.l.credito ? money(x.l.credito) : '') + '</td></tr>').join('')
+          : '<tr><td colspan="9" class="muted small" style="padding:18px">Sin asientos en el periodo.</td></tr>') +
+      '</tbody><tfoot><tr><td colspan="7">SUMAS IGUALES</td><td class="n">' + money(T.d) + '</td><td class="n">' + money(T.c) + '</td></tr></tfoot></table></div></div>' +
+      (L.length > 4000 ? '<p class="small muted">Se muestran los primeros 4.000 renglones; el Excel y el PDF traen todos.</p>' : '');
+    conectarFiltros();
+    UI.conectarBusqueda('#cfBus', '#tDi');
+  }
+
+  function tabMayor(cont, p){
+    const { f, todos } = datos(p);
+    const S2 = saldos(todos.filter(c => !f.tipo || c.tipo === f.tipo), f.desde, f.hasta);
+    const sel = f.cuenta && S2.some(a => a.cuenta === f.cuenta) ? f.cuenta : '';
+    let detalle = '';
+    if (sel){
+      const a = S2.find(x => x.cuenta === sel);
+      let saldo = a.ant;
+      const movs = [];
+      todos.forEach(c => { if (!enPeriodo(c.fecha, f.desde, f.hasta)) return; c.lineas.forEach(l => { if (l.cuenta === sel) movs.push({ c, l }); }); });
+      const nat = naturalezaDebito(sel);
+      const fmtS = v => money(Math.abs(v)) + ' ' + (Math.abs(v) < 0.5 ? '' : (v > 0 ? 'D' : 'C'));
+      detalle = '<div class="card"><div class="card-head"><h3>' + esc(sel + ' · ' + (nombreCuenta(sel) || '(sin crear en el PUC)')) + '</h3>' +
+        '<span class="small muted">Naturaleza ' + (nat ? 'débito' : 'crédito') + '</span>' +
+        '<button class="btn sm" id="myPdf" type="button">PDF de la cuenta</button></div><div class="card-body flush"><div class="tw scroll" style="max-height:52vh"><table class="t"><thead><tr>' +
+        '<th>Fecha</th><th>Comprobante</th><th>Tercero</th><th>Detalle</th><th class="n">Débito</th><th class="n">Crédito</th><th class="n">Saldo</th></tr></thead><tbody>' +
+        '<tr><td colspan="6"><b>Saldo anterior</b></td><td class="n"><b>' + fmtS(saldo) + '</b></td></tr>' +
+        movs.map(x => { saldo += x.l.debito - x.l.credito;
+          return '<tr><td class="small">' + fmtFecha(x.c.fecha) + '</td><td class="mono small">' + esc(x.c.tipo + ' ' + x.c.numero) + '</td>' +
+            '<td class="small">' + esc(x.l.tercero || '') + '</td><td class="small">' + esc(x.l.detalle) + ' · ' + esc(x.l.cc || '') + '</td>' +
+            '<td class="n">' + (x.l.debito ? money(x.l.debito) : '') + '</td><td class="n">' + (x.l.credito ? money(x.l.credito) : '') + '</td><td class="n">' + fmtS(saldo) + '</td></tr>'; }).join('') +
+        '</tbody><tfoot><tr><td colspan="4">Movimiento del periodo</td><td class="n">' + money(a.deb) + '</td><td class="n">' + money(a.cre) + '</td><td class="n">' + fmtS(a.ant + a.deb - a.cre) + '</td></tr></tfoot></table></div></div></div>';
+      setTimeout(() => { const b = $('#myPdf'); if (b) b.onclick = () => Documentos.previsualizar(docMayorCuenta(p, f, sel, a, movs)); }, 0);
+    }
+    const fmtS = v => money(Math.abs(v)) + (Math.abs(v) < 0.5 ? '' : (v > 0 ? ' D' : ' C'));
+    cont.innerHTML = barraFiltros(false) +
+      '<div class="nota-tab"><span class="clave">Libro mayor y balances</span>Saldo de cada cuenta al inicio del periodo, sus débitos y créditos, y el saldo final. Un clic en una cuenta muestra sus movimientos.</div>' +
+      detalle +
+      '<div class="card"><div class="tw scroll" style="max-height:60vh"><table class="t" id="tMy"><thead><tr><th>Cuenta</th><th>Nombre</th><th class="n">Saldo anterior</th>' +
+        '<th class="n">Débitos</th><th class="n">Créditos</th><th class="n">Saldo final</th><th class="n">Movimientos</th></tr></thead><tbody>' +
+        (S2.length ? S2.map(a => '<tr class="clic' + (a.cuenta === sel ? ' sel' : '') + '" data-cta="' + esc(a.cuenta) + '" style="cursor:pointer"><td class="mono"><b>' + esc(a.cuenta) + '</b></td><td>' + esc(nombreCuenta(a.cuenta) || '(sin crear en el PUC)') + '</td>' +
+          '<td class="n">' + fmtS(a.ant) + '</td><td class="n">' + money(a.deb) + '</td><td class="n">' + money(a.cre) + '</td><td class="n"><b>' + fmtS(a.ant + a.deb - a.cre) + '</b></td><td class="n">' + a.n + '</td></tr>').join('')
+          : '<tr><td colspan="7" class="muted small" style="padding:18px">Sin movimientos.</td></tr>') +
+      '</tbody></table></div></div>';
+    conectarFiltros();
+    UI.conectarBusqueda('#cfBus', '#tMy');
+    $$('[data-cta]', cont).forEach(tr => tr.onclick = () => { f.cuenta = tr.dataset.cta === f.cuenta ? '' : tr.dataset.cta; App.render(); });
+  }
+  function docMayorCuenta(p, f, cod, a, movs){
+    let saldo = a.ant;
+    const fmtS = v => money(Math.abs(v)) + (Math.abs(v) < 0.5 ? '' : (v > 0 ? ' D' : ' C'));
+    return { nombre:'ARKEN_mayor_' + cod, titulo:'LIBRO MAYOR · CUENTA ' + cod, subtitulo:(nombreCuenta(cod) || '') + ' · ' + etiquetaPeriodo(f),
+      documento:'Libro mayor', proyecto: f.ambito === 'empresa' ? null : p, textoProyecto: f.ambito === 'empresa' ? 'Consolidado empresa' : p.nombre, orientacion:'l',
+      bloques:[{ t:'tabla', tam:6.5, head:[['Fecha','Comprobante','Tercero','Detalle','Centro de costo','Débito','Crédito','Saldo']], anchos:{5:der,6:der,7:der},
+        body:[[{ content:'Saldo anterior', colSpan:7, styles:{ fontStyle:'bold' } }, { content:fmtS(saldo), styles:der }]].concat(movs.map(x => { saldo += x.l.debito - x.l.credito;
+          return [fmtFecha(x.c.fecha), x.c.tipo + ' ' + x.c.numero, x.l.tercero || '', x.l.detalle, x.l.cc || '', { content:x.l.debito ? money(x.l.debito) : '', styles:der },
+            { content:x.l.credito ? money(x.l.credito) : '', styles:der }, { content:fmtS(saldo), styles:der }]; })) },
+        { t:'totales', ancho:96, lineas:[{ lab:'Débitos del periodo', val:money(a.deb) }, { lab:'Créditos del periodo', val:money(a.cre) }, { lab:'SALDO FINAL', val:fmtS(a.ant + a.deb - a.cre), fuerte:true }] }] };
+  }
+
+  /** Árbol del balance: clase → cuenta (4 dígitos) → subcuenta. */
+  function arbolBalance(S2){
+    const clases = new Map();
+    S2.forEach(a => {
+      const cl = String(a.cuenta).charAt(0) || '?';
+      const c4 = String(a.cuenta).slice(0, 4);
+      const k = clases.get(cl) || { clase:cl, ant:0, deb:0, cre:0, cuentas:new Map() };
+      k.ant += a.ant; k.deb += a.deb; k.cre += a.cre;
+      const g = k.cuentas.get(c4) || { cuenta:c4, ant:0, deb:0, cre:0, subs:[] };
+      g.ant += a.ant; g.deb += a.deb; g.cre += a.cre;
+      if (a.cuenta.length > 4) g.subs.push(a);
+      k.cuentas.set(c4, g); clases.set(cl, k);
+    });
+    return [...clases.values()].sort((a,b) => a.clase.localeCompare(b.clase));
+  }
+  function tabBalance(cont, p){
+    const { f, todos } = datos(p);
+    const S2 = saldos(todos, f.desde, f.hasta);
+    const A = arbolBalance(S2);
+    const T = S2.reduce((a,x) => ({ ant:a.ant + x.ant, deb:a.deb + x.deb, cre:a.cre + x.cre }), { ant:0, deb:0, cre:0 });
+    const fin = S2.reduce((a,x) => { const s = x.ant + x.deb - x.cre; return { d:a.d + (s > 0 ? s : 0), c:a.c + (s < 0 ? -s : 0) }; }, { d:0, c:0 });
+    const ctl = controles(todos, f.ambito, p);
+    const ok = Math.abs(T.deb - T.cre) <= 0.5 && Math.abs(fin.d - fin.c) <= 0.5;
+    const fila = (cls, cod, nom, x, sangria) => { const s = x.ant + x.deb - x.cre;
+      return '<tr class="' + cls + '"><td class="mono" style="padding-left:' + (8 + sangria * 14) + 'px">' + esc(cod) + '</td><td' + (sangria ? '' : ' style="font-weight:700"') + '>' + esc(nom) + '</td>' +
+        '<td class="n">' + money(x.ant) + '</td><td class="n">' + money(x.deb) + '</td><td class="n">' + money(x.cre) + '</td>' +
+        '<td class="n">' + (s > 0.5 ? money(s) : '') + '</td><td class="n">' + (s < -0.5 ? money(-s) : '') + '</td></tr>'; };
+    cont.innerHTML = barraFiltros(false) +
+      '<div class="grid g4" style="margin-bottom:var(--gap)">' +
+        stat('Débitos del periodo', money(T.deb), etiquetaPeriodo(f)) + stat('Créditos del periodo', money(T.cre), Math.abs(T.deb - T.cre) <= 0.5 ? 'sumas iguales' : 'diferencia ' + money(T.deb - T.cre)) +
+        stat('Saldos débito', money(fin.d), 'activos, costos y gastos') + stat('Saldos crédito', money(fin.c), ok ? 'el balance cuadra' : 'el balance NO cuadra', ok ? '' : ' accent') +
+      '</div>' +
+      '<div class="card"><div class="card-head"><h3>Balance de prueba</h3><span class="tag ' + (ok ? 'ok' : 'bad') + '">' + (ok ? 'Cuadrado' : 'Descuadrado') + '</span></div>' +
+      '<div class="card-body flush"><div class="tw scroll" style="max-height:62vh"><table class="t" id="tBp"><thead><tr><th>Código</th><th>Cuenta</th><th class="n">Saldo anterior</th>' +
+        '<th class="n">Débitos</th><th class="n">Créditos</th><th class="n">Saldo débito</th><th class="n">Saldo crédito</th></tr></thead><tbody>' +
+        (A.length ? A.map(k => fila('grp', k.clase, CLASES_PUC[k.clase] || 'Clase ' + k.clase, k, 0) +
+          [...k.cuentas.values()].sort((a,b) => a.cuenta.localeCompare(b.cuenta)).map(g => fila('', g.cuenta, nombreCuenta(g.cuenta) || '(sin crear en el PUC)', g, 1) +
+            g.subs.map(s => fila('small', s.cuenta, nombreCuenta(s.cuenta) || '(sin crear en el PUC)', s, 2)).join('')).join('')).join('')
+          : '<tr><td colspan="7" class="muted small" style="padding:18px">Sin movimientos en el periodo.</td></tr>') +
+      '</tbody><tfoot><tr><td colspan="2">TOTALES</td><td class="n">' + money(T.ant) + '</td><td class="n">' + money(T.deb) + '</td><td class="n">' + money(T.cre) + '</td>' +
+        '<td class="n">' + money(fin.d) + '</td><td class="n">' + money(fin.c) + '</td></tr></tfoot></table></div></div></div>' +
+      '<div class="card"><div class="card-head"><h3>Controles del contador</h3></div><div class="card-body"><ul class="lista">' +
+        '<li>' + (ctl.descuadrados.length ? '<b class="bad-txt">' + ctl.descuadrados.length + ' comprobante(s) descuadrado(s).</b>' : 'Todos los comprobantes cuadran.') + '</li>' +
+        '<li>' + (ctl.sinPUC.length ? '<b class="warn-txt">Cuentas usadas que no existen en el plan de cuentas: ' + esc(ctl.sinPUC.join(', ')) + '.</b> Créelas en Administración › Plan de cuentas o cambie la regla.' : 'Todas las cuentas usadas existen en el plan de cuentas.') + '</li>' +
+        '<li>' + (ctl.pucRaro.length ? ctl.pucRaro.length + ' documento(s) tienen como «cuenta PUC» una cuenta de pasivo (por ejemplo ' + esc(ctl.pucRaro[0].cod) + '). La compra se causa al inventario según las reglas; la cuenta del documento solo se muestra en el libro auxiliar.' : 'Ningún documento usa una cuenta de pasivo como cuenta de costo.') + '</li>' +
+        '<li>' + (ctl.contrarios.length ? '<b class="warn-txt">Cuentas con saldo contrario a su naturaleza:</b> ' + ctl.contrarios.map(x => esc(x.cuenta + ' ' + (nombreCuenta(x.cuenta) || '')) + ' (' + money(Math.abs(x.saldo)) + (x.saldo > 0 ? ' débito' : ' crédito') + ')').join('; ') +
+          '. Un banco o un inventario en crédito suele indicar que faltan los saldos iniciales, aportes o ingresos por registrar.' : 'Ninguna cuenta tiene saldo contrario a su naturaleza.') + '</li>' +
+        '<li>Las salidas de almacén se valoran al costo promedio ponderado de compra (NIIF para PYMES, Sección 13)' + (ctl.sinCosto ? '; ' + ctl.sinCosto + ' salida(s) incluyen insumos sin compra registrada en el proyecto y se valoraron al precio de la salida.' : '.') + '</li>' +
+        '<li>' + (ctl.inferidos ? ctl.inferidos + ' pago(s) se fecharon con la autorización del pago, porque el documento solo tiene la marca «pagado». Confírmelos con el extracto bancario.' : 'Todos los pagos tienen fecha propia.') + '</li>' +
+        '<li>Las compras entran al inventario y pasan al costo de la obra con las salidas de almacén; el IVA de compras se trata como ' + (ivaEsCosto(p) ? '<b>mayor valor del costo</b>' : '<b>descontable</b>') + ' (Administración › Plan de cuentas › Reglas de causación).</li>' +
+      '</ul><div class="alert info" style="margin-top:10px"><div class="ic">ℹ</div><div class="bd small">' + esc(AVISO_TRIBUTARIO) + '</div></div></div></div>';
+    conectarFiltros();
+    UI.conectarBusqueda('#cfBus', '#tBp');
+  }
+
+  /* ─────────────── Exportaciones de los libros ─────────────── */
+  function exportar(p, vista, formato){
+    const { f, todos, lista } = datos(p);
+    const ambitoTxt = f.ambito === 'empresa' ? 'Consolidado empresa' : p.nombre;
+    const base = { proyecto: f.ambito === 'empresa' ? null : p, textoProyecto:ambitoTxt };
+    if (vista === 'comprobantes' || vista === 'diario'){
+      const L = lineasDiario(lista);
+      const T = L.reduce((a,x) => ({ d:a.d + x.l.debito, c:a.c + x.l.credito }), { d:0, c:0 });
+      if (formato === 'xlsx') return Documentos.excel('ARKEN_libro_diario', [{ nombre:'Libro diario', titulo:'Libro diario — ' + ambitoTxt + ' — ' + etiquetaPeriodo(f),
+        anchos:[11,8,12,10,34,14,30,26,26,34,15,15], filas:[['Fecha','Tipo','Comprobante','Cuenta','Nombre de la cuenta','NIT','Tercero','Centro de costo','Subcentro','Detalle','Débito','Crédito']]
+          .concat(L.map(x => [x.c.fecha, x.c.tipo, x.c.numero, x.l.cuenta, nombreCuenta(x.l.cuenta), x.l.nit, x.l.tercero, x.l.cc || x.c.proyecto, x.l.sub || '', x.l.detalle, x.l.debito, x.l.credito])) }]);
+      return Documentos.previsualizar(Object.assign({ nombre:'ARKEN_libro_diario', titulo:'LIBRO DIARIO', subtitulo:etiquetaPeriodo(f), documento:'Libro diario', orientacion:'l',
+        bloques:[{ t:'tabla', tam:5.8, head:[['Fecha','Comprobante','Cuenta','Nombre','Tercero','Centro de costo','Detalle','Débito','Crédito']], anchos:{7:{ halign:'right', cellWidth:26 }, 8:{ halign:'right', cellWidth:26 }},
+          body:L.map(x => [fmtFecha(x.c.fecha), x.c.tipo + ' ' + x.c.numero, x.l.cuenta, nombreCuenta(x.l.cuenta), (x.l.tercero || '') + (x.l.nit ? '\n' + x.l.nit : ''), (x.l.cc || '') + (x.l.sub ? '\n' + x.l.sub : ''), x.l.detalle,
+            { content:x.l.debito ? money(x.l.debito) : '', styles:der }, { content:x.l.credito ? money(x.l.credito) : '', styles:der }]) },
+          { t:'totales', ancho:96, lineas:[{ lab:'Sumas débito', val:money(T.d) }, { lab:'Sumas crédito', val:money(T.c), fuerte:true }] },
+          { t:'nota', txt:'Libro generado por ARKEN CONTROL a partir de los comprobantes automáticos y manuales. ' + AVISO_TRIBUTARIO },
+          { t:'firmas', firmas:[{ n:'Contador público' }, { n:'Representante legal' }] }] }, base));
+    }
+    const S2 = saldos(todos, f.desde, f.hasta);
+    if (vista === 'mayor'){
+      if (formato === 'xlsx') return Documentos.excel('ARKEN_libro_mayor', [{ nombre:'Mayor y balances', titulo:'Libro mayor y balances — ' + ambitoTxt + ' — ' + etiquetaPeriodo(f),
+        anchos:[10,40,16,16,16,16], filas:[['Cuenta','Nombre','Saldo anterior','Débitos','Créditos','Saldo final']].concat(S2.map(a => [a.cuenta, nombreCuenta(a.cuenta), redondear(a.ant), redondear(a.deb), redondear(a.cre), redondear(a.ant + a.deb - a.cre)])) }]);
+      const fmtS = v => money(Math.abs(v)) + (Math.abs(v) < 0.5 ? '' : (v > 0 ? ' D' : ' C'));
+      return Documentos.previsualizar(Object.assign({ nombre:'ARKEN_libro_mayor', titulo:'LIBRO MAYOR Y BALANCES', subtitulo:etiquetaPeriodo(f), documento:'Libro mayor', orientacion:'p',
+        bloques:[{ t:'tabla', tam:7, head:[['Cuenta','Nombre','Saldo anterior','Débitos','Créditos','Saldo final']], anchos:{2:der,3:der,4:der,5:der},
+          body:S2.map(a => [a.cuenta, nombreCuenta(a.cuenta), { content:fmtS(a.ant), styles:der }, { content:money(a.deb), styles:der }, { content:money(a.cre), styles:der }, { content:fmtS(a.ant + a.deb - a.cre), styles:der }]) },
+          { t:'firmas', firmas:[{ n:'Contador público' }, { n:'Representante legal' }] }] }, base));
+    }
+    // balance de prueba
+    const A = arbolBalance(S2);
+    const filas = [];
+    A.forEach(k => { filas.push({ nivel:0, cod:k.clase, nom:CLASES_PUC[k.clase] || '', x:k });
+      [...k.cuentas.values()].sort((a,b) => a.cuenta.localeCompare(b.cuenta)).forEach(g => { filas.push({ nivel:1, cod:g.cuenta, nom:nombreCuenta(g.cuenta), x:g });
+        g.subs.forEach(s => filas.push({ nivel:2, cod:s.cuenta, nom:nombreCuenta(s.cuenta), x:s })); }); });
+    const sd = x => { const s = x.ant + x.deb - x.cre; return [s > 0.5 ? s : 0, s < -0.5 ? -s : 0]; };
+    const T = S2.reduce((a,x) => { const [d,c] = sd(x); return { ant:a.ant + x.ant, deb:a.deb + x.deb, cre:a.cre + x.cre, sd:a.sd + d, sc:a.sc + c }; }, { ant:0, deb:0, cre:0, sd:0, sc:0 });
+    if (formato === 'xlsx') return Documentos.excel('ARKEN_balance_de_prueba', [{ nombre:'Balance de prueba', titulo:'Balance de prueba — ' + ambitoTxt + ' — ' + etiquetaPeriodo(f),
+      anchos:[10,6,40,16,16,16,16,16], filas:[['Código','Nivel','Cuenta','Saldo anterior','Débitos','Créditos','Saldo débito','Saldo crédito']]
+        .concat(filas.map(r2 => { const [d,c] = sd(r2.x); return [r2.cod, r2.nivel === 0 ? 'Clase' : r2.nivel === 1 ? 'Cuenta' : 'Subcuenta', r2.nom, redondear(r2.x.ant), redondear(r2.x.deb), redondear(r2.x.cre), redondear(d), redondear(c)]; }))
+        .concat([['', '', 'TOTALES', redondear(T.ant), redondear(T.deb), redondear(T.cre), redondear(T.sd), redondear(T.sc)]]) }]);
+    return Documentos.previsualizar(Object.assign({ nombre:'ARKEN_balance_de_prueba', titulo:'BALANCE DE PRUEBA', subtitulo:etiquetaPeriodo(f), documento:'Balance de prueba', orientacion:'l',
+      bloques:[{ t:'tabla', tam:7, head:[['Código','Cuenta','Saldo anterior','Débitos','Créditos','Saldo débito','Saldo crédito']], anchos:{2:der,3:der,4:der,5:der,6:der},
+        body:filas.map(r2 => { const [d,c] = sd(r2.x); const b = r2.nivel === 0 ? { fontStyle:'bold' } : {};
+          return [{ content:r2.cod, styles:b }, { content:(r2.nivel === 2 ? '   ' : '') + r2.nom, styles:b }, { content:money(r2.x.ant), styles:Object.assign({}, der, b) },
+            { content:money(r2.x.deb), styles:Object.assign({}, der, b) }, { content:money(r2.x.cre), styles:Object.assign({}, der, b) },
+            { content:d ? money(d) : '', styles:Object.assign({}, der, b) }, { content:c ? money(c) : '', styles:Object.assign({}, der, b) }]; })
+          .concat([[{ content:'TOTALES', colSpan:2, styles:{ fontStyle:'bold' } }, { content:money(T.ant), styles:{ halign:'right', fontStyle:'bold' } }, { content:money(T.deb), styles:{ halign:'right', fontStyle:'bold' } },
+            { content:money(T.cre), styles:{ halign:'right', fontStyle:'bold' } }, { content:money(T.sd), styles:{ halign:'right', fontStyle:'bold' } }, { content:money(T.sc), styles:{ halign:'right', fontStyle:'bold' } }]]) },
+        { t:'nota', txt:'Sumas iguales: débitos ' + money(T.deb) + ' y créditos ' + money(T.cre) + '. ' + AVISO_TRIBUTARIO },
+        { t:'firmas', firmas:[{ n:'Contador público' }, { n:'Representante legal' }] }] }, base));
+  }
+
+  /* ─────────────── Administración › reglas de causación ─────────────── */
+  function adminReglas(c){
+    const r = reglas();
+    const opts = cod => '<option value="">—</option>' + (S.puc || []).map(q => '<option value="' + esc(q.codigo) + '"' + (q.codigo === cod ? ' selected' : '') + '>' + esc(q.codigo + ' ' + q.nombre) + '</option>').join('');
+    const conceptos = [...new Set(['COM','SER','CON','HON','ARR','OTR'].concat(conceptosVigentes().map(x => x.codigo)))];
+    const proyectos = (S.proyectos || []).filter(px => Reglas.veProyecto(px.id));
+    const editable = puedeContabilizar();
+    c.insertAdjacentHTML('beforeend',
+      '<div class="p-sec" style="margin-top:22px">Reglas de causación automática</div>' +
+      '<p class="small muted">Con estas cuentas el sistema arma los comprobantes de cada compra, salida, corte, pago, ingreso y nómina. Cambiar una regla recalcula los libros; no modifica los documentos.</p>' +
+      '<div class="grid g2" id="rgCont">' +
+      REGLAS_CONTA_ETIQ.map(([grupo, items]) => '<div class="card"><div class="card-head"><h3>' + esc(grupo) + '</h3></div><div class="card-body">' +
+        items.map(([k, lab]) => '<div class="field"><label>' + esc(lab) + '</label><select data-rg="' + k + '"' + (editable ? '' : ' disabled') + '>' + opts(r[k]) + '</select></div>').join('') + '</div></div>').join('') +
+      '<div class="card"><div class="card-head"><h3>Retención en la fuente por concepto</h3></div><div class="card-body">' +
+        conceptos.map(k => '<div class="field"><label>' + esc(k + ' · ' + nombreConcepto(k)) + '</label><select data-rc="' + k + '"' + (editable ? '' : ' disabled') + '>' + opts(r.retPorConcepto[k]) + '</select></div>').join('') + '</div></div>' +
+      '<div class="card"><div class="card-head"><h3>IVA y certificados</h3></div><div class="card-body">' +
+        '<div class="field"><label>IVA pagado en compras y contratos</label><select id="rgIva"' + (editable ? '' : ' disabled') + '>' + UI.selectOpts([{ v:'descontable', n:'Descontable (empresa responsable de IVA en sus ventas)' }, { v:'costo', n:'Mayor valor del costo (ventas excluidas, p. ej. vivienda)' }], r.tratamientoIVA) + '</select></div>' +
+        '<div class="field"><label><input type="checkbox" id="rgRiva"' + (r.agenteReteIVA ? ' checked' : '') + (editable ? '' : ' disabled') + '> La empresa es agente de retención de IVA</label></div>' +
+        '<div class="field"><label>Ciudad donde se consignan las retenciones (certificados)</label><input id="rgCiu" value="' + esc(r.ciudadRetencion || '') + '" placeholder="' + esc(ciudadRetencion()) + '"' + (editable ? '' : ' disabled') + '></div>' +
+        '<div class="p-sec">Excepciones por proyecto</div>' +
+        proyectos.map(px => { const v = r.ivaCostoProyectos[px.id]; return '<div class="field"><label>' + esc(px.nombre) + '</label><select data-rp="' + px.id + '"' + (editable ? '' : ' disabled') + '>' +
+          UI.selectOpts([{ v:'', n:'Igual a la regla general' }, { v:'costo', n:'IVA como mayor valor del costo' }, { v:'descontable', n:'IVA descontable' }], v === true ? 'costo' : v === false ? 'descontable' : '') + '</select></div>'; }).join('') +
+      '</div></div></div>' +
+      (editable ? '<div class="toolbar"><button class="btn" id="rgRest" type="button">Volver a las reglas base</button></div>' : '<p class="small muted">Solo el administrador, la gerencia o el contador cambian estas reglas.</p>'));
+    if (!editable) return;
+    const g = () => estado().reglas;
+    const guardar = (txt) => { Modelo.auditar('editar', 'reglas contables', txt); App.guardar(); };
+    $$('[data-rg]', c).forEach(e => e.onchange = () => { g()[e.dataset.rg] = e.value; guardar(e.dataset.rg + ' → ' + e.value); });
+    $$('[data-rc]', c).forEach(e => e.onchange = () => { const x = g(); x.retPorConcepto = Object.assign({}, x.retPorConcepto || {}, { [e.dataset.rc]:e.value }); guardar('retención ' + e.dataset.rc + ' → ' + e.value); });
+    $$('[data-rp]', c).forEach(e => e.onchange = () => { const x = g(); x.ivaCostoProyectos = Object.assign({}, x.ivaCostoProyectos || {});
+      if (!e.value) delete x.ivaCostoProyectos[e.dataset.rp]; else x.ivaCostoProyectos[e.dataset.rp] = e.value === 'costo'; guardar('IVA del proyecto ' + e.dataset.rp + ' → ' + (e.value || 'general')); });
+    $('#rgIva', c).onchange = e => { g().tratamientoIVA = e.target.value; guardar('tratamiento del IVA → ' + e.target.value); };
+    $('#rgRiva', c).onchange = e => { g().agenteReteIVA = e.target.checked; guardar('agente de reteIVA → ' + (e.target.checked ? 'sí' : 'no')); };
+    $('#rgCiu', c).onchange = e => { g().ciudadRetencion = e.target.value.trim(); guardar('ciudad de consignación → ' + e.target.value); };
+    $('#rgRest', c).onclick = async () => {
+      const ok = await UI.confirmar({ titulo:'Volver a las reglas base', mensaje:'Las cuentas de causación vuelven a las del plan base. Los documentos no cambian.', textoAceptar:'Restaurar' });
+      if (!ok) return;
+      estado().reglas = {}; guardar('reglas base'); Admin.pintar();
+    };
+  }
+
+  return { estado, reglas, migrar, puedeContabilizar, nombreCuenta, naturalezaDebito, ivaEsCosto, ciudadRetencion,
+    codigoConcepto, nombreConcepto, conceptoProveedor, retencionPorConcepto, calcularRetenciones, revisarRetenciones,
+    comprobantesProyecto, comprobantes, saldos, totales, controles, enPeriodo, editarManual, anularManual, docComprobante,
+    tabComprobantes, tabDiario, tabMayor, tabBalance, exportar, adminReglas, filtros, etiquetaPeriodo };
+})();
+
+/* Administración › Plan de cuentas: el catálogo y, debajo, las reglas de causación. */
+const _adPUCBase = adPUC;
+adPUC = function(c){
+  Conta.migrar();
+  _adPUCBase(c);
+  Conta.adminReglas(c);
+};
+
+/* Glosario: términos contables nuevos */
+(function(){
+  if (typeof AYUDA_CONTENIDO === 'undefined' || !Array.isArray(AYUDA_CONTENIDO.glosario)) return;
+  const nuevos = [
+    ['Partida doble', 'Principio contable por el que cada hecho se registra con al menos un débito y un crédito por el mismo valor. En ARKEN cada compra, salida, corte, pago, ingreso y nómina genera su comprobante cuadrado.'],
+    ['Comprobante contable', 'Documento interno que soporta un asiento: fecha, número, concepto, tercero, cuentas, débitos y créditos. Los automáticos nacen de un documento del sistema; los manuales se usan para ajustes y saldos iniciales.'],
+    ['Libro diario', 'Registro cronológico de todos los asientos contables, con su comprobante, cuenta, tercero y centro de costo (Código de Comercio arts. 48 a 60).'],
+    ['Libro mayor y balances', 'Resumen por cuenta del saldo anterior, los débitos, los créditos y el saldo final de un periodo.'],
+    ['Balance de prueba', 'Listado de todas las cuentas con sus saldos que comprueba que la suma de débitos es igual a la de créditos. Es la base de los estados financieros.'],
+    ['Reglas de causación', 'Cuentas que el sistema usa para cada tipo de hecho (compra, salida, corte, pago, nómina). Se ajustan en Administración › Plan de cuentas.'],
+    ['Certificado de retención', 'Documento que el agente retenedor entrega a cada tercero con el total retenido en el año, por concepto. ARKEN lo genera por NIT sumando todos los proyectos de la empresa (arts. 378 a 381 del Estatuto Tributario).'],
+    ['Régimen simple de tributación', 'Régimen del art. 903 y siguientes del Estatuto Tributario. Sus integrantes no son sujetos de retención en la fuente a título de renta (art. 911 ET).'],
+    ['Autorretenedor', 'Contribuyente autorizado por la DIAN para practicarse su propia retención; por eso no se le retiene en la fuente.']
+  ];
+  nuevos.forEach(([q, a]) => { if (!AYUDA_CONTENIDO.glosario.some(x => normaliza(x.q) === normaliza(q))) AYUDA_CONTENIDO.glosario.push({ q, a:'<p>' + esc(a) + '</p>' }); });
+  AYUDA_CONTENIDO.glosario.sort((x,y) => String(x.q).localeCompare(String(y.q), 'es'));
+})();
+
+</script>
 </body></html>
