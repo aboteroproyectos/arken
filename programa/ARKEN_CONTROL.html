@@ -61952,9 +61952,10 @@ adPUC = function(c){
    segunda fórmula— y cada indicador se calcula aislado: si un dato falta,
    ese indicador muestra «—» y el resto del tablero sigue en pie.
    ════════════════════════════════════════════════════════════════════════ */
-const ARKEN_VERSION = '11.0.0';
-const ARKEN_VERSION_FECHA = '2026-10-29';
+const ARKEN_VERSION = '12.0.0';
+const ARKEN_VERSION_FECHA = '2026-11-01';
 const HISTORIAL_VERSIONES = [
+  ['12.0.0', '2026-11-01', 'Pantalla dividida: dos módulos a la vez, en vertical u horizontal, con comandos (Ctrl+K) y actualización inmediata entre paneles. Pestaña Ingresos del presupuesto renovada: cartera por documento de cobro, curva acumulada, retenciones, filtros y pago desde el documento de cobro.'],
   ['11.0.0', '2026-10-29', 'Nómina con la ley 2026 (novedades, aprendices, retención, valores oficiales), archivos de PILA, nómina electrónica DIAN y bancos, validador UGPP, prestaciones y calendario; códigos QR en carnés y equipos, control de acceso e inventario.'],
   ['10.0.0', '2026-10-29', 'Respaldos por proyecto: exportar un proyecto en su propio archivo (con contraseña opcional) y cargarlo en otro equipo actualizando sólo ese proyecto, con aviso y visto bueno.'],
   ['9.0.0', '2026-10-29', 'Tablero ejecutivo en los módulos de trabajo, acabado visual premium, centro de ayuda con la contabilidad completa, y versión y año de copyright automáticos.'],
@@ -68271,6 +68272,1086 @@ const InventarioQR = (function(){
       a:'<p>El QR del carné identifica al trabajador en portería: con la cámara, la vigilancia ve su foto y si está APTO, y registra la entrada o la salida. ' +
         'Esos registros alimentan la nómina (días trabajados). El QR de cada equipo permite registrar su salida y entrada de la obra y hacer inventarios ' +
         'escaneando las etiquetas. Los códigos van firmados con una clave de la empresa: un QR copiado de otro sistema no se acepta.</p>' });
+})();
+
+</script>
+<style id="v12-division">
+/* ═══════════ v12 · Pantalla dividida ═══════════ */
+body.dv-on{ overflow:hidden; }
+body.dv-on .shell{ height:100vh; min-height:0; overflow:hidden; align-items:stretch; }
+.dv-zona{ flex:1 1 auto; min-width:0; display:flex; gap:0; height:calc(100vh - var(--top-h-total) - var(--ledger-h)); }
+.dv-zona.v{ flex-direction:row; }
+.dv-zona.h{ flex-direction:column; }
+.dv-zona.v.inv{ flex-direction:row-reverse; }
+.dv-zona.h.inv{ flex-direction:column-reverse; }
+.dv-panel{ display:flex; flex-direction:column; min-width:0; min-height:0; position:relative; background:var(--paper);
+  transition:box-shadow .2s; }
+.dv-panel > .stage{ flex:1 1 auto; min-height:0; overflow:auto; padding:16px 20px 60px; outline:none; scroll-behavior:auto; }
+.dv-panel::after{ content:''; position:absolute; inset:0; pointer-events:none; border:1px solid transparent; transition:border-color .2s, box-shadow .2s; z-index:5; }
+.dv-panel.activo::after{ border-color:var(--brass-line); box-shadow:inset 0 0 0 1px rgba(169,139,84,.18); }
+.dv-zona.arrastre{ cursor:col-resize; user-select:none; }
+.dv-zona.h.arrastre{ cursor:row-resize; }
+.dv-zona.arrastre .stage{ pointer-events:none; }
+
+.dv-barra{ flex:none; display:flex; align-items:center; gap:10px; height:34px; padding:0 10px 0 12px;
+  background:linear-gradient(180deg,#24282C,#1B1E21); color:#AEB3B8; border-bottom:1px solid #2E3237; font-size:11px; }
+.dv-panel.activo .dv-barra{ background:linear-gradient(180deg,#2C2A24,#1E1C18); color:#E4CF9F; border-bottom-color:rgba(169,139,84,.55); }
+.dv-punto{ width:7px; height:7px; border-radius:50%; background:#5C6268; flex:none; transition:background .2s, box-shadow .2s; }
+.dv-panel.activo .dv-punto{ background:var(--brass); box-shadow:0 0 0 3px rgba(169,139,84,.22), 0 0 10px rgba(169,139,84,.6); }
+.dv-lado{ letter-spacing:.16em; text-transform:uppercase; font-size:9px; font-weight:700; white-space:nowrap; }
+.dv-mod{ background:rgba(255,255,255,.06); color:#ECEDEE; border:1px solid rgba(255,255,255,.12); border-radius:6px;
+  height:24px; padding:0 8px; font-size:11.5px; font-weight:600; max-width:260px; min-width:0; }
+.dv-mod option{ color:#16181A; }
+.dv-estado{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#7E848A; font-size:10.5px; }
+.dv-panel.activo .dv-estado{ color:rgba(228,207,159,.75); }
+.dv-acc{ display:flex; gap:4px; flex:none; }
+.dv-b{ width:24px; height:24px; border-radius:6px; border:1px solid rgba(255,255,255,.1); background:transparent; color:inherit; cursor:pointer; font-size:12px; line-height:1; }
+.dv-b:hover{ background:rgba(255,255,255,.08); color:#fff; }
+
+.dv-divisor{ flex:none; position:relative; background:var(--line-soft); z-index:6; transition:background .15s; outline:none; }
+.dv-zona.v .dv-divisor{ width:7px; cursor:col-resize; }
+.dv-zona.h .dv-divisor{ height:7px; cursor:row-resize; }
+.dv-divisor:hover, .dv-divisor:focus-visible, .dv-zona.arrastre .dv-divisor{ background:var(--brass); }
+.dv-divisor i{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); border-radius:3px; background:rgba(0,0,0,.25); }
+.dv-zona.v .dv-divisor i{ width:3px; height:34px; }
+.dv-zona.h .dv-divisor i{ width:34px; height:3px; }
+
+/* Lo que se pegaba a la ventana ahora se pega al panel. */
+.dv-panel .ay-gnav, .dv-panel .ay-glos-bar{ top:0; }
+.dv-panel .page-head h1{ font-size:22px; }
+
+/* Icono de división y botón de la barra superior */
+.dv-ico{ display:inline-flex; gap:2px; width:16px; height:12px; vertical-align:-1px; margin-right:6px; }
+.dv-ico i{ flex:1; border:1.4px solid currentColor; border-radius:2px; }
+.dv-ico.h{ flex-direction:column; }
+.dv-ico.mini{ width:13px; height:10px; }
+body.dv-on .dv-btn{ color:#E4CF9F !important; border-color:var(--brass) !important; }
+
+.dv-menu{ position:fixed; z-index:9000; width:330px; background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  box-shadow:0 24px 60px -20px rgba(10,12,14,.45); padding:16px; animation:dvEntra .16s ease-out; }
+.dv-m-tit{ font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--brass); font-weight:700; margin-bottom:12px; }
+.dv-m-ori{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.dv-m-ori button{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 6px; border:1px solid var(--line);
+  border-radius:10px; background:var(--paper); cursor:pointer; font-weight:600; font-size:12px; color:var(--ink); transition:border-color .15s, background .15s; }
+.dv-m-ori button small{ font-weight:400; color:var(--slate); font-size:10.5px; }
+.dv-m-ori button .dv-ico{ width:34px; height:24px; margin:0 0 4px; color:var(--ink-2); }
+.dv-m-ori button.on{ border-color:var(--brass); background:var(--brass-soft); }
+.dv-m-ori button.on .dv-ico{ color:var(--brass); }
+.dv-m-lab{ display:flex; flex-direction:column; gap:4px; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--slate); margin-bottom:10px; font-weight:600; }
+.dv-m-lab select{ text-transform:none; letter-spacing:0; font-size:12.5px; height:32px; }
+.dv-m-acc{ display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
+.dv-m-atajos{ margin-top:12px; padding-top:10px; border-top:1px solid var(--line-soft); font-size:10.5px; color:var(--slate); line-height:1.6; }
+.dv-m-atajos b{ color:var(--ink-2); font-weight:600; }
+
+.dv-paleta{ position:fixed; inset:0; z-index:9500; background:rgba(14,16,18,.45); backdrop-filter:blur(3px); display:flex; justify-content:center; align-items:flex-start; padding-top:12vh; }
+.dv-pal-caja{ width:min(640px, calc(100vw - 32px)); background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  box-shadow:0 30px 80px -24px rgba(10,12,14,.6); overflow:hidden; animation:dvEntra .14s ease-out; }
+.dv-pal-cab{ display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line-soft); }
+.dv-pal-cab span{ color:var(--brass); font-size:16px; }
+.dv-pal-cab input{ flex:1; border:0; outline:none; background:transparent; font-size:15px; color:var(--ink); }
+.dv-pal-lista{ max-height:50vh; overflow:auto; padding:6px; }
+.dv-pal-op{ display:flex; width:100%; align-items:center; justify-content:space-between; gap:12px; padding:9px 12px; border:0; background:transparent;
+  border-radius:8px; text-align:left; font-size:13px; color:var(--ink); cursor:pointer; }
+.dv-pal-op.sel{ background:var(--brass-soft); }
+.dv-pal-op.dest span{ font-weight:700; }
+.dv-pal-op kbd{ font:600 10.5px var(--font-mono, monospace); color:var(--slate); border:1px solid var(--line); border-radius:5px; padding:2px 6px; background:var(--paper); white-space:nowrap; }
+.dv-pal-vacio{ padding:16px; color:var(--slate); font-size:12.5px; }
+.dv-pal-pie{ padding:8px 16px; border-top:1px solid var(--line-soft); font-size:10.5px; color:var(--slate); }
+@keyframes dvEntra{ from{ opacity:0; transform:translateY(-6px) scale(.98); } to{ opacity:1; transform:none; } }
+@media (max-width:899px){ .dv-btn{ display:none !important; } }
+
+/* ═══════════ v12 · Módulo 03 › Ingresos ═══════════ */
+.ig-hero{ position:relative; overflow:hidden; border-radius:var(--r-lg); margin:0 0 var(--gap); color:#ECEDEE;
+  background:radial-gradient(120% 140% at 100% 0%, #2C3136 0%, #1B1E21 46%, #121416 100%);
+  box-shadow:0 18px 40px -24px rgba(10,12,14,.55), inset 0 1px 0 rgba(255,255,255,.04); border:1px solid #2A2E33; }
+.ig-hero::before{ content:''; position:absolute; right:-120px; top:-150px; width:400px; height:400px; border:1px solid rgba(169,139,84,.22); border-radius:50%; pointer-events:none; }
+.ig-hero::after{ content:''; position:absolute; right:-60px; top:-90px; width:260px; height:260px; border:1px solid rgba(169,139,84,.12); border-radius:50%; pointer-events:none; }
+.ig-hero-in{ position:relative; display:grid; grid-template-columns:minmax(0,1.15fr) auto minmax(0,1.5fr); gap:26px; align-items:center; padding:24px 28px 16px; }
+.ig-tit{ font-family:var(--font-display); font-size:21px; line-height:1.3; color:#fff; margin:10px 0 8px; font-weight:400; }
+.ig-tit em{ font-style:normal; font-weight:700; color:#E4CF9F; }
+.ig-hero.bad .ig-tit em{ color:#F0A39A; }
+.ig-txt{ color:#AEB3B8; font-size:12.5px; line-height:1.6; }
+.ig-txt b{ color:#fff; font-weight:600; }
+.ig-anillo{ position:relative; width:132px; height:132px; flex:none; }
+.ig-anillo svg{ width:100%; height:100%; transform:rotate(-90deg); }
+.ig-a-base{ fill:none; stroke:rgba(255,255,255,.08); stroke-width:8; }
+.ig-a-arco{ fill:none; stroke:var(--brass); stroke-width:8; stroke-linecap:round; transition:stroke-dasharray 1.1s cubic-bezier(.16,1,.3,1); filter:drop-shadow(0 0 6px rgba(169,139,84,.4)); }
+.ig-a-cob{ fill:none; stroke:rgba(228,207,159,.35); stroke-width:3; stroke-linecap:round; }
+.ig-anillo.ok .ig-a-arco{ stroke:#C9AD72; }
+.ig-a-cen{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.ig-a-cen b{ font-size:25px; font-weight:600; color:#fff; font-family:var(--font-display); line-height:1; }
+.ig-a-cen span{ font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:#8E949A; margin-top:4px; }
+.ig-a-cen i{ font-style:normal; font-size:10px; color:#C9AD72; margin-top:3px; }
+.ig-kpis{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.ig-kpi{ background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:10px 12px; min-width:0;
+  animation:igSube .5s cubic-bezier(.16,1,.3,1) both; animation-delay:var(--d); transition:border-color .2s, background .2s; }
+.ig-kpi:hover{ border-color:rgba(169,139,84,.45); background:rgba(169,139,84,.06); }
+.ig-kpi-lab{ font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:#8E949A; font-weight:700; }
+.ig-kpi-val{ font-size:17px; font-weight:600; color:#fff; margin-top:4px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ig-kpi-sub{ font-size:10.5px; color:#7E848A; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ig-kpi.ok .ig-kpi-val{ color:#8FC4A3; } .ig-kpi.bad .ig-kpi-val{ color:#F0A39A; } .ig-kpi.warn .ig-kpi-val{ color:#E4CF9F; }
+.ig-riel{ position:relative; display:flex; height:9px; margin:4px 28px 0; border-radius:6px; overflow:hidden; background:rgba(255,255,255,.06); gap:2px; }
+.ig-riel i{ display:block; min-width:3px; animation:igCrece .9s cubic-bezier(.16,1,.3,1) both; transform-origin:left; }
+.ig-t-neto{ background:linear-gradient(90deg,#3B6E52,#5E9C78); }
+.ig-t-ret{ background:#7A6A4A; }
+.ig-t-cob{ background:linear-gradient(90deg,#A98B54,#C9AD72); }
+.ig-t-falta{ background:rgba(255,255,255,.12); }
+.ig-riel-ley{ position:relative; display:flex; flex-wrap:wrap; gap:6px 18px; padding:10px 28px 16px; font-size:10.5px; color:#8E949A; }
+.ig-riel-ley span{ display:inline-flex; align-items:center; gap:6px; }
+.ig-riel-ley span i{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+.ig-riel-ley b{ color:#D6D8D9; font-weight:600; }
+@keyframes igSube{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+@keyframes igCrece{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
+
+.ig-barra{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 var(--gap); }
+.ig-barra-prin, .ig-barra-doc{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.ig-barra-doc{ padding:4px 4px 4px 12px; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
+.ig-mini{ font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--slate); font-weight:700; }
+.ig-alerta{ margin-bottom:var(--gap); }
+.ig-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:var(--gap); margin-bottom:var(--gap); align-items:start; }
+.ig-card{ animation:igSube .5s cubic-bezier(.16,1,.3,1) both; }
+.ig-card .card-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+.ig-ancha{ grid-column:1 / -1; }
+.ig-sec{ margin-bottom:var(--gap); }
+.ig-vacio{ padding:18px; text-align:center; color:var(--slate); font-size:12.5px; border:1px dashed var(--line); border-radius:10px; background:var(--paper); }
+
+.ig-curva svg{ width:100%; height:auto; max-height:300px; display:block; overflow:visible; }
+.ig-c-grid{ stroke:var(--line-soft); stroke-width:1; vector-effect:non-scaling-stroke; }
+.ig-c-eje{ font-size:9px; fill:var(--slate); }
+.ig-c-inv{ stroke:#41464C; stroke-width:1.2; stroke-dasharray:2 4; vector-effect:non-scaling-stroke; }
+.ig-c-invt{ font-size:9.5px; fill:var(--ink-2); font-weight:600; }
+.ig-c-area{ animation:g8FadeIn .9s ease both; }
+.ig-c-cob{ fill:none; stroke:var(--brass); stroke-width:2; stroke-dasharray:5 4; vector-effect:non-scaling-stroke; }
+.ig-c-rec{ fill:none; stroke:#3B6E52; stroke-width:2.4; vector-effect:non-scaling-stroke; animation:g8FadeIn .9s ease .1s both; }
+.ig-curva.quieta .ig-c-rec, .ig-curva.quieta .ig-c-area{ animation:none; }
+.ig-c-pt{ fill:var(--surface); stroke:#3B6E52; stroke-width:2; vector-effect:non-scaling-stroke; transition:r .15s; }
+.ig-c-pt:hover{ r:5; }
+.ig-c-ley{ display:flex; flex-wrap:wrap; gap:6px 18px; margin-top:8px; font-size:11px; color:var(--slate); }
+.ig-c-ley span{ display:inline-flex; align-items:center; gap:6px; }
+.ig-c-ley b{ color:var(--ink); }
+.ig-c-ley i{ width:16px; height:3px; border-radius:2px; display:inline-block; }
+.ig-c-ley i.cob{ background:repeating-linear-gradient(90deg,var(--brass) 0 5px,transparent 5px 8px); }
+.ig-c-ley i.rec{ background:#3B6E52; } .ig-c-ley i.inv{ background:repeating-linear-gradient(90deg,#41464C 0 2px,transparent 2px 5px); }
+@keyframes igTrazo{ to{ stroke-dashoffset:0; } }
+
+.ig-barras{ display:flex; flex-direction:column; gap:10px; }
+.ig-bl{ display:grid; grid-template-columns:110px 1fr auto; gap:10px; align-items:center; font-size:12px; }
+.ig-bl span{ color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ig-bl b{ font-variant-numeric:tabular-nums; font-size:12px; }
+.ig-bt{ height:8px; border-radius:5px; background:var(--paper-2, #EEF0F1); overflow:hidden; }
+.ig-bt i{ display:block; height:100%; border-radius:5px; animation:igCrece .9s cubic-bezier(.16,1,.3,1) both; transform-origin:left; }
+.ig-bt i.e0{ background:#5E9C78; } .ig-bt i.e1{ background:#C9AD72; } .ig-bt i.e2{ background:#C98A54; } .ig-bt i.e3{ background:#B5534A; }
+.ig-bt i.m{ background:linear-gradient(90deg,#A98B54,#C9AD72); }
+
+.ig-cobros{ display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:12px; padding:14px; }
+.ig-cobro{ position:relative; border:1px solid var(--line); border-radius:12px; padding:12px 14px; background:var(--surface);
+  display:flex; flex-direction:column; gap:6px; transition:transform .18s, box-shadow .18s, border-color .18s; overflow:hidden; }
+.ig-cobro::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--line); }
+.ig-cobro.pagado::before{ background:#5E9C78; } .ig-cobro.parcial::before{ background:#C9AD72; } .ig-cobro.vencido::before{ background:#B5534A; }
+.ig-cobro:hover{ transform:translateY(-2px); box-shadow:var(--shadow); border-color:var(--brass-line); }
+.ig-cobro header{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.ig-cons{ font-family:var(--font-mono, monospace); font-weight:700; font-size:12.5px; margin-right:auto; }
+.ig-cobro-cli{ font-size:12px; color:var(--ink-2); display:flex; flex-direction:column; }
+.ig-cobro-cli span{ font-size:10.5px; color:var(--slate); }
+.ig-cobro-val{ font-size:19px; font-weight:600; font-family:var(--font-display); font-variant-numeric:tabular-nums; }
+.ig-prog{ height:6px; border-radius:4px; background:var(--paper-2, #EEF0F1); overflow:hidden; }
+.ig-prog i{ display:block; height:100%; background:linear-gradient(90deg,#3B6E52,#5E9C78); border-radius:4px; animation:igCrece .9s cubic-bezier(.16,1,.3,1) both; transform-origin:left; }
+.ig-cobro.parcial .ig-prog i{ background:linear-gradient(90deg,#A98B54,#C9AD72); }
+.ig-cobro-pie{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--slate); }
+.ig-cobro-pie b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+.ig-cobro footer{ display:flex; gap:4px; flex-wrap:wrap; padding-top:6px; border-top:1px solid var(--line-soft); margin-top:2px; }
+
+.ig-filtros{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.ig-buscar{ height:30px; width:240px; min-width:0; border:1px solid var(--line); border-radius:8px; padding:0 10px; background:var(--paper); font-size:12px; }
+.ig-buscar:focus{ outline:none; border-color:var(--brass); }
+.ig-filtros select{ height:30px; font-size:12px; width:auto; }
+.ig-filtros{ justify-content:flex-end; }
+.ig-chips{ display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+.ig-chips button{ border:0; background:var(--surface); padding:0 10px; height:28px; font-size:11.5px; cursor:pointer; color:var(--ink-2); border-left:1px solid var(--line-soft); }
+.ig-chips button:first-child{ border-left:0; }
+.ig-chips button.on{ background:var(--ink); color:#fff; }
+.ig-tabla td{ vertical-align:middle; }
+.ig-fecha{ display:flex; align-items:baseline; gap:6px; white-space:nowrap; }
+.ig-fecha b{ font-size:18px; font-family:var(--font-display); font-weight:600; color:var(--ink); }
+.ig-fecha span{ font-size:10.5px; color:var(--slate); text-transform:uppercase; letter-spacing:.06em; }
+.ig-doc{ font-weight:600; font-size:12.5px; }
+.ig-enl{ display:inline-block; font-size:10.5px; color:var(--brass); font-weight:600; margin-top:2px; }
+.ig-enl.sin{ color:var(--slate); font-weight:400; font-style:italic; }
+.ig-medio{ display:inline-block; font-size:11px; padding:3px 8px; border-radius:20px; background:var(--paper-2, #EEF0F1); color:var(--ink-2); white-space:nowrap; }
+.ig-medio.transferencia{ background:rgba(59,110,82,.12); color:#2F5A43; }
+.ig-medio.consignacion{ background:rgba(169,139,84,.15); color:#7A6230; }
+.ig-medio.efectivo{ background:rgba(65,70,76,.1); }
+@media (max-width:1100px){ .ig-hero-in{ grid-template-columns:1fr auto; } .ig-kpis{ grid-column:1 / -1; } }
+@media (max-width:700px){ .ig-hero-in{ grid-template-columns:1fr; padding:18px; } .ig-anillo{ margin:0 auto; } .ig-riel, .ig-riel-ley{ margin-left:18px; margin-right:18px; padding-left:0; padding-right:0; }
+  .ig-buscar{ min-width:0; flex:1 1 100%; } .ig-bl{ grid-template-columns:90px 1fr auto; } }
+/* En un panel angosto de la pantalla dividida, el encabezado se apila. */
+.dv-panel .ig-hero-in{ grid-template-columns:1fr auto; }
+.dv-panel .ig-kpis{ grid-column:1 / -1; }
+@media (prefers-reduced-motion: reduce){ .ig-kpi, .ig-card, .ig-riel i, .ig-bt i, .ig-prog i, .ig-c-area{ animation:none !important; }
+  .ig-c-rec{ animation:none !important; } }
+
+</style>
+<script id="v12-division-ingresos">
+/* ARKEN CONTROL v12 · Módulo 03 › Ingresos con interfaz nueva.
+   Misma información y mismos documentos de antes, más: cartera por documento de cobro (pagado, parcial,
+   pendiente y días), curva acumulada de cobrado contra recibido, retenciones, medios de pago, filtros en vivo
+   y registro de un pago directamente desde su documento de cobro. Todo se busca dentro del contenedor de la
+   pestaña, así funciona igual con la pantalla dividida. */
+
+const IG_MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+function igNorm(t){ return String(t || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+function igRetenciones(ing){ return redondear((Number(ing.valor) || 0) - valorPagadoIngreso(ing)); }
+function igDias(desde, hasta){
+  if (!desde) return 0;
+  return Math.max(0, Math.round((new Date((hasta || hoyISO()) + 'T00:00:00') - new Date(desde + 'T00:00:00')) / 864e5));
+}
+
+/** Cada ingreso se aplica a un documento de cobro: primero el que se eligió al registrarlo (cobroId);
+    si no hay, el que tenga su consecutivo escrito en el campo «Documento». El abono es el valor bruto,
+    porque las retenciones también extinguen la obligación del cliente. */
+function igCartera(p){
+  const cobros = documentosCobro(p), ingresos = ingresosProyecto(p);
+  const porCobro = new Map(cobros.map(dc => [dc.id, { dc, abonos:[], pagado:0 }]));
+  const sinCobro = [];
+  ingresos.forEach(ing => {
+    let dest = ing.cobroId && porCobro.get(ing.cobroId);
+    if (!dest){
+      const doc = igNorm(ing.documento);
+      if (doc){
+        const c = cobros.find(dc => { const k = igNorm(dc.consecutivo); return k && doc.indexOf(k) >= 0; });
+        if (c) dest = porCobro.get(c.id);
+      }
+    }
+    if (dest){ dest.abonos.push(ing); dest.pagado += Number(ing.valor) || 0; }
+    else sinCobro.push(ing);
+  });
+  const hoy = hoyISO();
+  const filas = cobros.map(dc => {
+    const r = porCobro.get(dc.id), valor = Number(dc.valor) || 0;
+    const saldo = redondear(Math.max(0, valor - r.pagado));
+    const ultimo = r.abonos.map(i => i.fecha).sort().pop() || '';
+    const dias = saldo > TOL ? igDias(dc.fecha, hoy) : 0;
+    const estado = valor <= TOL ? 'sinvalor' : saldo <= TOL ? 'pagado' : r.pagado > TOL ? 'parcial' : (dias > 30 ? 'vencido' : 'pendiente');
+    return { dc, abonos:r.abonos, pagado:redondear(r.pagado), saldo, avance: valor > 0 ? Math.min(100, r.pagado / valor * 100) : 0, dias, ultimo, estado };
+  });
+  const edades = [
+    { n:'0 a 30 días', v:0 }, { n:'31 a 60 días', v:0 }, { n:'61 a 90 días', v:0 }, { n:'Más de 90 días', v:0 }];
+  filas.forEach(f => { if (f.saldo > TOL) edades[f.dias <= 30 ? 0 : f.dias <= 60 ? 1 : f.dias <= 90 ? 2 : 3].v += f.saldo; });
+  return { filas, sinCobro, edades };
+}
+
+const IG_ESTADOS = {
+  pagado:{ n:'Pagado', c:'ok' }, parcial:{ n:'Abono parcial', c:'warn' }, pendiente:{ n:'Pendiente', c:'' },
+  vencido:{ n:'Más de 30 días', c:'bad' }, sinvalor:{ n:'Sin valor', c:'' } };
+
+function tabIngresosPresupuesto(p, cont){
+  const ingresos = ingresosProyecto(p);
+  const cobros = documentosCobro(p);
+  const invertido = Calculo.invertidoProyecto(p);
+  const valorProyecto = Calculo.valorTotal(p);
+  const totalBruto = ingresos.reduce((t, i) => t + (Number(i.valor) || 0), 0);
+  const totalPagado = ingresos.reduce((t, i) => t + valorPagadoIngreso(i), 0);
+  const totalRet = redondear(totalBruto - totalPagado);
+  const diferencia = totalPagado - invertido;
+  const totalCobrado = cobros.reduce((t, dc) => t + Number(dc.valor || 0), 0);
+  const pendienteCobrar = totalCobrado - totalPagado;
+  const cart = igCartera(p);
+  const saldoCartera = cart.filas.reduce((t, f) => t + f.saldo, 0);
+  const porFacturar = Math.max(0, valorProyecto - totalCobrado);
+  const pctRecibido = valorProyecto > 0 ? totalBruto / valorProyecto * 100 : 0;
+  const pctCobrado = valorProyecto > 0 ? totalCobrado / valorProyecto * 100 : 0;
+  const fondo = typeof DivisionPantalla !== 'undefined' && DivisionPantalla.pintandoFondo;
+  const q = s => cont.querySelector(s), qq = s => Array.from(cont.querySelectorAll(s));
+
+  const tono = diferencia < -TOL ? 'bad' : 'ok';
+  const titular = diferencia < -TOL
+    ? 'La obra lleva <em>' + money(Math.abs(diferencia)) + '</em> invertidos por encima de lo recibido'
+    : (totalPagado > 0 ? 'Lo recibido cubre lo invertido con <em>' + money(diferencia) + '</em> de holgura' : 'Aún no hay ingresos registrados en este proyecto');
+  const anillo = Math.min(100, Math.max(0, pctRecibido)), R = 46, C = 2 * Math.PI * R;
+
+  // Riel del valor del proyecto: recibido neto, retenciones, cobrado sin recibir y lo que falta por cobrar.
+  const base = Math.max(valorProyecto, totalCobrado, totalBruto, 1);
+  const tramos = [
+    { n:'Recibido neto', v:totalPagado, c:'ig-t-neto' },
+    { n:'Retenciones', v:totalRet, c:'ig-t-ret' },
+    { n:'Cobrado sin recibir', v:Math.max(0, totalCobrado - totalBruto), c:'ig-t-cob' },
+    { n:'Por cobrar del valor del proyecto', v:porFacturar, c:'ig-t-falta' }];
+
+  const anios = Array.from(new Set(ingresos.map(i => String(i.fecha || '').slice(0, 4)).filter(Boolean))).sort().reverse();
+  const medios = MEDIOS_PAGO_INGRESO.map(m => ({ v:m.v, n:m.n,
+    t: ingresos.filter(i => (i.medioPago || 'efectivo') === m.v).reduce((t, i) => t + valorPagadoIngreso(i), 0) }));
+  const maxMedio = Math.max(1, ...medios.map(m => m.t));
+  const maxEdad = Math.max(1, ...cart.edades.map(e => e.v));
+  const cobroDe = new Map();
+  cart.filas.forEach(f => f.abonos.forEach(a => cobroDe.set(a, f.dc)));
+
+  const kpi = (lab, v, sub, cls, i) =>
+    '<div class="ig-kpi ' + (cls || '') + '" style="--d:' + (i * 70) + 'ms"><div class="ig-kpi-lab">' + lab + '</div>' +
+    '<div class="ig-kpi-val" data-ig-conteo="' + Math.abs(v) + '"' + (v < -TOL ? ' data-ig-neg="1"' : '') + '>' + (v < -TOL ? '- ' : '') + money(Math.abs(v)) + '</div>' +
+    '<div class="ig-kpi-sub">' + sub + '</div></div>';
+
+  cont.innerHTML =
+    '<section class="ig-hero ' + tono + '">' +
+      '<div class="ig-hero-in">' +
+        '<div class="ig-hero-txt">' +
+          '<div class="tbx-eb">Ingresos del proyecto <span>' + esc(p.nombre || '') + '</span></div>' +
+          '<div class="ig-tit">' + titular + '</div>' +
+          '<div class="ig-txt">Recibido del cliente <b>' + money(totalBruto) + '</b> en ' + ingresos.length + ' pago' + (ingresos.length === 1 ? '' : 's') +
+            ', con <b>' + money(totalRet) + '</b> de retenciones. Invertido en obra: <b>' + money(invertido) + '</b>.</div>' +
+        '</div>' +
+        '<div class="ig-anillo ' + tono + '" title="Recibido (bruto) frente al valor total del proyecto">' +
+          '<svg viewBox="0 0 110 110"><circle class="ig-a-base" cx="55" cy="55" r="' + R + '"/>' +
+          '<circle class="ig-a-arco" cx="55" cy="55" r="' + R + '" stroke-dasharray="' + (fondo ? C * anillo / 100 : 0) + ' ' + C + '" data-ig-arco="' + (C * anillo / 100) + ' ' + C + '"/>' +
+          '<circle class="ig-a-cob" cx="55" cy="55" r="' + (R - 9) + '" stroke-dasharray="' + (2 * Math.PI * (R - 9) * Math.min(100, pctCobrado) / 100) + ' ' + (2 * Math.PI * (R - 9)) + '"/></svg>' +
+          '<div class="ig-a-cen"><b>' + pct(pctRecibido, 0) + '</b><span>recibido</span><i>' + pct(pctCobrado, 0) + ' cobrado</i></div>' +
+        '</div>' +
+        '<div class="ig-kpis">' +
+          kpi('Valor del proyecto', valorProyecto, 'Presupuesto con AIU', '', 0) +
+          kpi('Cobrado al cliente', totalCobrado, cobros.length + ' documento' + (cobros.length === 1 ? '' : 's') + ' de cobro', '', 1) +
+          kpi('Cartera por recibir', saldoCartera, cart.filas.filter(f => f.saldo > TOL).length + ' documento(s) con saldo', saldoCartera > TOL ? 'warn' : '', 2) +
+          kpi(diferencia < -TOL ? 'Capital que hace falta' : 'Liquidez del proyecto', diferencia, 'Recibido neto − invertido', tono, 3) +
+        '</div>' +
+      '</div>' +
+      '<div class="ig-riel">' + tramos.map(t => t.v > TOL ?
+        '<i class="' + t.c + '" style="flex:' + (t.v / base) + ' 1 0" title="' + esc(t.n) + ': ' + money(t.v) + '"></i>' : '').join('') + '</div>' +
+      '<div class="ig-riel-ley">' + tramos.map(t => '<span><i class="' + t.c + '"></i>' + esc(t.n) + ' <b>' + money(t.v) + '</b></span>').join('') + '</div>' +
+    '</section>' +
+
+    '<div class="ig-barra">' +
+      '<div class="ig-barra-prin">' +
+        '<button class="btn primary" id="ingNuevo" type="button">+ Registrar ingreso</button>' +
+        '<button class="btn brass" id="ingCobro" type="button">+ Documento de cobro</button>' +
+        '<button class="btn" id="ingCerrarCobro" type="button">Cerrar documentos de cobro a la fecha</button>' +
+      '</div>' +
+      '<div class="ig-barra-doc"><span class="ig-mini">Informes PDF</span>' +
+        '<button class="btn sm" id="ingPdfLista" type="button">Ingresos</button>' +
+        '<button class="btn sm" id="ingPdfLiquidez" type="button">Liquidez</button>' +
+        '<button class="btn sm" id="cobResPdf" type="button">Resumen de cobro</button>' +
+      '</div>' +
+    '</div>' +
+
+    (diferencia < -TOL ? '<div class="alert bad ig-alerta"><div class="ic">⚠</div><div class="bd"><b>El proyecto necesita inversión de capital.</b> ' +
+      'Lo recibido del cliente, ya descontadas las retenciones, no alcanza a cubrir lo invertido en obra: faltan ' + money(Math.abs(diferencia)) + '.</div></div>' : '') +
+
+    '<div class="ig-grid">' +
+      '<div class="card ig-card ig-ancha"><div class="card-head"><h3>Curva de cobro y recaudo</h3><span class="ig-mini">Acumulado por mes</span></div>' +
+        '<div class="card-body">' + igCurva(cobros, ingresos, invertido, fondo) + '</div></div>' +
+      '<div class="card ig-card"><div class="card-head"><h3>Cartera por edad</h3><span class="ig-mini">Saldo de documentos de cobro</span></div>' +
+        '<div class="card-body ig-barras">' + cart.edades.map((e, i) =>
+          '<div class="ig-bl"><span>' + e.n + '</span><div class="ig-bt"><i class="e' + i + '" style="width:' + (e.v / maxEdad * 100) + '%"></i></div><b>' + money(e.v) + '</b></div>').join('') +
+          (saldoCartera <= TOL ? '<div class="ig-vacio">Sin saldos pendientes: todo lo cobrado está recibido.</div>' : '') +
+        '</div></div>' +
+      '<div class="card ig-card"><div class="card-head"><h3>Medios de pago</h3><span class="ig-mini">Recibido neto</span></div>' +
+        '<div class="card-body ig-barras">' + medios.map(m =>
+          '<div class="ig-bl"><span>' + esc(m.n) + '</span><div class="ig-bt"><i class="m" style="width:' + (m.t / maxMedio * 100) + '%"></i></div><b>' + money(m.t) + '</b></div>').join('') +
+        '</div></div>' +
+    '</div><div class="ig-grid">' +
+      '<div class="card ig-card"><div class="card-head"><h3>Liquidez del proyecto</h3></div>' +
+        '<div class="card-body"><div class="chart-wrap g8-brillo-cont" id="ingWrap"></div></div></div>' +
+      '<div class="card ig-card"><div class="card-head"><h3>Resumen de cobro</h3></div>' +
+        '<div class="card-body"><div class="chart-wrap g8-brillo-cont" id="cobResWrap"></div></div></div>' +
+    '</div>' +
+
+    '<div class="card ig-card ig-sec"><div class="card-head"><h3>Documentos de cobro</h3>' +
+      '<span class="ig-mini">' + cart.filas.filter(f => f.estado === 'pagado').length + ' pagados · ' +
+        cart.filas.filter(f => f.saldo > TOL).length + ' con saldo</span></div>' +
+      (cart.filas.length ? '<div class="ig-cobros">' + cart.filas.slice().sort((a, b) => (b.dc.ts || 0) - (a.dc.ts || 0)).map(f => {
+        const dc = f.dc, i = cobros.indexOf(dc), e = IG_ESTADOS[f.estado];
+        return '<article class="ig-cobro ' + f.estado + '">' +
+          '<header><span class="ig-cons">' + esc(dc.consecutivo) + '</span>' +
+            '<span class="tag ' + e.c + '">' + e.n + '</span>' + (dc.cerrado ? '<span class="tag brass">Cerrado</span>' : '') + '</header>' +
+          '<div class="ig-cobro-cli">' + esc(dc.clienteNombre || '—') + '<span>' + fmtFecha(dc.fecha) +
+            (f.saldo > TOL ? ' · ' + f.dias + ' día' + (f.dias === 1 ? '' : 's') : '') + '</span></div>' +
+          '<div class="ig-cobro-val">' + money(dc.valor) + '</div>' +
+          '<div class="ig-prog"><i style="width:' + f.avance + '%"></i></div>' +
+          '<div class="ig-cobro-pie"><span>Abonado <b>' + money(f.pagado) + '</b></span><span>Saldo <b>' + money(f.saldo) + '</b></span></div>' +
+          '<footer>' + btnAbrir('documentosCobro', dc) +
+            (f.saldo > TOL ? '<button class="btn xs primary" data-cobropago="' + i + '" type="button">Registrar pago</button> ' : '') +
+            '<button class="btn xs" data-cobrover="' + i + '" type="button">Ver</button> ' +
+            '<button class="btn xs" data-cobroedit="' + i + '" type="button">Editar</button> ' +
+            '<button class="btn xs danger" data-cobrodel="' + i + '" type="button" title="Eliminar">✕</button></footer>' +
+        '</article>';
+      }).join('') + '</div>'
+      : '<div class="ig-vacio" style="margin:16px">Aún no se ha generado ningún documento de cobro. Con «+ Documento de cobro» se le solicita el giro al cliente.</div>') +
+    '</div>' +
+
+    '<div class="card ig-card ig-sec"><div class="card-head"><h3>Ingresos registrados</h3>' +
+      '<div class="ig-filtros">' +
+        '<input class="ig-buscar" type="search" placeholder="Buscar documento, banco o valor…" data-ig="q">' +
+        '<select data-ig="anio"><option value="">Todos los años</option>' + anios.map(a => '<option>' + a + '</option>').join('') + '</select>' +
+        '<div class="ig-chips" data-ig="medio"><button type="button" class="on" data-v="">Todos</button>' +
+          MEDIOS_PAGO_INGRESO.map(m => '<button type="button" data-v="' + m.v + '">' + esc(m.n) + '</button>').join('') + '</div>' +
+      '</div></div>' +
+      '<div class="tw scroll"><table class="t ig-tabla"><thead><tr>' +
+        '<th>Fecha</th><th>Documento</th><th>Medio de pago</th><th class="n">Valor</th><th class="n">Retenciones</th><th class="n">Valor pagado</th><th></th>' +
+      '</tr></thead><tbody>' +
+      (ingresos.length ? ingresos.slice().sort((a, b) => String(b.fecha).localeCompare(String(a.fecha))).map(ing => {
+        const i = ingresos.indexOf(ing), dc = cobroDe.get(ing);
+        const f = String(ing.fecha || ''), ret = igRetenciones(ing);
+        const retPral = (Number(ing.valor) || 0) * (Number(ing.retencionPct) || 0) / 100;
+        const busca = [ing.documento, descripcionMedioPago(ing), ing.banco, ing.cuenta, dc && dc.consecutivo, moneyPlano(ing.valor), fmtFecha(ing.fecha)].join(' ').toLowerCase();
+        return '<tr data-ig-fila data-medio="' + esc(ing.medioPago || 'efectivo') + '" data-anio="' + f.slice(0, 4) + '" data-neto="' + valorPagadoIngreso(ing) +
+            '" data-bruto="' + (Number(ing.valor) || 0) + '" data-ret="' + ret + '" data-busca="' + esc(busca) + '">' +
+          '<td><div class="ig-fecha"><b>' + f.slice(8, 10) + '</b><span>' + (IG_MESES[+f.slice(5, 7) - 1] || '') + ' ' + f.slice(0, 4) + '</span></div></td>' +
+          '<td><div class="ig-doc">' + esc(ing.documento || '—') + '</div>' +
+            (dc ? '<span class="ig-enl">↳ ' + esc(dc.consecutivo) + '</span>' : (cobros.length ? '<span class="ig-enl sin">sin documento de cobro</span>' : '')) + '</td>' +
+          '<td><span class="ig-medio ' + esc(ing.medioPago || 'efectivo') + '">' + esc(descripcionMedioPago(ing)) + '</span></td>' +
+          '<td class="n">' + money(ing.valor) + '</td>' +
+          '<td class="n small" title="Retención ' + pct(ing.retencionPct) + ' · ' + money(retPral) + ' — otras ' + money(ret - retPral) + '">' + (ret > TOL ? money(ret) : '<span class="muted">—</span>') +
+            (Number(ing.retencionPct) ? '<div class="muted" style="font-size:10px">' + pct(ing.retencionPct) + '</div>' : '') + '</td>' +
+          '<td class="n"><b>' + money(valorPagadoIngreso(ing)) + '</b></td>' +
+          '<td class="act"><button class="btn xs" data-ingedit="' + i + '" type="button">Editar</button> ' +
+          '<button class="btn xs danger" data-ingdel="' + i + '" type="button" title="Eliminar">✕</button></td></tr>';
+      }).join('') : '<tr><td colspan="7"><div class="ig-vacio">Aún no hay ingresos registrados. Registre cada giro del cliente con «+ Registrar ingreso».</div></td></tr>') +
+      '<tr class="ig-sinres" hidden><td colspan="7"><div class="ig-vacio">Ningún ingreso coincide con el filtro.</div></td></tr>' +
+      '</tbody><tfoot><tr><td colspan="3" data-ig="cuenta">TOTAL RECIBIDO</td><td class="n" data-ig="bruto">' + money(totalBruto) + '</td>' +
+        '<td class="n" data-ig="ret">' + money(totalRet) + '</td><td class="n"><b data-ig="neto">' + money(totalPagado) + '</b></td><td></td></tr></tfoot>' +
+      '</table></div></div>';
+
+  pintarLiquidezChart(q('#ingWrap'), invertido, totalPagado, diferencia);
+  pintarResumenCobroChart(q('#cobResWrap'), totalCobrado, totalPagado, pendienteCobrar);
+  if (diferencia < -TOL) Alertas.emitir('rg_liquidez_negativa', { proyecto:p.nombre, faltante:money(Math.abs(diferencia)) }, p.id);
+  conectarAbrir(p);
+  igAnimar(cont, fondo);
+
+  // Filtros en vivo: sin repintar, con totales del filtro.
+  const filtro = { q:'', anio:'', medio:'' };
+  function filtrar(){
+    let n = 0, b = 0, r = 0, ne = 0;
+    qq('[data-ig-fila]').forEach(tr => {
+      const ok = (!filtro.q || tr.dataset.busca.indexOf(filtro.q) >= 0) && (!filtro.anio || tr.dataset.anio === filtro.anio) &&
+        (!filtro.medio || tr.dataset.medio === filtro.medio);
+      tr.hidden = !ok;
+      if (ok){ n++; b += +tr.dataset.bruto; r += +tr.dataset.ret; ne += +tr.dataset.neto; }
+    });
+    const activo = filtro.q || filtro.anio || filtro.medio;
+    q('.ig-sinres').hidden = !(activo && !n && ingresos.length);
+    q('[data-ig="cuenta"]').textContent = activo ? 'TOTAL DEL FILTRO · ' + n + ' de ' + ingresos.length : 'TOTAL RECIBIDO';
+    q('[data-ig="bruto"]').textContent = money(b); q('[data-ig="ret"]').textContent = money(r); q('[data-ig="neto"]').textContent = money(ne);
+  }
+  q('[data-ig="q"]').oninput = e => { filtro.q = e.target.value.trim().toLowerCase(); filtrar(); };
+  q('[data-ig="anio"]').onchange = e => { filtro.anio = e.target.value; filtrar(); };
+  qq('[data-ig="medio"] button').forEach(bt => bt.onclick = () => {
+    qq('[data-ig="medio"] button').forEach(x => x.classList.toggle('on', x === bt));
+    filtro.medio = bt.dataset.v; filtrar();
+  });
+
+  q('#ingCobro').onclick = () => editarDocumentoCobro(p);
+  q('#ingCerrarCobro').onclick = () => cerrarDocumentosPeriodo(p, 'documentosCobro');
+  q('#cobResPdf').onclick = async () => {
+    const img = await Documentos.svgAImagen(q('#cobResWrap svg'));
+    Documentos.previsualizar(docResumenCobro(p, cobros, totalCobrado, totalPagado, pendienteCobrar, img));
+  };
+  qq('[data-cobropago]').forEach(b => b.onclick = () => {
+    const f = cart.filas.find(x => x.dc === cobros[+b.dataset.cobropago]);
+    editarIngreso(p, null, { cobroId:f.dc.id, documento:f.dc.consecutivo, valor:f.saldo });
+  });
+  qq('[data-cobrover]').forEach(b => b.onclick = () => Documentos.previsualizar(docCuentaCobro(p, cobros[+b.dataset.cobrover])));
+  qq('[data-cobroedit]').forEach(b => b.onclick = () => editarDocumentoCobro(p, cobros[+b.dataset.cobroedit].id));
+  qq('[data-cobrodel]').forEach(b => b.onclick = async () => {
+    const dc = cobros[+b.dataset.cobrodel];
+    if (dc.cerrado){ UI.toast('Este documento está cerrado — ábralo primero para eliminarlo', 'bad'); return; }
+    const f = cart.filas.find(x => x.dc === dc);
+    const ok = await UI.confirmar({ titulo:'Eliminar documento de cobro', cuerpo:'<p>¿Eliminar el documento ' + esc(dc.consecutivo) + ' por ' + money(dc.valor) + '?</p>' +
+      (f && f.abonos.length ? '<p class="muted small">Tiene ' + f.abonos.length + ' ingreso(s) aplicados; los ingresos se conservan, sin documento de cobro.</p>' : '') });
+    if (!ok) return;
+    const k = cobros.indexOf(dc); if (k < 0) return;
+    cobros.splice(k, 1);
+    ingresos.forEach(ing => { if (ing.cobroId === dc.id) delete ing.cobroId; });
+    Modelo.auditar('eliminar', 'documento de cobro', dc.consecutivo, p.id);
+    App.guardar(); App.render();
+  });
+
+  q('#ingNuevo').onclick = () => editarIngreso(p);
+  q('#ingPdfLista').onclick = () => Documentos.previsualizar(docListadoIngresos(p, ingresos));
+  q('#ingPdfLiquidez').onclick = async () => {
+    const img = await Documentos.svgAImagen(q('#ingWrap svg'));
+    Documentos.previsualizar(docEstadoLiquidez(p, invertido, totalPagado, diferencia, img));
+  };
+  qq('[data-ingedit]').forEach(b => b.onclick = () => editarIngreso(p, ingresos[+b.dataset.ingedit]));
+  qq('[data-ingdel]').forEach(b => b.onclick = async () => {
+    const ing = ingresos[+b.dataset.ingdel];
+    const ok = await UI.confirmar({ titulo:'Eliminar ingreso', cuerpo:'<p>¿Eliminar el ingreso de ' + money(ing.valor) + ' del ' + fmtFecha(ing.fecha) + '?</p>' });
+    if (!ok) return;
+    const k = ingresos.indexOf(ing); if (k < 0) return;
+    ingresos.splice(k, 1);
+    Modelo.auditar('eliminar', 'ingreso de capital', money(ing.valor) + ' — ' + fmtFecha(ing.fecha), p.id);
+    App.guardar(); App.render();
+  });
+}
+
+/** Curva acumulada mensual: cobrado (línea de puntos), recibido neto (área) e invertido (referencia). */
+function igCurva(cobros, ingresos, invertido, fondo){
+  const mes = f => String(f || '').slice(0, 7);
+  const meses = Array.from(new Set(cobros.map(c => mes(c.fecha)).concat(ingresos.map(i => mes(i.fecha))).filter(m => /^\d{4}-\d{2}$/.test(m)))).sort();
+  if (!meses.length) return '<div class="ig-vacio">La curva aparece con el primer documento de cobro o el primer ingreso.</div>';
+  if (meses.length === 1){ const [a, m] = meses[0].split('-').map(Number); meses.unshift(isoDe(new Date(a, m - 2, 1)).slice(0, 7)); }
+  let ac = 0, ar = 0;
+  const serie = meses.map(m => {
+    ac += cobros.filter(c => mes(c.fecha) === m).reduce((t, c) => t + (Number(c.valor) || 0), 0);
+    ar += ingresos.filter(i => mes(i.fecha) === m).reduce((t, i) => t + valorPagadoIngreso(i), 0);
+    return { m, c:ac, r:ar };
+  });
+  const W = 760, H = 230, ml = 10, mr = 14, mt = 16, mb = 30, gw = W - ml - mr, gh = H - mt - mb;
+  const max = Math.max(1, invertido, ...serie.map(s => Math.max(s.c, s.r))) * 1.08;
+  const x = i => ml + (serie.length === 1 ? gw / 2 : gw * i / (serie.length - 1));
+  const y = v => mt + gh - gh * v / max;
+  const lin = k => serie.map((s, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(s[k]).toFixed(1)).join(' ');
+  const area = lin('r') + ' L' + x(serie.length - 1).toFixed(1) + ' ' + (mt + gh) + ' L' + x(0).toFixed(1) + ' ' + (mt + gh) + ' Z';
+  const paso = Math.max(1, Math.ceil(serie.length / 9));
+  let g = '';
+  for (let i = 0; i <= 4; i++){
+    const yy = mt + gh - gh * i / 4;
+    g += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + yy + '" y2="' + yy + '" class="ig-c-grid"/>' +
+      '<text x="' + (ml + 2) + '" y="' + (yy - 4) + '" class="ig-c-eje">' + moneyPlano(max * i / 4) + '</text>';
+  }
+  serie.forEach((s, i) => { if (i % paso === 0 || i === serie.length - 1)
+    g += '<text x="' + x(i) + '" y="' + (H - 10) + '" text-anchor="middle" class="ig-c-eje">' + IG_MESES[+s.m.slice(5) - 1] + ' ' + s.m.slice(2, 4) + '</text>'; });
+  const ult = serie[serie.length - 1];
+  return '<div class="ig-curva' + (fondo ? ' quieta' : '') + '"><svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Curva acumulada de cobro y recaudo">' +
+    '<defs><linearGradient id="igGr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B6E52" stop-opacity=".35"/><stop offset="1" stop-color="#3B6E52" stop-opacity="0"/></linearGradient></defs>' +
+    g + (invertido > 0 ? '<line class="ig-c-inv" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(invertido) + '" y2="' + y(invertido) + '"/>' +
+      '<text class="ig-c-invt" x="' + (W - mr - 4) + '" y="' + (y(invertido) - 5) + '" text-anchor="end">Invertido ' + moneyPlano(invertido) + '</text>' : '') +
+    '<path class="ig-c-area" d="' + area + '" fill="url(#igGr)"/>' +
+    '<path class="ig-c-cob" d="' + lin('c') + '"/><path class="ig-c-rec" d="' + lin('r') + '"/>' +
+    serie.map((s, i) => '<circle class="ig-c-pt" cx="' + x(i) + '" cy="' + y(s.r) + '" r="3"><title>' + IG_MESES[+s.m.slice(5) - 1] + ' ' + s.m.slice(0, 4) +
+      ' — cobrado ' + money(s.c) + ' · recibido neto ' + money(s.r) + '</title></circle>').join('') +
+    '</svg><div class="ig-c-ley"><span><i class="cob"></i>Cobrado acumulado <b>' + money(ult.c) + '</b></span>' +
+    '<span><i class="rec"></i>Recibido neto acumulado <b>' + money(ult.r) + '</b></span>' +
+    (invertido > 0 ? '<span><i class="inv"></i>Invertido en obra <b>' + money(invertido) + '</b></span>' : '') + '</div></div>';
+}
+
+/** Conteo de las cifras y arco del anillo. En el panel que se repinta en segundo plano no se anima. */
+function igAnimar(cont, fondo){
+  const arco = cont.querySelector('[data-ig-arco]');
+  if (fondo || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)){
+    if (arco) arco.setAttribute('stroke-dasharray', arco.dataset.igArco);
+    return;
+  }
+  if (arco) requestAnimationFrame(() => requestAnimationFrame(() => arco.setAttribute('stroke-dasharray', arco.dataset.igArco)));
+  cont.querySelectorAll('[data-ig-conteo]').forEach((n, k) => {
+    const dest = Number(n.dataset.igConteo), neg = n.dataset.igNeg ? '- ' : '';
+    if (!isFinite(dest) || !dest) return;
+    const t0 = performance.now() + k * 70, dur = 800;
+    (function paso(t){
+      const r = Math.min(1, Math.max(0, (t - t0) / dur));
+      n.textContent = neg + money(dest * (1 - Math.pow(1 - r, 3)));
+      if (r < 1 && document.body.contains(n)) requestAnimationFrame(paso);
+    })(t0);
+  });
+}
+
+/** Registrar o editar un ingreso. Ahora se puede aplicar a un documento de cobro: al elegirlo se proponen
+    el documento y el saldo pendiente. */
+async function editarIngreso(p, existente, propuesta){
+  const base = Object.assign({}, propuesta || {}, existente || {});
+  const cart = igCartera(p);
+  const opCobros = [{ v:'', n:'— Ninguno —' }].concat(cart.filas.map(f => ({ v:f.dc.id,
+    n:f.dc.consecutivo + ' · ' + money(f.dc.valor) + (f.saldo > TOL ? ' · saldo ' + money(f.saldo) : ' · pagado') })));
+  const d = await UI.pedir({
+    titulo: existente ? 'Editar ingreso' : 'Registrar ingreso', eyebrow:'Módulo 03 · Ingresos', ancho:'wide', cols:2,
+    campos:[
+      { k:'cobroId', lab:'Documento de cobro que paga', tipo:'select', val:base.cobroId || '', opts:opCobros, col:2,
+        ayuda:'Al elegirlo se proponen el consecutivo y el saldo pendiente. El ingreso queda aplicado a ese documento.' },
+      { k:'documento', lab:'Documento asociado (factura o cuenta de cobro al cliente)', tipo:'text', val:base.documento, req:true, col:2 },
+      { k:'fecha', lab:'Fecha de pago', tipo:'date', val:base.fecha || hoyISO(), req:true },
+      { k:'medioPago', lab:'Medio de pago', tipo:'select', val:base.medioPago || 'transferencia', opts:MEDIOS_PAGO_INGRESO },
+      { k:'banco', lab:'Banco (si es transferencia o consignación)', tipo:'text', val:base.banco },
+      { k:'cuenta', lab:'Número de cuenta', tipo:'text', val:base.cuenta },
+      { k:'medioOtroTexto', lab:'Cuál (si el medio es "Otra")', tipo:'text', val:base.medioOtroTexto, col:2 },
+      { k:'valor', lab:'Valor', tipo:'money', val:base.valor || 0 },
+      { k:'retencionPct', lab:'Retención aplicada (%)', tipo:'number', val:existente ? existente.retencionPct : 0, step:'0.01' },
+      { k:'otrasRetPct', lab:'Otras retenciones (%)', tipo:'number', val:base.otrasRetPct || 0, step:'0.01' },
+      { k:'otrasRetValor', lab:'…o el valor directo de otras retenciones', tipo:'money', val:base.otrasRetValor || 0 }
+    ],
+    validar: d => (Number(d.valor) || 0) <= 0 ? 'El valor del ingreso debe ser mayor que cero' : null,
+    alAbrir(mm){
+      const sel = mm.el.querySelector('[data-k="cobroId"]'); if (!sel) return;
+      sel.addEventListener('change', () => {
+        const f = cart.filas.find(x => x.dc.id === sel.value); if (!f) return;
+        const doc = mm.el.querySelector('[data-k="documento"]'), val = mm.el.querySelector('[data-k="valor"]');
+        if (doc) doc.value = f.dc.consecutivo;
+        const saldo = f.saldo + (existente && existente.cobroId === f.dc.id ? Number(existente.valor) || 0 : 0);
+        if (val && saldo > 0){ val.value = String(redondear(saldo)); val.dispatchEvent(new Event('input', { bubbles:true })); }
+      });
+    }
+  });
+  if (!d) return;
+  if (!d.cobroId) delete d.cobroId;
+  if (existente){
+    if (!d.cobroId) delete existente.cobroId;
+    Object.assign(existente, d);
+    Modelo.auditar('editar', 'ingreso de capital', money(d.valor) + ' — ' + fmtFecha(d.fecha), p.id);
+  } else {
+    const nuevo = Object.assign({ id:uid('ig'), registradoPor:{ nombre:(Sesion.usuario.nombre + ' ' + Sesion.usuario.apellidos).trim() || Sesion.usuario.usuario, usuario:Sesion.usuario.usuario }, ts:Date.now() }, d);
+    ingresosProyecto(p).push(nuevo);
+    Modelo.auditar('crear', 'ingreso de capital', money(d.valor) + ' — ' + fmtFecha(d.fecha), p.id);
+  }
+  App.guardar(); App.render();
+}
+
+/* ARKEN CONTROL v12 · Pantalla dividida.
+   Dos módulos abiertos a la vez, lado a lado (vertical) o arriba y abajo (horizontal).
+
+   Cómo funciona sin reescribir los módulos: cada vista pinta en '#stage' y busca sus piezas por id. Con dos
+   paneles sólo el panel ACTIVO tiene esos ids; el otro los guarda «dormidos» en data-dormido-id. Al tocar
+   un panel, ese panel despierta y el otro se duerme, de modo que cada módulo sigue encontrando lo suyo. El
+   estado de vista (pestaña, filtros, módulo) también es propio de cada panel.
+
+   Actualización inmediata: cada vez que se guarda un dato (Store.guardar) el otro panel se vuelve a pintar
+   con la información nueva, conservando su posición, sin animaciones y sin quitarle el foco al usuario. */
+const DivisionPantalla = (function(){
+  const CLAVE = 'arken.division.v1';
+  const GLOBALES = ['usuario', 'desde', 'ultimaActividad', 'proyectoActivo', 'ultimaCelda', '_memEdModal', '_memModal', '_rgFoto', 'memActiva'];
+  const ANCHO_MIN = 900;
+  const _setTimeout = window.setTimeout.bind(window), _raf = window.requestAnimationFrame.bind(window);
+  let activo = false, orient = 'v', ratio = 0.5, invertida = false, cur = 0, zona = null, divisor = null, temporizador = null;
+  const paneles = [];
+  const api = { pintandoFondo:false };
+
+  /* ─────────── Estado de vista por panel ─────────── */
+  function foto(){
+    const o = {};
+    Object.keys(Sesion).forEach(k => { if (GLOBALES.indexOf(k) < 0) o[k] = Sesion[k]; });
+    return o;
+  }
+  function poner(o){
+    Object.keys(Sesion).forEach(k => { if (GLOBALES.indexOf(k) < 0) delete Sesion[k]; });
+    Object.assign(Sesion, o);
+  }
+
+  /* ─────────── Ids dormidos ─────────── */
+  function dormir(el){
+    if (el.id){ el.dataset.dormidoId = el.id; el.removeAttribute('id'); }
+    el.querySelectorAll('[id]').forEach(e => { e.dataset.dormidoId = e.id; e.removeAttribute('id'); });
+    el.querySelectorAll('input[type="radio"][name]').forEach(e => { e.dataset.dormidoName = e.name; e.removeAttribute('name'); });
+  }
+  function despertar(el){
+    if (el.dataset.dormidoId){ el.id = el.dataset.dormidoId; delete el.dataset.dormidoId; }
+    el.querySelectorAll('[data-dormido-id]').forEach(e => { e.id = e.dataset.dormidoId; delete e.dataset.dormidoId; });
+    el.querySelectorAll('[data-dormido-name]').forEach(e => { e.name = e.dataset.dormidoName; delete e.dataset.dormidoName; });
+  }
+
+  /** Cambia el panel activo. silencioso = cambio interno (repintado de fondo), sin tocar el rail. */
+  function activar(i, silencioso){
+    if (!activo || i === cur || !paneles[i]) return;
+    paneles[cur].ses = foto();
+    dormir(paneles[cur].stage);
+    despertar(paneles[i].stage);
+    poner(paneles[i].ses);
+    cur = i;
+    if (!silencioso){
+      paneles.forEach((p, k) => p.wrap.classList.toggle('activo', k === cur));
+      App.pintarRail();
+      pintarBarras();
+    }
+  }
+  function conContexto(i, fn){
+    if (!activo || !paneles[i]) return fn();
+    const antes = cur;
+    activar(i, true);
+    try { return fn(); } finally { activar(antes, true); }
+  }
+
+  /* ─────────── Repintado del otro panel ─────────── */
+  function pintarPanel(i){
+    if (!activo || !paneles[i]) return;
+    const pn = paneles[i];
+    const top = pn.stage.scrollTop, left = pn.stage.scrollLeft;
+    const tws = Array.from(pn.stage.querySelectorAll('.tw')).map(t => [t.scrollTop, t.scrollLeft]);
+    const st = window.setTimeout, raf = window.requestAnimationFrame;
+    conContexto(i, () => {
+      // Lo que la vista deje programado (pestañas, gráficas, conteos) corre luego dentro de su panel.
+      window.setTimeout = function(fn, ms){
+        const args = Array.prototype.slice.call(arguments, 2);
+        return typeof fn === 'function' ? _setTimeout(() => conContexto(i, () => fn.apply(null, args)), ms) : _setTimeout.apply(null, arguments);
+      };
+      window.requestAnimationFrame = fn => _raf(t => conContexto(i, () => fn(t)));
+      api.pintandoFondo = true;
+      try { App.render(false); }
+      finally { api.pintandoFondo = false; window.setTimeout = st; window.requestAnimationFrame = raf; }
+    });
+    pn.stage.scrollTop = top; pn.stage.scrollLeft = left;
+    pn.stage.querySelectorAll('.tw').forEach((t, k) => { if (tws[k]){ t.scrollTop = tws[k][0]; t.scrollLeft = tws[k][1]; } });
+    pn.proyecto = Sesion.proyectoActivo;
+    pintarBarras();
+  }
+  function programar(){
+    if (!activo) return;
+    if (temporizador) clearTimeout(temporizador);
+    temporizador = _setTimeout(() => { temporizador = null; paneles.forEach((p, i) => { if (i !== cur) pintarPanel(i); }); }, 140);
+  }
+
+  /* ─────────── Estructura ─────────── */
+  function modulosVisibles(){
+    return MODULOS.filter(m => Reglas.veModulo(m.id) && (typeof LicenciaUso === 'undefined' || LicenciaUso.permiteModulo(m.id)));
+  }
+  function nombreModulo(id){ const m = MODULOS.find(x => x.id === id); return m ? id + ' · ' + App.titulo(m) : id; }
+  function moduloDe(i){ return i === cur ? Sesion.moduloActivo : (paneles[i].ses || {}).moduloActivo; }
+  function lado(i){
+    const primero = (i === 0) !== invertida;
+    return orient === 'v' ? (primero ? 'Panel izquierdo' : 'Panel derecho') : (primero ? 'Panel superior' : 'Panel inferior');
+  }
+
+  function barraHTML(){
+    return '<div class="dv-barra"><span class="dv-punto"></span><span class="dv-lado"></span>' +
+      '<select class="dv-mod" title="Módulo de este panel"></select>' +
+      '<span class="dv-estado"></span>' +
+      '<span class="dv-acc">' +
+        '<button type="button" class="dv-b" data-dv="cambiar" title="Intercambiar paneles (Ctrl+Alt+X)">⇄</button>' +
+        '<button type="button" class="dv-b" data-dv="max" title="Dejar sólo este panel">⤢</button>' +
+        '<button type="button" class="dv-b" data-dv="cerrar" title="Cerrar este panel">✕</button>' +
+      '</span></div>';
+  }
+  function pintarBarras(){
+    if (!activo) return;
+    const vis = modulosVisibles();
+    paneles.forEach((pn, i) => {
+      const sel = pn.wrap.querySelector('.dv-mod'), m = moduloDe(i);
+      sel.innerHTML = vis.map(x => '<option value="' + x.id + '"' + (x.id === m ? ' selected' : '') + '>' + esc(nombreModulo(x.id)) + '</option>').join('');
+      pn.wrap.querySelector('.dv-lado').textContent = lado(i);
+      pn.wrap.querySelector('.dv-estado').textContent = i === cur ? 'Trabajando aquí' : 'Clic para trabajar aquí';
+    });
+  }
+  function aplicarTamano(){
+    if (!activo) return;
+    paneles[0].wrap.style.flex = ratio + ' 1 0';
+    paneles[1].wrap.style.flex = (1 - ratio) + ' 1 0';
+    zona.className = 'dv-zona ' + orient + (invertida ? ' inv' : '');
+    divisor.setAttribute('aria-orientation', orient === 'v' ? 'vertical' : 'horizontal');
+    divisor.title = 'Arrastre para cambiar el tamaño · doble clic: mitad y mitad';
+  }
+
+  function guardarPref(){
+    try { localStorage.setItem(CLAVE, JSON.stringify({ o:orient, r:ratio, inv:invertida, a:moduloDe(0), b:moduloDe(1) })); } catch(e){}
+  }
+  function pref(){ try { return JSON.parse(localStorage.getItem(CLAVE)) || {}; } catch(e){ return {}; } }
+
+  function permitido(id){
+    if (!MODULOS.some(m => m.id === id)) return 'No existe el módulo ' + id + '.';
+    if (typeof LicenciaUso !== 'undefined' && !LicenciaUso.permiteModulo(id)) return 'El módulo ' + id + ' no está incluido en la licencia.';
+    if (!Reglas.veModulo(id)) return 'Su usuario no tiene permiso sobre el módulo ' + id + '.';
+    if (id !== '00' && id !== '16' && !Sesion.proyectoActivo) return 'Seleccione primero un proyecto para abrir el módulo ' + id + '.';
+    return '';
+  }
+
+  /** Abre (o reorganiza) la división. a y b son los módulos de cada panel; si se omiten se conservan. */
+  function abrir(o, a, b){
+    if (!Sesion.usuario) return;
+    if (window.innerWidth < ANCHO_MIN){ UI.toast('La pantalla dividida necesita una ventana de al menos ' + ANCHO_MIN + ' px de ancho', 'bad'); return; }
+    for (const id of [a, b]) if (id){ const e = permitido(id); if (e){ UI.toast(e, 'bad'); return; } }
+    if (o) orient = o;
+    if (!activo){
+      const pr = pref();
+      ratio = Math.min(.8, Math.max(.2, Number(pr.r) || .5));
+      invertida = false;
+      const st = $('#stage');
+      zona = document.createElement('div');
+      st.parentNode.insertBefore(zona, st);
+      const w0 = document.createElement('section'), w1 = document.createElement('section');
+      w0.className = w1.className = 'dv-panel';
+      w0.innerHTML = w1.innerHTML = barraHTML();
+      w0.appendChild(st);
+      const s1 = document.createElement('main'); s1.className = 'stage'; w1.appendChild(s1);
+      divisor = document.createElement('div'); divisor.className = 'dv-divisor'; divisor.tabIndex = 0; divisor.setAttribute('role', 'separator');
+      divisor.innerHTML = '<i></i>';
+      zona.appendChild(w0); zona.appendChild(divisor); zona.appendChild(w1);
+      paneles.length = 0;
+      paneles.push({ wrap:w0, stage:st, ses:null, proyecto:Sesion.proyectoActivo });
+      const sesB = foto();
+      let mb = b || pr.b;
+      if (!mb || permitido(mb) || mb === Sesion.moduloActivo) mb = ['03', '05', '08', '01', '00'].find(x => x !== Sesion.moduloActivo && !permitido(x)) || Sesion.moduloActivo;
+      sesB.moduloActivo = mb;
+      paneles.push({ wrap:w1, stage:s1, ses:sesB, proyecto:Sesion.proyectoActivo });
+      s1.dataset.dormidoId = 'stage';
+      cur = 0;
+      activo = true;
+      document.body.classList.add('dv-on');
+      conectar();
+      aplicarTamano();
+      w0.classList.add('activo');
+      if (a && a !== Sesion.moduloActivo) App.ir(a); else App.render();
+      pintarPanel(1);
+      pintarBarras();
+      UI.toast((orient === 'v' ? 'Pantalla dividida en vertical' : 'Pantalla dividida en horizontal') + ' · Ctrl+K para comandos', 'ok');
+    } else {
+      aplicarTamano();
+      if (a){ activar(0); App.ir(a); }
+      if (b){ activar(1); App.ir(b); }
+      pintarBarras();
+    }
+    guardarPref();
+  }
+
+  /** Cierra la división y deja en pantalla el panel indicado (por defecto, el activo). */
+  function cerrar(quedar){
+    if (!activo) return;
+    const k = quedar === undefined ? cur : quedar;
+    activar(k);
+    guardarPref();
+    const st = paneles[k].stage;
+    zona.parentNode.insertBefore(st, zona);
+    zona.remove();
+    zona = divisor = null; paneles.length = 0; activo = false; cur = 0;
+    document.body.classList.remove('dv-on');
+    App.pintarRail();
+    App.render();
+  }
+  function intercambiar(){
+    if (!activo) return;
+    invertida = !invertida; ratio = 1 - ratio;
+    aplicarTamano(); pintarBarras(); guardarPref();
+  }
+  function enOtroPanel(id){
+    const e = permitido(id); if (e){ UI.toast(e, 'bad'); return; }
+    if (!activo){ abrir(pref().o || 'v', null, id); return; }
+    activar(1 - cur); App.ir(id); paneles[cur].stage.scrollTop = 0; pintarBarras(); guardarPref();
+  }
+  function otroPanel(){ if (activo){ activar(1 - cur); paneles[cur].stage.focus({ preventScroll:true }); } }
+  function igualar(){ if (activo){ ratio = .5; aplicarTamano(); guardarPref(); } }
+
+  /* ─────────── Eventos de los paneles ─────────── */
+  function conectar(){
+    paneles.forEach((pn, i) => {
+      pn.stage.tabIndex = -1;
+      // Se activa en captura, antes de que el clic llegue al botón: así el módulo ya tiene sus ids.
+      pn.wrap.addEventListener('pointerdown', () => activar(i), true);
+      pn.wrap.addEventListener('focusin', () => activar(i), true);
+      pn.wrap.querySelector('.dv-mod').onchange = e => {
+        activar(i);
+        const id = e.target.value, err = permitido(id);
+        if (err){ UI.toast(err, 'bad'); pintarBarras(); return; }
+        App.ir(id); pn.stage.scrollTop = 0; guardarPref();
+      };
+      pn.wrap.querySelectorAll('[data-dv]').forEach(b => b.onclick = () => {
+        const a = b.dataset.dv;
+        if (a === 'cambiar') intercambiar();
+        else if (a === 'max') cerrar(i);
+        else if (a === 'cerrar') cerrar(1 - i);
+      });
+      new MutationObserver(() => {
+        if (!activo || api.pintandoFondo || i !== cur) return;
+        const m = Sesion.moduloActivo;
+        if (pn.modulo !== m){ pn.modulo = m; pn.stage.scrollTop = 0; pintarBarras(); guardarPref(); }
+        // Cambio de proyecto desde este panel: el otro también pasa al proyecto nuevo.
+        paneles.forEach((o, k) => { if (k !== i && o.proyecto !== Sesion.proyectoActivo) programar(); });
+        pn.proyecto = Sesion.proyectoActivo;
+      }).observe(pn.stage, { childList:true });
+      pn.modulo = moduloDe(i);
+    });
+    // Arrastre del divisor.
+    divisor.addEventListener('pointerdown', e => {
+      e.preventDefault(); divisor.setPointerCapture(e.pointerId); zona.classList.add('arrastre');
+      const r = zona.getBoundingClientRect();
+      const mover = ev => {
+        let x = orient === 'v' ? (ev.clientX - r.left) / r.width : (ev.clientY - r.top) / r.height;
+        x = Math.min(.8, Math.max(.2, x));
+        ratio = invertida ? 1 - x : x; aplicarTamano();
+      };
+      const fin = () => { divisor.removeEventListener('pointermove', mover); divisor.removeEventListener('pointerup', fin);
+        divisor.removeEventListener('pointercancel', fin); zona && zona.classList.remove('arrastre'); guardarPref(); };
+      divisor.addEventListener('pointermove', mover); divisor.addEventListener('pointerup', fin); divisor.addEventListener('pointercancel', fin);
+    });
+    divisor.addEventListener('dblclick', igualar);
+    divisor.addEventListener('keydown', e => {
+      const paso = { ArrowLeft:-.02, ArrowUp:-.02, ArrowRight:.02, ArrowDown:.02 }[e.key];
+      if (!paso) return;
+      e.preventDefault(); ratio = Math.min(.8, Math.max(.2, ratio + (invertida ? -paso : paso))); aplicarTamano(); guardarPref();
+    });
+  }
+
+  /* ─────────── Comandos ─────────── */
+  const COMANDOS = [
+    { id:'v', n:'Dividir la pantalla en vertical (lado a lado)', t:'Ctrl+Alt+V', f:() => abrir('v') },
+    { id:'h', n:'Dividir la pantalla en horizontal (arriba y abajo)', t:'Ctrl+Alt+H', f:() => abrir('h') },
+    { id:'cerrar', n:'Cerrar la división y dejar el panel activo', t:'Ctrl+Alt+W', f:() => cerrar(), solo:true },
+    { id:'cambiar', n:'Intercambiar los paneles', t:'Ctrl+Alt+X', f:intercambiar, solo:true },
+    { id:'otro', n:'Pasar al otro panel', t:'Ctrl+Alt+← →', f:otroPanel, solo:true },
+    { id:'igual', n:'Mitad y mitad (igualar tamaños)', t:'Ctrl+Alt+0', f:igualar, solo:true },
+    { id:'ultima', n:'Restaurar la última división', t:'', f:() => { const p = pref(); abrir(p.o || 'v', p.a, p.b); } }
+  ];
+  /** Interpreta lo escrito: «v 03 15», «dividir horizontal 03 05», «ir 08», «otro 15», «cerrar»… */
+  function interpretar(txt){
+    const t = ' ' + txt.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '') + ' ';
+    const mods = (t.match(/\b\d{1,2}\b/g) || []).map(x => x.padStart(2, '0'));
+    MODULOS.forEach(m => {
+      const n = ' ' + App.titulo(m).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      if (n.trim().length > 3 && t.indexOf(n.trim()) >= 0 && mods.indexOf(m.id) < 0) mods.push(m.id);
+    });
+    const tiene = re => re.test(t);
+    if (tiene(/\b(cerrar|quitar|unir|salir)\b/)) return { n:'Cerrar la división', f:() => cerrar() };
+    if (tiene(/\b(intercambiar|invertir|cambiar lados)\b/)) return { n:'Intercambiar los paneles', f:intercambiar };
+    if (tiene(/\b(igual|mitad|50)\b/) && !mods.length) return { n:'Mitad y mitad', f:igualar };
+    if (mods.length === 1 && tiene(/\b(otro|panel 2|segundo|derecha|abajo)\b/))
+      return { n:'Abrir ' + nombreModulo(mods[0]) + ' en el otro panel', f:() => enOtroPanel(mods[0]) };
+    const o = tiene(/\b(h|horizontal|arriba|abajo|filas)\b/) ? 'h' : tiene(/\b(v|vertical|lado|columnas|dividir|division)\b/) ? 'v' : '';
+    if (o || mods.length === 2){
+      const oo = o || (activo ? orient : 'v');
+      const a = mods.length >= 2 ? mods[0] : (activo ? null : null), b = mods.length >= 2 ? mods[1] : mods[0];
+      return { n:(oo === 'v' ? 'Vertical' : 'Horizontal') + (mods.length >= 2 ? ' · ' + nombreModulo(mods[0]) + ' | ' + nombreModulo(mods[1])
+        : mods.length === 1 ? ' · otro panel: ' + nombreModulo(mods[0]) : ''), f:() => abrir(oo, a, b) };
+    }
+    if (mods.length === 1) return { n:'Ir a ' + nombreModulo(mods[0]) + (activo ? ' en el panel activo' : ''), f:() => { const e = permitido(mods[0]); if (e) UI.toast(e, 'bad'); else App.ir(mods[0]); } };
+    return null;
+  }
+
+  function paleta(){
+    if (!Sesion.usuario || document.querySelector('.dv-paleta')) return;
+    const ov = document.createElement('div');
+    ov.className = 'dv-paleta';
+    ov.innerHTML = '<div class="dv-pal-caja" role="dialog" aria-label="Comandos de ARKEN">' +
+      '<div class="dv-pal-cab"><span>⌘</span><input type="text" placeholder="Escriba un comando: «v 03 15», «h 03 05», «ir 08», «cerrar»…" autocomplete="off" spellcheck="false"></div>' +
+      '<div class="dv-pal-lista"></div>' +
+      '<div class="dv-pal-pie">↑ ↓ elegir · Enter ejecutar · Esc cerrar · Ctrl+K abre esta ventana</div></div>';
+    document.body.appendChild(ov);
+    const inp = ov.querySelector('input'), lista = ov.querySelector('.dv-pal-lista');
+    let opciones = [], sel = 0;
+    function pintar(){
+      const q = inp.value.trim();
+      const qn = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      opciones = [];
+      const x = q ? interpretar(q) : null;
+      if (x) opciones.push({ n:x.n, t:'Enter', f:x.f, destacado:true });
+      COMANDOS.filter(c => !c.solo || activo).forEach(c => {
+        if (!qn || c.n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').indexOf(qn) >= 0) opciones.push(c);
+      });
+      modulosVisibles().forEach(m => {
+        const n = nombreModulo(m.id);
+        if (qn && n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').indexOf(qn) < 0) return;
+        opciones.push({ n:'Ir a ' + n + (activo ? ' (panel activo)' : ''), t:'', f:() => { const e = permitido(m.id); if (e) UI.toast(e, 'bad'); else App.ir(m.id); } });
+        opciones.push({ n:'Abrir ' + n + (activo ? ' en el otro panel' : ' al lado'), t:'', f:() => enOtroPanel(m.id) });
+      });
+      sel = Math.min(sel, Math.max(0, opciones.length - 1));
+      lista.innerHTML = opciones.slice(0, 60).map((o, i) => '<button type="button" class="dv-pal-op' + (i === sel ? ' sel' : '') + (o.destacado ? ' dest' : '') +
+        '" data-i="' + i + '"><span>' + esc(o.n) + '</span>' + (o.t ? '<kbd>' + esc(o.t) + '</kbd>' : '') + '</button>').join('') ||
+        '<div class="dv-pal-vacio">Sin coincidencias. Ejemplos: «v 03 15» · «h 03 05» · «ir 08» · «cerrar».</div>';
+      lista.querySelectorAll('.dv-pal-op').forEach(b => b.onclick = () => ejecutar(+b.dataset.i));
+      const s = lista.querySelector('.sel'); if (s) s.scrollIntoView({ block:'nearest' });
+    }
+    function ejecutar(i){ const o = opciones[i]; cerrarPal(); if (o) o.f(); }
+    function cerrarPal(){ ov.remove(); }
+    inp.addEventListener('input', () => { sel = 0; pintar(); });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown'){ e.preventDefault(); sel = Math.min(opciones.length - 1, sel + 1); pintar(); }
+      else if (e.key === 'ArrowUp'){ e.preventDefault(); sel = Math.max(0, sel - 1); pintar(); }
+      else if (e.key === 'Enter'){ e.preventDefault(); ejecutar(sel); }
+      else if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); cerrarPal(); }
+    });
+    ov.addEventListener('mousedown', e => { if (e.target === ov) cerrarPal(); });
+    pintar();
+    inp.focus();
+  }
+
+  /* Menú del botón «Dividir» de la barra superior. */
+  function menu(boton){
+    const viejo = document.querySelector('.dv-menu'); if (viejo){ viejo.remove(); return; }
+    const vis = modulosVisibles(), pr = pref();
+    const ma = activo ? moduloDe(0) : Sesion.moduloActivo;
+    let mb = activo ? moduloDe(1) : (pr.b && !permitido(pr.b) && pr.b !== ma ? pr.b : (['03', '05', '08', '01', '00'].find(x => x !== ma && !permitido(x)) || ma));
+    const ops = v => vis.map(m => '<option value="' + m.id + '"' + (m.id === v ? ' selected' : '') + '>' + esc(nombreModulo(m.id)) + '</option>').join('');
+    const d = document.createElement('div');
+    d.className = 'dv-menu';
+    d.innerHTML = '<div class="dv-m-tit">Pantalla dividida</div>' +
+      '<div class="dv-m-ori">' +
+        '<button type="button" data-o="v" class="' + ((activo ? orient : (pr.o || 'v')) === 'v' ? 'on' : '') + '"><span class="dv-ico v"><i></i><i></i></span>Vertical<small>Lado a lado</small></button>' +
+        '<button type="button" data-o="h" class="' + ((activo ? orient : pr.o) === 'h' ? 'on' : '') + '"><span class="dv-ico h"><i></i><i></i></span>Horizontal<small>Arriba y abajo</small></button>' +
+      '</div>' +
+      '<label class="dv-m-lab">Primer panel<select data-p="a">' + ops(ma) + '</select></label>' +
+      '<label class="dv-m-lab">Segundo panel<select data-p="b">' + ops(mb) + '</select></label>' +
+      '<div class="dv-m-acc"><button type="button" class="btn primary sm" data-m="abrir">' + (activo ? 'Aplicar' : 'Dividir pantalla') + '</button>' +
+        (activo ? '<button type="button" class="btn sm" data-m="cambiar">⇄ Intercambiar</button><button type="button" class="btn sm" data-m="cerrar">Cerrar división</button>' : '') + '</div>' +
+      '<div class="dv-m-atajos"><b>Ctrl+K</b> comandos · <b>Ctrl+Alt+V</b> vertical · <b>Ctrl+Alt+H</b> horizontal · <b>Ctrl+Alt+← →</b> cambiar de panel · <b>Ctrl+Alt+W</b> cerrar</div>';
+    document.body.appendChild(d);
+    const r = boton.getBoundingClientRect();
+    d.style.top = (r.bottom + 8) + 'px';
+    d.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+    let o = activo ? orient : (pr.o || 'v');
+    d.querySelectorAll('[data-o]').forEach(b => b.onclick = () => { o = b.dataset.o; d.querySelectorAll('[data-o]').forEach(x => x.classList.toggle('on', x === b)); });
+    d.querySelector('[data-m="abrir"]').onclick = () => {
+      const a = d.querySelector('[data-p="a"]').value, b = d.querySelector('[data-p="b"]').value;
+      d.remove(); abrir(o, a, b);
+    };
+    const c1 = d.querySelector('[data-m="cambiar"]'); if (c1) c1.onclick = () => { d.remove(); intercambiar(); };
+    const c2 = d.querySelector('[data-m="cerrar"]'); if (c2) c2.onclick = () => { d.remove(); cerrar(); };
+    setTimeout(() => document.addEventListener('mousedown', function fuera(e){
+      if (!d.contains(e.target) && e.target !== boton){ d.remove(); document.removeEventListener('mousedown', fuera); }
+    }), 0);
+  }
+
+  /* ─────────── Teclado ─────────── */
+  document.addEventListener('keydown', e => {
+    if (!Sesion.usuario || !$('#shell') || $('#shell').style.display === 'none') return;
+    const k = (e.key || '').toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && k === 'k'){ e.preventDefault(); paleta(); return; }
+    if (!e.ctrlKey || !e.altKey || (e.getModifierState && e.getModifierState('AltGraph'))) return;
+    const acc = { v:() => abrir('v'), h:() => abrir('h'), w:() => cerrar(), x:intercambiar, '0':igualar,
+      arrowleft:otroPanel, arrowright:otroPanel, arrowup:otroPanel, arrowdown:otroPanel }[k];
+    if (acc){ e.preventDefault(); acc(); }
+  }, true);
+  window.addEventListener('resize', () => { if (activo && window.innerWidth < ANCHO_MIN){ cerrar(); UI.toast('La ventana es muy angosta: se cerró la pantalla dividida', 'bad'); } });
+
+  /* Cada dato guardado repinta el otro panel. */
+  const guardarOrig = Store.guardar;
+  Store.guardar = function(){
+    const r = guardarOrig.apply(this, arguments);
+    if (activo && !api.pintandoFondo) programar();
+    return r;
+  };
+
+  /* Botón en la barra superior, junto a Configuración. */
+  (function(){
+    const cfg = $('#btnCfg'); if (!cfg) return;
+    const b = document.createElement('button');
+    b.className = 'btn sm ghost dv-btn'; b.id = 'btnDividir'; b.type = 'button';
+    b.style.cssText = 'color:#D6D8D9;border-color:#3A3E43';
+    b.title = 'Ver dos módulos a la vez (Ctrl+K para comandos)';
+    b.innerHTML = '<span class="dv-ico v mini"><i></i><i></i></span>Dividir';
+    b.onclick = () => menu(b);
+    cfg.parentNode.insertBefore(b, cfg);
+  })();
+
+  Object.assign(api, { abrir, cerrar, intercambiar, otroPanel, igualar, paleta, activar, pintarPanel, enOtroPanel,
+    modulos: () => activo ? [moduloDe(0), moduloDe(1)] : [Sesion.moduloActivo] });
+  Object.defineProperties(api, {
+    activo:{ get:() => activo }, orientacion:{ get:() => orient }, panelActivo:{ get:() => cur } });
+  return api;
+})();
+
+/* ARKEN CONTROL v12 · Ayudas de la pestaña Ingresos y de la pantalla dividida. */
+(function(){
+  const g03 = GUIAS_MODULO.find(g => g.id === '03');
+  if (g03){
+    (g03.pestanas || []).forEach(t => { if (t[0] === 'Ingresos')
+      t[1] = 'Lo cobrado y lo recibido del cliente, cartera por documento de cobro, curva acumulada, retenciones y liquidez frente a lo invertido.'; });
+    g03.tareas = (g03.tareas || []).concat([
+      { t:'Registrar el pago de un documento de cobro', pasos:[
+        'En «Ingresos», busque el documento en «Documentos de cobro» y pulse «Registrar pago».',
+        'El sistema propone el consecutivo y el saldo pendiente: ajuste fecha, medio de pago y retenciones, y guarde.'],
+        res:'El documento pasa a «Pagado» o «Abono parcial», y la cartera por edad y la curva se actualizan solas.' },
+      { t:'Revisar la cartera del cliente', pasos:[
+        'En «Ingresos» mire «Cartera por edad»: saldos de 0 a 30, 31 a 60, 61 a 90 y más de 90 días.',
+        'Los documentos con más de 30 días sin pago aparecen marcados en rojo.'] }]);
+  }
+  const g00 = GUIAS_MODULO.find(g => g.id === '00');
+  if (g00){
+    g00.tareas = (g00.tareas || []).concat([
+      { t:'Trabajar con dos módulos a la vez', pasos:[
+        'Pulse «Dividir» en la barra superior, elija vertical u horizontal y el módulo de cada panel.',
+        'O pulse Ctrl+K y escriba, por ejemplo, «v 03 15» (Presupuesto al lado de Nómina) o «h 03 05».',
+        'Haga clic en un panel para trabajar en él: el rail de módulos cambia el módulo del panel activo.',
+        'Arrastre la barra del medio para cambiar el tamaño; doble clic la deja mitad y mitad.'],
+        res:'Lo que guarde en un panel aparece de inmediato en el otro.' }]);
+  }
+  const otros = AYUDA_CONTENIDO.otros || (AYUDA_CONTENIDO.otros = []);
+  otros.push(
+    { q:'¿Cómo veo dos módulos al mismo tiempo?',
+      a:'<p>Con la <b>pantalla dividida</b>: botón «Dividir» de la barra superior, o el teclado:</p>' +
+        '<ul><li><b>Ctrl+K</b>: ventana de comandos. Escriba «v 03 15» (vertical), «h 03 05» (horizontal), «ir 08», «otro 15» o «cerrar».</li>' +
+        '<li><b>Ctrl+Alt+V</b> vertical · <b>Ctrl+Alt+H</b> horizontal · <b>Ctrl+Alt+← →</b> pasar al otro panel · ' +
+        '<b>Ctrl+Alt+X</b> intercambiar · <b>Ctrl+Alt+0</b> mitad y mitad · <b>Ctrl+Alt+W</b> cerrar.</li></ul>' +
+        '<p>El panel con la franja dorada es el activo: ahí van los clics del rail. Cada dato que se guarda en un panel se ve al instante en el otro. ' +
+        'La división se usa en pantallas de 900 px de ancho o más.</p>' });
 })();
 
 </script>
