@@ -1,0 +1,12 @@
+# Dependencias
+node_modules/
+
+# Lo que sale de los clientes: nunca se sube a este repositorio (es público).
+# herramientas/verificar-sin-datos.mjs los rechaza aunque alguien los fuerce.
+Concepto_CV-*.pdf
+ARKEN_BANK_clientes_*.csv
+ARKEN_BANK_cartera_*.pdf
+ARKEN_BANK_auditoria_*.csv
+ARKEN_BANK_registro_tecnico_*.json
+Simulacion_credito_*.pdf
+*respaldo*.zip

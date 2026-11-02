@@ -1,0 +1,64 @@
+name: ARKEN BANK
+
+# Compilación y pruebas de ARKEN BANK (carpeta bank/): el HTML de programa/ tiene que ser exactamente
+# el que sale de fuente/ con herramientas/construir.mjs; ningún archivo trae datos de clientes ni
+# secretos; el núcleo (catálogo, matemática financiera, Ley 546, motor de viabilidad, coherencia y
+# concepto); el lector de documentos; y la prueba de humo en Chromium (demostración con PDF reales
+# leídos, todos los módulos, filtros, concepto en PDF, centro de ayuda y OCR de una imagen sin
+# internet). El HTML probado queda como artefacto de la ejecución.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'bank/**'
+      - 'recursos/logo-original.png'
+      - 'herramientas/verificar-sin-datos.mjs'
+      - '.github/workflows/compilar-bank.yml'
+  pull_request:
+    paths:
+      - 'bank/**'
+      - 'recursos/logo-original.png'
+      - 'herramientas/verificar-sin-datos.mjs'
+      - '.github/workflows/compilar-bank.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: bank-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: Pruebas de ARKEN BANK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bank
+    env:
+      CHROME_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: bank/package-lock.json
+      - run: npm ci --omit=optional
+      - name: Ningún archivo trae datos de clientes, claves ni respaldos
+        run: npm run verificar-sin-datos
+      - name: El HTML de programa/ es el que sale de fuente/
+        run: npm run comprobar
+      - name: Núcleo (catálogo, cuota y amortización, Ley 546, motor de viabilidad, coherencia, concepto)
+        run: npm run prueba:unitarias
+      - name: Lector de documentos (clasificación, datos con su evidencia, cifras y fechas)
+        run: npm run prueba:lector
+      - name: Prueba de humo en Chromium (demostración, módulos, filtros, concepto, ayuda y OCR sin internet)
+        run: npm run prueba:humo
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ARKEN_BANK
+          path: bank/programa/ARKEN_BANK.html
+          if-no-files-found: error
