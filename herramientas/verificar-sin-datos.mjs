@@ -1,7 +1,8 @@
 // ARKEN · comprueba que el repositorio no traiga datos de la empresa ni secretos.
 // El repositorio es público: los programas se guardan aquí siempre vacíos.
 //
-//   · ningún HTML de programa/, de la raíz ni de analytica/ trae <script id="arken-datos"> lleno
+//   · ningún HTML de programa/, de la raíz, de analytica/ ni de bank/ trae <script id="arken-datos"> lleno
+//   · en bank/ no hay conceptos, informes de cartera, simulaciones ni respaldos de clientes
 //   · ningún archivo de analytica/ trae una clave de API ni una llave privada en claro
 //   · en analytica/ no hay paquetes de invitación, ofertas, sobres, borradores, preguntas, respuestas,
 //     adendas, actas, respaldos ni respaldos de llaves
@@ -18,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
-const CARPETAS = ['programa', '.', 'analytica', 'analytica/programa', 'analytica/www'];
+const CARPETAS = ['programa', '.', 'analytica', 'analytica/programa', 'analytica/www', 'bank', 'bank/programa'];
 const reDatos = /<script id="arken-datos" type="application\/json">([\s\S]*?)<\/script>/g;
 const rePliego = /(?<!['"+\\])<script id="arken-pliego" type="application\/json">([\s\S]*?)<\/script>/g;
 const rePlantilla = /<script id="plantilla-oferta" type="text\/plain">([\s\S]*?)<\/script>/;
@@ -73,6 +74,10 @@ const PROHIBIDOS = [
   [/^ARKEN_ANALYTICA_.*_(Informe|Concepto|Comparativo|Cuadro_gerencial)_\d{8}\.(pdf|xlsx?)$/i, 'informe, concepto o cuadro de un proceso'],
   [/^ARKEN_ANALYTICA_.*_Grafica_\d{2}_.*\.(png|svg|pdf)$/i, 'gráfica de un proceso'],
   [/^ARKEN_ANALYTICA_.*_presupuesto\.xlsx?$/i, 'presupuesto de un proceso'],
+  /* ARKEN BANK: lo que sale de los clientes nunca se sube. */
+  [/^Concepto_CV-\d{8}-\d+.*\.pdf$/i, 'concepto de viabilidad de un cliente'],
+  [/^ARKEN_BANK_(clientes|cartera|auditoria|registro_tecnico)_.*\.(csv|pdf|json)$/i, 'informe o registro de ARKEN BANK'],
+  [/^Simulacion_credito_.*\.pdf$/i, 'simulación de un cliente'],
 ];
 const SECRETOS = [
   [/sk-ant-[A-Za-z0-9_-]{16,}/, 'una clave de API'],
@@ -92,7 +97,7 @@ function recorrer(carpeta) {
     for (const [re, que] of SECRETOS) if (re.test(contenido)) falla(`${rel} trae ${que}. Quítela antes de subirlo.`);
   }
 }
-try { recorrer(join(RAIZ, 'analytica')); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+for (const c of ['analytica', 'bank']) { try { recorrer(join(RAIZ, c)); } catch (e) { if (e.code !== 'ENOENT') throw e; } }
 
 /* La plantilla de ARKEN OFERTA viaja comprimida dentro de ARKEN_ANALYTICA.html: su pliego también debe ir vacío. */
 let JSZip = null;
@@ -107,4 +112,4 @@ if (JSZip) {
 } else if (plantillas.length) console.log('· jszip no está instalado en analytica/: la plantilla comprimida de ARKEN OFERTA no se revisó.');
 
 if (problemas) process.exit(1);
-console.log('✔ Ningún programa trae datos de la empresa ni un pliego incrustado, y ARKEN ANALYTICA no trae secretos, paquetes, sobres, actas ni respaldos.');
+console.log('✔ Ningún programa trae datos de la empresa ni un pliego incrustado, y ni ARKEN ANALYTICA ni ARKEN BANK traen secretos, paquetes, sobres, actas, conceptos ni respaldos.');
