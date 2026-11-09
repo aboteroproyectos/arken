@@ -19,6 +19,7 @@
     "prueba:escritorio": "node pruebas/escritorio.mjs"
   },
   "dependencies": {
+    "@capacitor-community/speech-recognition": "^7.0.1",
     "@capacitor/android": "^8.5.2",
     "@capacitor/app": "^8.1.1",
     "@capacitor/app-launcher": "^8.0.1",

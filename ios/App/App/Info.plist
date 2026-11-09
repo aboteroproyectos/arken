@@ -68,6 +68,10 @@
 	<true/>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>ARKEN CONTROL usa el micrófono para dictar texto en los campos del programa.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>ARKEN CONTROL convierte su voz en texto para llenar los campos sin escribir.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>ARKEN CONTROL usa la cámara para tomar fotos de la obra, del personal y de los soportes.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
