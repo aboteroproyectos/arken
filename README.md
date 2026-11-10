@@ -72,6 +72,22 @@ El APK se firma siempre con la misma clave. Si la firma cambiara, Android obliga
 
 ## iPhone y iPad
 
+### Lo recomendado: instalar desde Safari (sin App Store, sin firma, sin vencimiento)
+
+1. En el iPhone abra **Safari** (no Chrome) en **https://aboteroproyectos.github.io/arken/**.
+2. Toque **Compartir** (el cuadro con la flecha hacia arriba) › **Agregar a pantalla de inicio** › **Agregar**.
+3. Abra ARKEN CONTROL desde el ícono nuevo. Desde ahí funciona como una app, a pantalla completa y **sin internet**.
+
+**Se actualiza sola.** Cada vez que se sube un `programa/ARKEN_CONTROL.html` nuevo (el mismo paso de «Actualizar el programa»), el flujo «Publicar ARKEN CONTROL para iPhone» lo publica. La próxima vez que la app del iPhone abra con internet, descarga la versión nueva y la aplica. Si en ese momento la estaba usando, muestra un aviso «Actualizar». Los datos del teléfono se conservan.
+
+Los datos quedan en el iPhone, igual que en las otras apps. Para cargar los de la empresa, use **Restaurar respaldo** con un `.json` o con el `ARKEN_CONTROL.html` con datos (desde Archivos o Google Drive).
+
+No lo borre desde Configuración › Safari › Borrar historial y datos: eso borra también los datos de la app. Haga respaldos de vez en cuando.
+
+Para probarla en un computador: `npm run iphone && node pruebas/iphone.mjs`.
+
+### Otras vías (app nativa)
+
 Apple no permite instalar apps sin firma. Hay tres caminos:
 
 - **Cuenta de Apple Developer** (de pago, anual): permite instalar por TestFlight o publicar en el App Store. Con la cuenta se agrega la firma a la compilación.

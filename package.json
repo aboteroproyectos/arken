@@ -14,6 +14,7 @@
     "escritorio": "npm run preparar && electron .",
     "android": "npm run preparar && cap sync android",
     "ios": "npm run preparar && cap sync ios",
+    "iphone": "npm run preparar && node herramientas/preparar-iphone.mjs",
     "dist:windows": "npm run preparar && electron-builder --win nsis --x64",
     "dist:mac": "npm run preparar && electron-builder --mac dmg --universal",
     "prueba:escritorio": "node pruebas/escritorio.mjs"
