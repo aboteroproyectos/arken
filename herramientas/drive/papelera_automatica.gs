@@ -58,30 +58,45 @@ function borrarParaSiempre_(id) {
   if (c !== 204 && c !== 200 && c !== 404) throw new Error('HTTP ' + c + ' ' + r.getContentText().slice(0, 200));
 }
 
+// Lista la papelera con la API de Drive (más fiable que DriveApp.getTrashedFiles,
+// que a veces no devuelve lo que borró Drive para escritorio).
+function papelera_() {
+  DriveApp.getRootFolder(); // deja declarado el permiso de Drive
+  var lista = [], token = '';
+  do {
+    var url = 'https://www.googleapis.com/drive/v3/files?pageSize=1000&fields=' +
+      encodeURIComponent('nextPageToken,files(id,name,size,ownedByMe)') +
+      '&q=' + encodeURIComponent('trashed = true') + (token ? '&pageToken=' + encodeURIComponent(token) : '');
+    var r = UrlFetchApp.fetch(url, { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
+    if (r.getResponseCode() !== 200) throw new Error('No se pudo leer la papelera: HTTP ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 300));
+    var d = JSON.parse(r.getContentText());
+    lista = lista.concat(d.files || []);
+    token = d.nextPageToken || '';
+  } while (token);
+  return lista;
+}
+
 function limpiar() {
   var props = PropertiesService.getScriptProperties();
   var total = Number(props.getProperty('borrados') || 0);
   var bytes = Number(props.getProperty('bytes') || 0);
-  var yo = Session.getEffectiveUser().getEmail();
+  var lista = papelera_();
+  Logger.log('En la papelera hay ' + lista.length + ' archivo(s).');
   var n = 0;
-  var archivos = DriveApp.getTrashedFiles();
-  while (archivos.hasNext()) {
-    var f = archivos.next();
-    var nombre = f.getName();
-    if (!seBorra_(nombre)) continue;
+  lista.forEach(function (f) {
+    if (!seBorra_(f.name)) { Logger.log('Se deja: ' + f.name); return; }
+    if (f.ownedByMe === false) { Logger.log('Se deja (no es suyo): ' + f.name); return; }
     try {
-      if (yo && f.getOwner() && f.getOwner().getEmail() !== yo) continue; // solo lo que es suyo
-      var tam = f.getSize();
-      borrarParaSiempre_(f.getId());
+      borrarParaSiempre_(f.id);
       n++;
-      bytes += Number(tam || 0);
+      bytes += Number(f.size || 0);
+      Logger.log('Borrado: ' + f.name);
     } catch (e) {
-      Logger.log('No se pudo borrar ' + nombre + ': ' + e);
+      Logger.log('No se pudo borrar ' + f.name + ': ' + e);
     }
-  }
+  });
   if (n) {
-    total += n;
-    props.setProperty('borrados', String(total));
+    props.setProperty('borrados', String(total + n));
     props.setProperty('bytes', String(bytes));
     props.setProperty('ultimo', new Date().toISOString());
   }
