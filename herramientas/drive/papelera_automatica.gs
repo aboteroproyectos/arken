@@ -9,11 +9,11 @@
  * Google Drive, Chrome crea una copia temporal "ARKEN_CONTROL.html.crswap" (unos 60 MB).
  * Drive la sube, Chrome la borra y Drive la deja 30 días en la papelera ocupando espacio.
  *
- * Instalación (5 minutos):
+ * Instalación (3 minutos):
  *   1. Abra https://script.google.com › «Nuevo proyecto». Póngale de nombre «ARKEN papelera».
  *   2. Borre lo que trae y pegue todo este archivo.
- *   3. A la izquierda, en «Servicios» (+), agregue «Drive API» (versión v3) › «Agregar».
- *   4. Arriba elija la función «instalar» y pulse «Ejecutar». Google pide permiso: acepte
+ *   (No hace falta agregar ningún servicio: el script usa solo lo que trae Apps Script.)
+ *   3. Arriba elija la función «instalar» y pulse «Ejecutar». Google pide permiso: acepte
  *      (si dice «Google no verificó esta app»: «Configuración avanzada» › «Ir a ARKEN papelera»).
  *   Listo. Para ver qué ha borrado: función «informe» › Ejecutar, y mire el registro.
  *   Para apagarlo: función «desinstalar» › Ejecutar.
@@ -47,38 +47,45 @@ function seBorra_(nombre) {
   return false;
 }
 
+// Borra un archivo para siempre con la API de Drive (sin activar servicios avanzados).
+function borrarParaSiempre_(id) {
+  var r = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(id), {
+    method: 'delete',
+    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+    muteHttpExceptions: true,
+  });
+  var c = r.getResponseCode();
+  if (c !== 204 && c !== 200 && c !== 404) throw new Error('HTTP ' + c + ' ' + r.getContentText().slice(0, 200));
+}
+
 function limpiar() {
   var props = PropertiesService.getScriptProperties();
   var total = Number(props.getProperty('borrados') || 0);
   var bytes = Number(props.getProperty('bytes') || 0);
+  var yo = Session.getEffectiveUser().getEmail();
   var n = 0;
-  var token = null;
-  do {
-    var r = Drive.Files.list({
-      q: "trashed = true and 'me' in owners",
-      fields: 'nextPageToken, files(id, name, size)',
-      pageSize: 1000,
-      pageToken: token,
-    });
-    (r.files || []).forEach(function (f) {
-      if (!seBorra_(f.name)) return;
-      try {
-        Drive.Files.remove(f.id);
-        n++;
-        bytes += Number(f.size || 0);
-      } catch (e) {
-        Logger.log('No se pudo borrar ' + f.name + ': ' + e);
-      }
-    });
-    token = r.nextPageToken;
-  } while (token);
+  var archivos = DriveApp.getTrashedFiles();
+  while (archivos.hasNext()) {
+    var f = archivos.next();
+    var nombre = f.getName();
+    if (!seBorra_(nombre)) continue;
+    try {
+      if (yo && f.getOwner() && f.getOwner().getEmail() !== yo) continue; // solo lo que es suyo
+      var tam = f.getSize();
+      borrarParaSiempre_(f.getId());
+      n++;
+      bytes += Number(tam || 0);
+    } catch (e) {
+      Logger.log('No se pudo borrar ' + nombre + ': ' + e);
+    }
+  }
   if (n) {
     total += n;
     props.setProperty('borrados', String(total));
     props.setProperty('bytes', String(bytes));
     props.setProperty('ultimo', new Date().toISOString());
-    Logger.log('Borrados ahora: ' + n);
   }
+  Logger.log('Borrados ahora: ' + n);
 }
 
 function informe() {
