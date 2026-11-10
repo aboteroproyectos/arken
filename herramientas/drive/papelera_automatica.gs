@@ -20,10 +20,10 @@
  */
 
 // Qué se borra para siempre al llegar a la papelera:
-//   'crswap' → solo las copias temporales de Chrome (*.crswap). Lo recomendado.
-//   'arken'  → además, todo archivo cuyo nombre empiece por ARKEN.
+//   'crswap' → solo las copias temporales de Chrome (*.crswap).
+//   'arken'  → además, todo archivo cuyo nombre empiece por ARKEN. Elegido por Adolfo (2026-11-10).
 //   'todo'   → TODA la papelera, sea lo que sea. Sin red de seguridad.
-var MODO = 'crswap';
+var MODO = 'arken';
 
 var CADA_MINUTOS = 5; // 1, 5, 10, 15 o 30
 
