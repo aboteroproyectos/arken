@@ -1,0 +1,72 @@
+name: Publicar ARKEN CONTROL para iPhone
+
+# Publica sitio/ en GitHub Pages: https://aboteroproyectos.github.io/arken/
+# En el iPhone se abre esa dirección en Safari y se agrega a la pantalla de inicio.
+# Cada vez que cambia programa/ARKEN_CONTROL.html en main, la app del iPhone se
+# actualiza sola la próxima vez que se abra (los datos del teléfono se conservan).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'programa/**'
+      - 'app/**'
+      - 'herramientas/**'
+      - 'recursos/iphone/**'
+      - 'package.json'
+      - '.github/workflows/iphone.yml'
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'herramientas/preparar-iphone.mjs'
+      - 'pruebas/iphone.mjs'
+      - '.github/workflows/iphone.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: iphone-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  armar:
+    name: Armar y probar
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: El programa no trae datos de la empresa
+        run: npm run verificar-sin-datos
+      - name: Armar la versión iPhone
+        run: npm run iphone
+      - name: Prueba en un iPhone simulado (instalación, sin internet, actualización)
+        run: node pruebas/iphone.mjs
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: sitio
+
+  publicar:
+    name: Publicar en GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs: armar
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v4
