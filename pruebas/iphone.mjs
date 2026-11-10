@@ -123,8 +123,11 @@ const antes = vecesIndex;
 await pagina.reload(); // abrir la app: Safari revisa sw.js, descarga la versión nueva y recarga sola
 await pagina.waitForFunction(() => navigator.serviceWorker.controller, null, { timeout: 60000 });
 let v2 = '';
-for (let i = 0; i < 30 && !(v2 || '').endsWith('-nueva'); i++) {
+// La versión nueva descarga ~18 MB antes de activarse; en las máquinas de GitHub puede tardar
+// más de 30 s, así que se espera hasta 2 minutos y se pide revisar como hace la app al volver al frente.
+for (let i = 0; i < 120 && !(v2 || '').endsWith('-nueva'); i++) {
   await pagina.waitForTimeout(1000);
+  if (i % 15 === 14) await pagina.evaluate(() => navigator.serviceWorker.getRegistration().then((r) => r && r.update())).catch(() => {});
   v2 = await versionActiva().catch(() => '');
 }
 ok(v2.endsWith('-nueva'), `la versión nueva se aplicó sola (${v2})`);

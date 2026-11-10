@@ -61,7 +61,9 @@ function borrarParaSiempre_(id) {
 // Lista la papelera con la API de Drive (más fiable que DriveApp.getTrashedFiles,
 // que a veces no devuelve lo que borró Drive para escritorio).
 function papelera_() {
-  DriveApp.getRootFolder(); // deja declarado el permiso de Drive
+  // Esta línea nunca se ejecuta: solo hace que Google pida el permiso completo de Drive
+  // (con solo lectura, borrar da «insufficient authentication scopes»).
+  if (MODO === '__nunca__') DriveApp.createFile('x', 'x').setTrashed(true);
   var lista = [], token = '';
   do {
     var url = 'https://www.googleapis.com/drive/v3/files?pageSize=1000&fields=' +
