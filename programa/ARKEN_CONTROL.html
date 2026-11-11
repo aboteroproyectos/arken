@@ -45841,6 +45841,7 @@ function enviarComite(p, c){
         'elige ahí mismo la app (WhatsApp, correo, lo que tenga instalado) y el PDF viaja adjunto de una vez.' +
         '<div class="btn-row" style="margin-top:8px"><button class="btn primary" id="cmCompartirPdf" type="button">Compartir PDF del acta…</button></div>' +
       '</div></div>' +
+      CorreoGmail.bloqueTodos(destinatarios) +
       '<div class="p-sec">O enviar a un destinatario puntual</div>' +
       '<div class="muted small" style="margin-bottom:8px">Descarga el PDF a este equipo y abre el mensaje con el destinatario listo — sólo falta adjuntarlo. ' +
         'WhatsApp admite un número por mensaje, por eso va uno por uno.</div>' +
@@ -45851,13 +45852,19 @@ function enviarComite(p, c){
       '</tbody></table></div>',
     botones:[{ texto:'Cerrar' }],
     alAbrir: m => {
+      CorreoGmail.enlazarTodos(m.el, destinatarios, asunto, resumen, () => docComite(p, c), 'acta de comité', p.id);
       $('#cmCompartirPdf', m.el).onclick = () => {
         const r = Documentos.compartirPDF(docComite(p, c), { titulo:asunto, texto:resumen });
         if (!r.soportado) UI.toast('Su navegador no admite compartir archivos — se descargó el PDF del acta', 'info');
         Modelo.auditar('enviar','acta de comité', fmtFecha(c.fecha) + ' — compartir PDF', p.id);
       };
-      $$('[data-envc]', m.el).forEach(b => b.onclick = () => {
+      $$('[data-envc]', m.el).forEach(b => b.onclick = async () => {
         const d = destinatarios[+b.dataset.envc];
+        if (CorreoGmail.vinculado()){
+          if (await CorreoGmail.enviarDocumento(d.correo, asunto, resumen, docComite(p, c), b))
+            Modelo.auditar('enviar','acta de comité', fmtFecha(c.fecha) + ' a ' + d.nombre + ' (Gmail, con PDF)', p.id);
+          return;
+        }
         Documentos.emitir(docComite(p, c), 'pdf');
         Conector.enviarCorreo(d.correo, asunto, cuerpoConPdf).then(r => { if (r.mailto) window.open(r.mailto, '_blank'); });
         Modelo.auditar('enviar','acta de comité', fmtFecha(c.fecha) + ' a ' + d.nombre + ' (correo, con PDF)', p.id);
@@ -46403,6 +46410,7 @@ function enviarBitacoraDia(p, fecha){
         'el PDF viaja adjunto de una vez.' +
         '<div class="btn-row" style="margin-top:8px"><button class="btn primary" id="btCompartirPdf" type="button">Compartir PDF del día…</button></div>' +
       '</div></div>' +
+      CorreoGmail.bloqueTodos(destinatarios) +
       '<div class="p-sec">O enviar a un destinatario puntual</div>' +
       '<div class="muted small" style="margin-bottom:8px">Descarga el PDF a este equipo y abre el mensaje con el destinatario listo — sólo falta adjuntarlo. ' +
         'WhatsApp admite un número por mensaje, por eso va uno por uno.</div>' +
@@ -46413,13 +46421,19 @@ function enviarBitacoraDia(p, fecha){
       '</tbody></table></div>',
     botones:[{ texto:'Cerrar' }],
     alAbrir: m => {
+      CorreoGmail.enlazarTodos(m.el, destinatarios, asunto, resumen, () => docBitacoraDia(p, fecha), 'bitácora', p.id);
       $('#btCompartirPdf', m.el).onclick = () => {
         const r = Documentos.compartirPDF(docBitacoraDia(p, fecha), { titulo:asunto, texto:resumen });
         if (!r.soportado) UI.toast('Su navegador no admite compartir archivos — se descargó el PDF del día', 'info');
         Modelo.auditar('enviar','bitácora', fmtFecha(fecha) + ' — compartir PDF', p.id);
       };
-      $$('[data-envc]', m.el).forEach(b2 => b2.onclick = () => {
+      $$('[data-envc]', m.el).forEach(b2 => b2.onclick = async () => {
         const d = destinatarios[+b2.dataset.envc];
+        if (CorreoGmail.vinculado()){
+          if (await CorreoGmail.enviarDocumento(d.correo, asunto, resumen, docBitacoraDia(p, fecha), b2))
+            Modelo.auditar('enviar','bitácora', fmtFecha(fecha) + ' a ' + d.nombre + ' (Gmail, con PDF)', p.id);
+          return;
+        }
         Documentos.emitir(docBitacoraDia(p, fecha), 'pdf');
         Conector.enviarCorreo(d.correo, asunto, cuerpoConPdf).then(r => { if (r.mailto) window.open(r.mailto, '_blank'); });
         Modelo.auditar('enviar','bitácora', fmtFecha(fecha) + ' a ' + d.nombre + ' (correo, con PDF)', p.id);
@@ -50182,7 +50196,7 @@ const Admin = (function(){
     if (!modal) return;
     $('#adTabs', modal.el).innerHTML = UI.tabs(TABS_ADMIN, Sesion.tabAdmin, k => { Sesion.tabAdmin = k; pintar(); });
     const c = $('#adBody', modal.el);
-    ({ empresa:adEmpresa, licencia:adLicencia, usuarios:adUsuarios, alertas:adAlertas, bandeja:adBandeja,
+    ({ empresa:adEmpresa, licencia:adLicencia, usuarios:adUsuarios, alertas:adAlertas, bandeja:adBandeja, correo:adCorreo,
        tributario:adTributario, puc:adPUC, auditoria:adAuditoria, datos:adDatos, seguridad:adSeguridad })[Sesion.tabAdmin](c);
   }
   return { abrir, pintar, get modal(){ return modal; } };
@@ -50586,15 +50600,12 @@ function adBandeja(c){
   const filtro = Sesion.filtroBandeja || 'todas';
   const lista = filtro === 'todas' ? b : b.filter(x => x.estado === filtro);
   c.innerHTML =
-    '<div class="alert info"><div class="ic">ℹ</div><div class="bd"><b>Frontera honesta del archivo</b>' +
-    '<div class="small">Todo el motor de alertas vive dentro del archivo y funciona completo. El envío real de correo y ' +
-    'WhatsApp exige infraestructura externa: mientras no se conecte un backend, cada alerta queda aquí en estado ' +
-    '<b>pendiente</b> con dos salidas inmediatas — abrir el cliente de correo o abrir WhatsApp con el mensaje listo. ' +
-    'Al conectar el backend sólo se reemplazan los dos métodos del objeto <code>Conector</code>.</div></div></div>' +
+    CorreoGmail.avisoBandeja() +
     '<div class="toolbar">' + UI.tabs([{ k:'todas', n:'Todas (' + b.length + ')' },
       { k:'pendiente', n:'Pendientes (' + b.filter(x => x.estado==='pendiente').length + ')' },
       { k:'enviada', n:'Enviadas' }, { k:'fallida', n:'Fallidas' }], filtro,
       k => { Sesion.filtroBandeja = k; Admin.pintar(); }) +
+    (CorreoGmail.vinculado() && b.some(x => x.estado==='pendiente' && x.canal==='correo') ? '<button class="btn sm primary" id="adBGmail" type="button">Enviar por Gmail las pendientes</button>' : '') +
     '<button class="btn sm" id="adBLimpiar" type="button">Vaciar bandeja</button></div>' +
     '<div class="tw scroll" style="max-height:52vh">' +
     (lista.length ? lista.map(a => '<div class="mailrow"><div class="hd">' +
@@ -50607,6 +50618,7 @@ function adBandeja(c){
       (a.motivo ? '<div class="muted small" style="margin-top:5px">' + esc(a.motivo) + '</div>' : '') +
       '</div>').join('')
       : UI.vacio('◇','Bandeja vacía','No hay alertas en este estado.')) + '</div>';
+  if ($('#adBGmail')) $('#adBGmail').onclick = async () => { await CorreoGmail.enviarPendientes(true); Admin.pintar(); };
   $('#adBLimpiar').onclick = async () => {
     const ok = await UI.confirmar({ titulo:'Vaciar la bandeja de salida',
       mensaje:'Se eliminarán todas las alertas registradas. Las reglas se conservan.', textoAceptar:'Vaciar' });
@@ -50614,8 +50626,12 @@ function adBandeja(c){
     S.alertas.bandeja = []; App.guardar(); Admin.pintar();
   };
   $$('[data-ba]', c).forEach(btn => btn.onclick = async () => {
+    btn.disabled = true;
     const r = await Alertas.despachar(btn.dataset.ba);
     const a = (S.alertas.bandeja||[]).find(x => x.id === btn.dataset.ba);
+    if (!r || !a){ Admin.pintar(); return; }
+    if (r.ok){ UI.toast('✓ ' + (r.motivo || 'Enviado'), 'ok'); Admin.pintar(); return; }
+    btn.disabled = false;
     UI.modal({ titulo:'Salida de la alerta', eyebrow: a.canal === 'whatsapp' ? 'WhatsApp' : 'Correo electrónico',
       cuerpo:'<p>' + esc(r.motivo||'') + '</p>' +
         '<div class="stack" style="margin-top:10px">' +
@@ -53301,7 +53317,11 @@ const Ayuda = (function(){
     '<p>Cuando la empresa disponga de un backend —Firebase Functions, un SMTP corporativo o la API de WhatsApp ' +
     'Business— <b>sólo se reemplazan los dos métodos</b> <code>Conector.enviarCorreo(destinatario, asunto, cuerpo)</code> ' +
     'y <code>Conector.enviarWhatsApp(telefono, mensaje)</code>, y se pone <code>Conector.modo = "backend"</code>. ' +
-    'Ni una línea del resto del sistema cambia.</p>';
+    'Ni una línea del resto del sistema cambia.</p>' +
+    '<h4>Correo vinculado (Gmail)</h4>' +
+    '<p>Desde la versión 16 el correo ya sale solo: en <b>Administración › Correo vinculado</b> se instala, una vez y gratis, ' +
+    'un servicio de Google Apps Script en el Gmail de la empresa. Desde ahí se envían las alertas de la bandeja, la bitácora ' +
+    'y las actas de comité con el PDF adjunto. WhatsApp sigue abriéndose con el mensaje listo.</p>';
 
   T.planner =
     '<h3>Integración con ARKEN PLANNER</h3>' +
@@ -61942,9 +61962,10 @@ adPUC = function(c){
    segunda fórmula— y cada indicador se calcula aislado: si un dato falta,
    ese indicador muestra «—» y el resto del tablero sigue en pie.
    ════════════════════════════════════════════════════════════════════════ */
-const ARKEN_VERSION = '15.0.0';
+const ARKEN_VERSION = '16.0.0';
 const ARKEN_VERSION_FECHA = '2026-11-08';
 const HISTORIAL_VERSIONES = [
+  ['16.0.0', '2026-11-11', 'Correo vinculado: las alertas, la bitácora y las actas de comité se envían desde el Gmail de la empresa con el PDF adjunto, sin abrir el correo (servicio gratuito de Google Apps Script que se instala una vez). Envío automático de la bandeja de salida y envío a todos los destinatarios de una vez.'],
   ['15.0.0', '2026-11-09', 'Memorias de cálculo profesionales: 25 formatos con criterio de medida, norma y fórmula; dibujo explicativo que toma las medidas de cada fila; operación escrita con números reales; deducciones, desperdicio y planos; resumen de acero por diámetro; trazabilidad de cada actividad del presupuesto contra sus memorias con historial de aplicación; PDF completo. Dictado por voz en todos los campos de texto.'],
   ['14.0.0', '2026-11-08', 'El programa redacta y el profesional firma: autochequeo diario de todos los proyectos con novedades y resueltos; bitácora prellenada con asistencia QR, salidas, avance, equipos, clima, SST y calidad; informe semanal programado con narrativa y variaciones que queda en borrador hasta su firma; resumen diario por persona según su rol, con escalamiento.'],
   ['13.0.0', '2026-11-08', 'Salidas de almacén con un solo candado: se editan y eliminan aunque estén cerradas, con autorización, motivo y constancia. Lector de documentos: el OCR vuelve a funcionar al abrir el programa como archivo; endereza hojas giradas, empareja la luz, relee las cifras hasta cuadrar, lee TIFF de escáner y PDF mixtos.'],
@@ -72940,6 +72961,403 @@ const Dictado = (function(){
         a:'<p>Entre a cualquier campo de texto y pulse el micrófono que aparece en su esquina (o <b>Ctrl + Shift + D</b>). En el navegador y en el teléfono el programa escucha y escribe; diga «punto», «coma», «nuevo párrafo» o «abrir paréntesis» para puntuar. Convierte solo términos de obra como «metros cúbicos» a m³, «varilla número 4» a #4 o «NSR diez» a NSR-10. En «Palabras propias» puede enseñarle nombres de proyectos, personas o materiales.</p>' +
           '<p>En la aplicación de escritorio de Windows se usa el dictado de Windows: con el cursor en el campo pulse <b>Windows + H</b>. En Mac, la tecla Fn dos veces.</p>' });
   }
+})();
+
+</script>
+<script id="v16-correo">
+/* ARKEN CONTROL v16 · Correo vinculado.
+   Envía los correos del sistema desde el Gmail de la empresa, con el PDF
+   adjunto y sin abrir el cliente de correo. Funciona como en Sr Refresh: un
+   pequeño servicio de Google Apps Script (gratis) que la empresa instala una
+   sola vez en su propia cuenta; el programa le entrega el mensaje y Gmail lo
+   envía. El servicio sólo acepta pedidos que traigan la clave de este
+   archivo. Si no hay correo vinculado, todo sigue como antes (mailto). */
+const CorreoGmail = (function(){
+  const RE_URL = /^https:\/\/script\.google\.com\/(macros|a\/macros\/[^/]+)\/s\/[\w-]+\/exec$/;
+  const LIMITE_ADJUNTOS = 18 * 1024 * 1024;   // Gmail admite 25 MB; el base64 pesa un tercio más
+  const enCurso = new Set();
+  let ocupado = false;
+
+  function hay(){ return typeof S !== 'undefined' && S && S.config; }
+  function cfg(){
+    if (!hay()) return {};
+    return S.config.correo || (S.config.correo = { url:'', clave:'', cuenta:'', auto:true, desde:0,
+      enviados:0, ultimo:0, ultimoError:'', cupo:null });
+  }
+  function guardar(){ try { Store.guardar(); } catch(e){} }
+  function vinculado(){ const c = cfg(); return !!(c.url && RE_URL.test(c.url)); }
+  function clave(){
+    const c = cfg();
+    if (!c.clave){
+      const a = new Uint8Array(18); crypto.getRandomValues(a);
+      c.clave = 'arken-' + Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
+      guardar();
+    }
+    return c.clave;
+  }
+  function remitente(){ return (S.empresa && S.empresa.razonSocial) || 'ARKEN CONTROL'; }
+  function responderA(){ return (S.empresa && S.empresa.correo) || ''; }
+  function limpiarCorreos(v){
+    return String(Array.isArray(v) ? v.join(',') : (v || '')).split(/[,;\s]+/)
+      .map(x => x.trim()).filter(x => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x))
+      .filter((x, i, a) => a.findIndex(y => y.toLowerCase() === x.toLowerCase()) === i);
+  }
+
+  /* ═══════════ Código del servicio (Google Apps Script) ═══════════ */
+  function codigo(){
+    return `// ARKEN CONTROL · Envío de correos desde este Gmail (${remitente().replace(/[\r\n`$\\]/g, ' ')})
+// Péguelo en script.google.com, ejecute «autorizar» una vez e impleméntelo como aplicación web.
+var CLAVE = '${clave()}';
+
+function doPost(e) {
+  try {
+    var d = JSON.parse(e.postData.contents);
+    if (d.clave !== CLAVE) return salida({ok: false, error: 'Clave inválida. Copie otra vez el código desde ARKEN CONTROL.'});
+    var cuenta = Session.getEffectiveUser().getEmail();
+    if (d.accion === 'estado') return salida({ok: true, cuenta: cuenta, cupo: MailApp.getRemainingDailyQuota()});
+    var adjuntos = (d.adjuntos || []).map(function (a) {
+      return Utilities.newBlob(Utilities.base64Decode(a.datos), a.tipo || 'application/pdf', a.nombre);
+    });
+    var op = {htmlBody: d.html, attachments: adjuntos, name: d.remitente || 'ARKEN CONTROL'};
+    if (d.responderA) op.replyTo = d.responderA;
+    if (d.cc) op.cc = d.cc;
+    GmailApp.sendEmail(d.para, d.asunto, d.texto, op);
+    return salida({ok: true, cuenta: cuenta, cupo: MailApp.getRemainingDailyQuota()});
+  } catch (err) {
+    return salida({ok: false, error: String(err)});
+  }
+}
+
+function salida(o) {
+  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Ejecute esta función una vez para darle permiso de enviar desde su Gmail.
+function autorizar() {
+  GmailApp.getAliases();
+  Logger.log('Listo. Cupo de hoy: ' + MailApp.getRemainingDailyQuota() + ' destinatarios.');
+}
+`;
+  }
+
+  /* ═══════════ Envío ═══════════ */
+  async function llamar(cuerpo){
+    const c = cfg();
+    let r;
+    try {
+      r = await fetch(c.url, { method:'POST', redirect:'follow',
+        headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ clave: clave() }, cuerpo)) });
+    } catch(e){
+      const err = new Error('No hay conexión con Google. Revise internet; el correo se reintenta solo.');
+      err.red = true; throw err;
+    }
+    let j;
+    try { j = await r.json(); }
+    catch(e){ throw new Error('Google no respondió como se esperaba. Revise que la implementación esté como «Aplicación web» con acceso para «Cualquier persona», y que la dirección termine en /exec.'); }
+    if (j.cuenta) c.cuenta = j.cuenta;
+    if (j.cupo !== undefined && j.cupo !== null) c.cupo = j.cupo;
+    if (!j.ok) throw new Error(j.error || 'Error desconocido del servicio de correo.');
+    return j;
+  }
+
+  function htmlCorreo(asunto, texto){
+    const e = S.empresa || {};
+    const pie = [e.razonSocial, e.nit && ('NIT ' + e.nit + (e.dv ? '-' + e.dv : '')), e.telefono, e.correo, e.direccion]
+      .filter(Boolean).map(esc).join(' · ');
+    const logo = e.logo && String(e.logo).length < 150000
+      ? '<img src="' + e.logo + '" alt="" style="max-height:44px;max-width:160px;background:#fff;padding:4px;border-radius:6px;float:right">' : '';
+    return '<div style="font-family:Arial,Helvetica,sans-serif;max-width:620px;margin:auto;border:1px solid #d9dde3;border-radius:12px;overflow:hidden">' +
+      '<div style="background:#14213a;padding:16px 22px;border-bottom:4px solid #b08d3c;color:#fff">' + logo +
+      '<div style="font-size:18px;font-weight:bold;letter-spacing:.3px">' + esc(e.razonSocial || 'ARKEN CONTROL') + '</div>' +
+      '<div style="font-size:12px;color:#c9d2e3;margin-top:3px">' + esc(asunto) + '</div></div>' +
+      '<div style="padding:20px 22px;color:#1d2433;font-size:14px;line-height:1.6">' + esc(texto).replace(/\n/g, '<br>') + '</div>' +
+      '<div style="background:#f3f5f8;padding:11px 22px;font-size:11px;color:#5d6676">' + (pie || '') +
+      '<div style="margin-top:4px;color:#8a93a3">Enviado con ARKEN CONTROL</div></div></div>';
+  }
+
+  /** Envía un correo. o = { para, cc, asunto, texto, adjuntos:[{nombre,tipo,datos(base64)}] } */
+  async function enviar(o){
+    const c = cfg();
+    if (!vinculado()) return { ok:false, error:'No hay un correo vinculado.' };
+    const para = limpiarCorreos(o.para), cc = limpiarCorreos(o.cc);
+    if (!para.length) return { ok:false, error:'El destinatario no tiene un correo válido.' };
+    const peso = (o.adjuntos || []).reduce((s, a) => s + String(a.datos || '').length, 0);
+    if (peso > LIMITE_ADJUNTOS) return { ok:false, grande:true,
+      error:'El PDF pesa ' + (peso * 0.75 / 1048576).toFixed(1) + ' MB y Gmail no admite adjuntos tan pesados.' };
+    try {
+      await llamar({ para: para.join(','), cc: cc.join(','), asunto: o.asunto || '', texto: o.texto || '',
+        html: htmlCorreo(o.asunto || '', o.texto || ''), adjuntos: o.adjuntos || [],
+        remitente: remitente(), responderA: responderA() });
+      c.enviados = (c.enviados || 0) + 1; c.ultimo = Date.now(); c.ultimoError = '';
+      guardar();
+      return { ok:true, cuenta: c.cuenta };
+    } catch(e){
+      c.ultimoError = e.message; guardar();
+      return { ok:false, red: !!e.red, error: e.message };
+    }
+  }
+
+  /** PDF de un documento del sistema listo para adjuntar. */
+  function pdf(cfgDoc){
+    if (!Documentos.hayAutoTable()) return null;
+    try {
+      if (typeof NombreArchivo !== 'undefined')
+        cfgDoc = Object.assign({}, cfgDoc, { nombre: NombreArchivo.componer(cfgDoc.pestana) });
+    } catch(e){}
+    const doc = Documentos.generarPDF(cfgDoc);
+    return { nombre: (cfgDoc.nombre || 'ARKEN_documento') + '.pdf', tipo:'application/pdf',
+      datos: doc.output('datauristring').split(',')[1] };
+  }
+
+  /** Envía un documento del sistema con su PDF adjunto. Devuelve true si salió. */
+  async function enviarDocumento(para, asunto, texto, cfgDoc, boton){
+    const lista = limpiarCorreos(para);
+    if (!lista.length){ UI.toast('No hay un correo válido para enviar', 'bad'); return false; }
+    const txtBoton = boton ? boton.textContent : '';
+    if (boton){ boton.disabled = true; boton.textContent = 'Enviando…'; }
+    try {
+      const adj = pdf(cfgDoc);
+      const cuerpo = texto + (adj ? '' : '\n\n(No se pudo generar el PDF en este equipo; el mensaje va sin adjunto.)');
+      const r = await enviar({ para: lista, asunto, texto: cuerpo, adjuntos: adj ? [adj] : [] });
+      if (r.ok){
+        UI.toast('✓ Enviado desde ' + (r.cuenta || 'el Gmail vinculado') + ' a ' + lista.join(', ') + (adj ? ' con el PDF adjunto' : ''), 'ok');
+        if (boton) boton.textContent = '✓ Enviado';
+        return true;
+      }
+      if (r.grande){
+        UI.aviso('El PDF es muy pesado para Gmail',
+          '<p>' + esc(r.error) + '</p><p class="muted small">Se descargó el PDF a este equipo para que lo comparta por un enlace de Drive o por partes.</p>');
+        Documentos.emitir(cfgDoc, 'pdf');
+      } else {
+        UI.aviso('No se pudo enviar el correo', '<p>' + esc(r.error) + '</p>' +
+          '<p class="muted small">Revise el correo vinculado en Administración › Correo vinculado.</p>');
+      }
+      if (boton){ boton.disabled = false; boton.textContent = 'Reintentar'; }
+      return false;
+    } catch(e){
+      UI.aviso('No se pudo enviar el correo', '<p>' + esc(e.message || String(e)) + '</p>');
+      if (boton){ boton.disabled = false; boton.textContent = txtBoton; }
+      return false;
+    }
+  }
+
+  /* ═══════════ Conector: el punto único de salida del sistema ═══════════ */
+  const enviarLocal = Conector.enviarCorreo;
+  Conector.enviarCorreo = async function(destinatario, asunto, cuerpo, opciones){
+    if (!vinculado()) return enviarLocal(destinatario, asunto, cuerpo);
+    const r = await enviar({ para: destinatario, asunto, texto: cuerpo, adjuntos: (opciones && opciones.adjuntos) || [] });
+    if (r.ok) return { ok:true, estado:'enviada',
+      motivo:'Enviado desde ' + (r.cuenta || 'el Gmail vinculado') + ' el ' + fmtSello(Date.now()) + '.' };
+    const local = await enviarLocal(destinatario, asunto, cuerpo);
+    return { ok:false, estado: r.red ? 'pendiente' : 'fallida', red: !!r.red,
+      motivo:'Gmail no lo envió: ' + r.error, mailto: local.mailto };
+  };
+
+  /* ═══════════ Bandeja de salida: envío automático ═══════════ */
+  function candidatas(todas){
+    const c = cfg();
+    return ((S.alertas && S.alertas.bandeja) || []).filter(a => a.canal === 'correo' && a.estado === 'pendiente' &&
+      !enCurso.has(a.id) && limpiarCorreos(a.destinatario).length &&
+      (todas || ((a.ts || 0) >= (c.desde || 0) && (a.intentosGmail || 0) < 3)));
+  }
+  async function enviarPendientes(todas){
+    if (!hay() || !vinculado() || ocupado) return { enviadas:0, fallidas:0 };
+    ocupado = true;
+    let enviadas = 0, fallidas = 0;
+    try {
+      const lista = candidatas(todas).slice(0, todas ? 60 : 15);
+      for (const a of lista){
+        enCurso.add(a.id);
+        a.intentosGmail = (a.intentosGmail || 0) + 1;
+        try {
+          const r = await Alertas.despachar(a.id);
+          if (r && r.ok) enviadas++;
+          else {
+            fallidas++;
+            if (r && r.red && a.intentosGmail >= 3){ a.estado = 'fallida'; a.motivo = (a.motivo || '') + ' Se intentó 3 veces.'; }
+            if (r && r.red) break;          // sin conexión: no insistir con el resto ahora
+          }
+        } finally { enCurso.delete(a.id); }
+      }
+      if (lista.length){
+        guardar();
+        try { if (Vistas.refrescarInsignias) Vistas.refrescarInsignias(); } catch(e){}
+      }
+    } finally { ocupado = false; }
+    if (todas) UI.toast(enviadas + ' correo(s) enviados' + (fallidas ? ' · ' + fallidas + ' sin enviar (vea el motivo en cada uno)' : ''), fallidas ? 'info' : 'ok');
+    return { enviadas, fallidas };
+  }
+  function tick(){
+    try { if (hay() && vinculado() && cfg().auto !== false && navigator.onLine !== false) enviarPendientes(false); } catch(e){}
+  }
+  setTimeout(tick, 15000);
+  setInterval(tick, 60000);
+  window.addEventListener('online', () => setTimeout(tick, 3000));
+
+  /* ═══════════ Pantalla de configuración (Administración › Correo vinculado) ═══════════ */
+  function estadoHTML(){
+    const c = cfg();
+    if (!vinculado()) return '<span class="tag warn">Sin vincular</span>';
+    return '<span class="tag ok">Vinculado' + (c.cuenta ? ' a ' + esc(c.cuenta) : '') + '</span>';
+  }
+  function pintarAdmin(cont){
+    const c = cfg();
+    clave();
+    const pend = candidatas(true).length;
+    cont.innerHTML =
+      '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px">' +
+        '<div><b style="font-size:15px">Envío de correos desde el Gmail de la empresa</b>' +
+        '<div class="muted small">Las alertas, la bitácora y las actas de comité salen solas desde su Gmail, con el PDF adjunto, sin abrir el correo.</div></div>' +
+        estadoHTML() + '</div>' +
+      (vinculado()
+        ? '<div class="alert ok"><div class="ic">✓</div><div class="bd"><b>Correo vinculado' + (c.cuenta ? ': ' + esc(c.cuenta) : '') + '</b>' +
+            '<div class="small">Enviados desde este archivo: <strong>' + (c.enviados || 0) + '</strong>' +
+            (c.ultimo ? ' · último: ' + esc(fmtSello(c.ultimo)) : '') +
+            (c.cupo !== null && c.cupo !== undefined ? ' · cupo de hoy en Gmail: <strong>' + c.cupo + '</strong> destinatarios' : '') +
+            (pend ? ' · pendientes en la bandeja: <strong>' + pend + '</strong>' : '') + '</div>' +
+            (c.ultimoError ? '<div class="small" style="margin-top:4px;color:var(--bad,#b3261e)">Último error: ' + esc(c.ultimoError) + '</div>' : '') +
+          '</div></div>'
+        : '<div class="alert info"><div class="ic">ℹ</div><div class="bd"><b>Se configura una sola vez, gratis (unos 5 minutos)</b>' +
+            '<div class="small">Sin vincular, el programa abre su cliente de correo con el mensaje listo y usted adjunta el PDF a mano.</div></div></div>') +
+      '<div class="p-sec">Pasos</div>' +
+      '<ol class="small" style="line-height:1.75;padding-left:20px;margin:0 0 12px">' +
+        '<li>Pulse <b>Copiar código</b>.</li>' +
+        '<li>Entre a <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">script.google.com</a> con la cuenta Gmail de la empresa. Se crea un proyecto nuevo: póngale de nombre «ARKEN correo», borre lo que trae, pegue el código y guarde (Ctrl+S).</li>' +
+        '<li>Arriba, en la lista de funciones, elija <b>autorizar</b> y pulse <b>Ejecutar</b>. Acepte los permisos de Google. Si dice «Google no verificó esta app», toque <b>Configuración avanzada</b> › <b>Ir a ARKEN correo</b>.</li>' +
+        '<li>Pulse <b>Implementar › Nueva implementación</b>. En el engranaje elija <b>Aplicación web</b>. «Ejecutar como»: <b>Yo</b>. «Quién tiene acceso»: <b>Cualquier persona</b>. Pulse <b>Implementar</b>.</li>' +
+        '<li>Copie la <b>URL de la aplicación web</b> (termina en <code>/exec</code>), péguela abajo y pulse <b>Guardar y comprobar</b>.</li>' +
+      '</ol>' +
+      '<div class="btn-row" style="margin-bottom:12px"><button class="btn sm primary" id="cgCopiar" type="button">Copiar código</button>' +
+        '<button class="btn sm" id="cgVer" type="button">Ver código</button></div>' +
+      '<div class="field"><label>Dirección del servicio (URL de la aplicación web)</label>' +
+        '<input id="cgUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="' + esc(c.url || '') + '"></div>' +
+      '<label class="checkline"><input type="checkbox" id="cgAuto"' + (c.auto !== false ? ' checked' : '') + '> ' +
+        'Enviar solas las alertas de la bandeja de salida a los usuarios que tienen correo (revisa cada minuto mientras el programa está abierto)</label>' +
+      '<div class="btn-row" style="margin-top:10px">' +
+        '<button class="btn sm primary" id="cgGuardar" type="button">Guardar y comprobar</button>' +
+        (vinculado() ? '<button class="btn sm" id="cgPrueba" type="button">Enviar correo de prueba</button>' +
+          (pend ? '<button class="btn sm" id="cgPend" type="button">Enviar las ' + pend + ' pendientes</button>' : '') +
+          '<button class="btn sm danger" id="cgQuitar" type="button">Desvincular</button>' : '') +
+      '</div>' +
+      '<div class="muted small" style="margin-top:12px;line-height:1.55">' +
+        'Los correos salen a nombre de <b>' + esc(remitente()) + '</b>' + (responderA() ? ' y las respuestas llegan a <b>' + esc(responderA()) + '</b>' : '') +
+        ' (se cambian en la pestaña Empresa). Una cuenta Gmail gratuita envía hasta 100 destinatarios al día; Google Workspace, hasta 1.500. ' +
+        'El servicio sólo acepta pedidos con la clave de este archivo. Si cambia el código o lo pega en otra cuenta, vuelva a «Implementar › Gestionar implementaciones» y copie la URL nueva.</div>';
+
+    $('#cgCopiar', cont).onclick = async () => {
+      try { await navigator.clipboard.writeText(codigo()); UI.toast('Código copiado. Péguelo en script.google.com', 'ok'); }
+      catch(e){ verCodigo(); }
+    };
+    $('#cgVer', cont).onclick = verCodigo;
+    $('#cgAuto', cont).onchange = e => { c.auto = e.target.checked; guardar(); };
+    $('#cgGuardar', cont).onclick = async () => {
+      const url = $('#cgUrl', cont).value.trim();
+      if (!url){ UI.toast('Pegue la dirección que le dio Google', 'bad'); return; }
+      if (!RE_URL.test(url)){
+        UI.toast('La dirección debe empezar por https://script.google.com/ y terminar en /exec', 'bad'); return;
+      }
+      const antes = c.url;
+      const b = $('#cgGuardar', cont); b.disabled = true; b.textContent = 'Comprobando…';
+      c.url = url;
+      try {
+        const j = await llamar({ accion:'estado' });
+        if (!antes || antes !== url) c.desde = Date.now();
+        c.ultimoError = '';
+        guardar();
+        Modelo.auditar('configurar', 'correo vinculado', j.cuenta || url);
+        UI.toast('✓ Correo vinculado' + (j.cuenta ? ': ' + j.cuenta : ''), 'ok');
+      } catch(e){
+        c.url = antes || '';
+        guardar();
+        UI.aviso('No se pudo vincular', '<p>' + esc(e.message) + '</p>' +
+          '<p class="muted small">Revise que copió el código completo, que ejecutó «autorizar» y que la implementación es «Aplicación web» con acceso para «Cualquier persona».</p>');
+      }
+      Admin.pintar();
+    };
+    if ($('#cgPrueba', cont)) $('#cgPrueba', cont).onclick = async () => {
+      const yo = (Sesion.usuario && Sesion.usuario.correo) || responderA() || c.cuenta;
+      const b = $('#cgPrueba', cont); b.disabled = true; b.textContent = 'Enviando…';
+      const r = await enviar({ para: yo, asunto:'Prueba de correo — ARKEN CONTROL',
+        texto:'Este es un correo de prueba de ARKEN CONTROL.\n\nSi lo recibe, el envío desde el Gmail vinculado funciona: las alertas, la bitácora y las actas de comité saldrán desde esta cuenta con el PDF adjunto.' });
+      if (r.ok) UI.toast('✓ Correo de prueba enviado a ' + yo + '. Revise la bandeja de entrada.', 'ok');
+      else UI.aviso('No funcionó', '<p>' + esc(r.error) + '</p>');
+      Admin.pintar();
+    };
+    if ($('#cgPend', cont)) $('#cgPend', cont).onclick = async () => { await enviarPendientes(true); Admin.pintar(); };
+    if ($('#cgQuitar', cont)) $('#cgQuitar', cont).onclick = async () => {
+      const ok = await UI.confirmar({ titulo:'Desvincular el correo',
+        mensaje:'El programa dejará de enviar desde Gmail y volverá a abrir su cliente de correo. El servicio en script.google.com sigue existiendo hasta que usted lo borre.',
+        textoAceptar:'Desvincular' });
+      if (!ok) return;
+      c.url = ''; c.cuenta = ''; c.cupo = null; guardar();
+      Modelo.auditar('configurar', 'correo vinculado', 'desvinculado');
+      Admin.pintar();
+    };
+  }
+  function verCodigo(){
+    UI.modal({ titulo:'Código para Google Apps Script', eyebrow:'Correo vinculado', ancho:'wide',
+      cuerpo:'<p class="small muted">Selecciónelo todo, cópielo y péguelo en un proyecto nuevo de script.google.com.</p>' +
+        '<textarea readonly style="width:100%;min-height:360px;font-family:monospace;font-size:12px" onclick="this.select()">' + esc(codigo()) + '</textarea>',
+      botones:[{ texto:'Cerrar' }] });
+  }
+
+  /* ═══════════ Ayudas para las ventanas de envío (bitácora y comité) ═══════════ */
+  function bloqueTodos(destinatarios){
+    if (!vinculado()) return '';
+    const n = limpiarCorreos(destinatarios.map(d => d.correo)).length;
+    return '<div class="alert ok" style="margin-bottom:14px"><div class="ic">✉</div><div class="bd">' +
+      '<b>Correo vinculado' + (cfg().cuenta ? ': ' + esc(cfg().cuenta) : '') + '</b><br>' +
+      'El botón «Correo» de cada destinatario envía el mensaje de una vez con el PDF adjunto, sin descargar nada.' +
+      (n > 1 ? '<div class="btn-row" style="margin-top:8px"><button class="btn primary" id="cgTodos" type="button">Enviar por correo a los ' + n + ' destinatarios</button></div>' : '') +
+      '</div></div>';
+  }
+  function enlazarTodos(el, destinatarios, asunto, texto, hacerDoc, etiqueta, idProyecto){
+    const b = el.querySelector('#cgTodos');
+    if (!b) return;
+    b.onclick = async () => {
+      const lista = limpiarCorreos(destinatarios.map(d => d.correo));
+      const ok = await enviarDocumento(lista, asunto, texto, hacerDoc(), b);
+      if (ok) Modelo.auditar('enviar', etiqueta, asunto + ' a ' + lista.length + ' destinatarios (Gmail, con PDF)', idProyecto);
+    };
+  }
+
+  function avisoBandeja(){
+    if (vinculado()) return '<div class="alert ok"><div class="ic">✓</div><div class="bd"><b>Correo vinculado' +
+      (cfg().cuenta ? ': ' + esc(cfg().cuenta) : '') + '</b><div class="small">' +
+      (cfg().auto !== false ? 'Las alertas por correo salen solas desde Gmail mientras el programa está abierto. ' : 'El envío automático está apagado: use «Enviar» en cada alerta. ') +
+      'WhatsApp sigue abriéndose con el mensaje listo. Se configura en la pestaña «Correo vinculado».</div></div></div>';
+    return '<div class="alert info"><div class="ic">ℹ</div><div class="bd"><b>El correo todavía no está vinculado</b>' +
+      '<div class="small">Cada alerta queda aquí en estado <strong>pendiente</strong> con dos salidas: abrir el cliente de correo o abrir WhatsApp con el mensaje listo. ' +
+      'Para que los correos salgan solos desde el Gmail de la empresa, vincúlelo en la pestaña <strong>Correo vinculado</strong> (una sola vez, gratis).</div></div></div>';
+  }
+
+  return { vinculado, enviar, enviarDocumento, enviarPendientes, pintarAdmin, codigo, bloqueTodos, enlazarTodos,
+           avisoBandeja, get config(){ return cfg(); } };
+})();
+
+if (typeof TABS_ADMIN !== 'undefined' && !TABS_ADMIN.some(t => t.k === 'correo')){
+  const i = TABS_ADMIN.findIndex(t => t.k === 'bandeja');
+  TABS_ADMIN.splice(i >= 0 ? i + 1 : TABS_ADMIN.length, 0, { k:'correo', n:'Correo vinculado' });
+}
+function adCorreo(c){ CorreoGmail.pintarAdmin(c); }
+
+/* ARKEN CONTROL v16 · Ayuda del correo vinculado. */
+(function(){
+  if (typeof AYUDA_CONTENIDO === 'undefined') return;
+  const otros = AYUDA_CONTENIDO.otros || (AYUDA_CONTENIDO.otros = []);
+  otros.push(
+    { q:'¿Cómo hago para que los correos salgan solos desde el Gmail de la empresa?',
+      a:'<p>En el <b>Panel de administración › Correo vinculado</b> pulse «Copiar código», péguelo en un proyecto nuevo de ' +
+        '<b>script.google.com</b> con la cuenta Gmail de la empresa, ejecute «autorizar» una vez y publíquelo con ' +
+        '<b>Implementar › Nueva implementación › Aplicación web</b> (ejecutar como «Yo», acceso «Cualquier persona»). ' +
+        'Pegue la URL que termina en <code>/exec</code> y pulse «Guardar y comprobar». Es gratis y se hace una sola vez.</p>' +
+        '<p>Desde ese momento las alertas de la bandeja de salida salen solas, y en la bitácora y en las actas de comité el botón ' +
+        '«Correo» envía el mensaje con el PDF adjunto sin descargar nada. Hay un botón para enviar a todos los destinatarios de una vez.</p>' },
+    { q:'¿Cuántos correos puedo enviar con el correo vinculado?',
+      a:'<p>Gmail gratuito admite 100 destinatarios al día y Google Workspace 1.500. El cupo que le queda hoy aparece en ' +
+        '«Correo vinculado». Los adjuntos no pueden pasar de unos 18 MB: si una bitácora con muchas fotos pesa más, el programa ' +
+        'lo avisa y descarga el PDF para compartirlo por otro medio.</p>' });
 })();
 
 </script>
