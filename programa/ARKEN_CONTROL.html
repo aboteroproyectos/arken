@@ -50196,7 +50196,7 @@ const Admin = (function(){
     if (!modal) return;
     $('#adTabs', modal.el).innerHTML = UI.tabs(TABS_ADMIN, Sesion.tabAdmin, k => { Sesion.tabAdmin = k; pintar(); });
     const c = $('#adBody', modal.el);
-    ({ empresa:adEmpresa, licencia:adLicencia, usuarios:adUsuarios, alertas:adAlertas, bandeja:adBandeja, correo:adCorreo,
+    ({ empresa:adEmpresa, licencia:adLicencia, usuarios:adUsuarios, alertas:adAlertas, bandeja:adBandeja, correo:adCorreo, nube:adNube,
        tributario:adTributario, puc:adPUC, auditoria:adAuditoria, datos:adDatos, seguridad:adSeguridad })[Sesion.tabAdmin](c);
   }
   return { abrir, pintar, get modal(){ return modal; } };
@@ -61962,9 +61962,10 @@ adPUC = function(c){
    segunda fórmula— y cada indicador se calcula aislado: si un dato falta,
    ese indicador muestra «—» y el resto del tablero sigue en pie.
    ════════════════════════════════════════════════════════════════════════ */
-const ARKEN_VERSION = '16.0.0';
+const ARKEN_VERSION = '17.0.0';
 const ARKEN_VERSION_FECHA = '2026-11-08';
 const HISTORIAL_VERSIONES = [
+  ['17.0.0', '2026-11-11', 'Datos compartidos entre equipos: lo que se registra en el computador o en el celular aparece solo en los demás, por proyecto, sin pasar respaldos. Los datos se guardan cifrados en el Google Drive de la empresa con el mismo servicio del correo vinculado; los cambios de dos equipos se combinan registro por registro y sin internet se sigue trabajando. Para unir un celular basta escanear un código QR.'],
   ['16.0.0', '2026-11-11', 'Correo vinculado: las alertas, la bitácora y las actas de comité se envían desde el Gmail de la empresa con el PDF adjunto, sin abrir el correo (servicio gratuito de Google Apps Script que se instala una vez). Envío automático de la bandeja de salida y envío a todos los destinatarios de una vez.'],
   ['15.0.0', '2026-11-09', 'Memorias de cálculo profesionales: 25 formatos con criterio de medida, norma y fórmula; dibujo explicativo que toma las medidas de cada fila; operación escrita con números reales; deducciones, desperdicio y planos; resumen de acero por diámetro; trazabilidad de cada actividad del presupuesto contra sus memorias con historial de aplicación; PDF completo. Dictado por voz en todos los campos de texto.'],
   ['14.0.0', '2026-11-08', 'El programa redacta y el profesional firma: autochequeo diario de todos los proyectos con novedades y resueltos; bitácora prellenada con asistencia QR, salidas, avance, equipos, clima, SST y calidad; informe semanal programado con narrativa y variaciones que queda en borrador hasta su firma; resumen diario por persona según su rol, con escalamiento.'],
@@ -73005,7 +73006,7 @@ const CorreoGmail = (function(){
 
   /* ═══════════ Código del servicio (Google Apps Script) ═══════════ */
   function codigo(){
-    return `// ARKEN CONTROL · Envío de correos desde este Gmail (${remitente().replace(/[\r\n`$\\]/g, ' ')})
+    return `// ARKEN CONTROL · Correo y datos compartidos desde esta cuenta de Google (${remitente().replace(/[\r\n`$\\]/g, ' ')})
 // Péguelo en script.google.com, ejecute «autorizar» una vez e impleméntelo como aplicación web.
 var CLAVE = '${clave()}';
 
@@ -73014,7 +73015,8 @@ function doPost(e) {
     var d = JSON.parse(e.postData.contents);
     if (d.clave !== CLAVE) return salida({ok: false, error: 'Clave inválida. Copie otra vez el código desde ARKEN CONTROL.'});
     var cuenta = Session.getEffectiveUser().getEmail();
-    if (d.accion === 'estado') return salida({ok: true, cuenta: cuenta, cupo: MailApp.getRemainingDailyQuota()});
+    if (d.accion === 'estado') return salida({ok: true, cuenta: cuenta, cupo: MailApp.getRemainingDailyQuota(), version: VERSION_SERVICIO});
+    if (String(d.accion || '').indexOf('nube') === 0) return salida(nube_(d));
     var adjuntos = (d.adjuntos || []).map(function (a) {
       return Utilities.newBlob(Utilities.base64Decode(a.datos), a.tipo || 'application/pdf', a.nombre);
     });
@@ -73035,9 +73037,10 @@ function salida(o) {
 // Ejecute esta función una vez para darle permiso de enviar desde su Gmail.
 function autorizar() {
   GmailApp.getAliases();
+  DriveApp.getRootFolder();
   Logger.log('Listo. Cupo de hoy: ' + MailApp.getRemainingDailyQuota() + ' destinatarios.');
 }
-`;
+` + (typeof Nube !== 'undefined' ? Nube.codigoServidor() : '');
   }
 
   /* ═══════════ Envío ═══════════ */
@@ -73158,7 +73161,7 @@ function autorizar() {
   function candidatas(todas){
     const c = cfg();
     return ((S.alertas && S.alertas.bandeja) || []).filter(a => a.canal === 'correo' && a.estado === 'pendiente' &&
-      !enCurso.has(a.id) && limpiarCorreos(a.destinatario).length &&
+      !enCurso.has(a.id) && (typeof Nube === 'undefined' || Nube.esMia(a)) && limpiarCorreos(a.destinatario).length &&
       (todas || ((a.ts || 0) >= (c.desde || 0) && (a.intentosGmail || 0) < 3)));
   }
   async function enviarPendientes(todas){
@@ -73358,6 +73361,1192 @@ function adCorreo(c){ CorreoGmail.pintarAdmin(c); }
       a:'<p>Gmail gratuito admite 100 destinatarios al día y Google Workspace 1.500. El cupo que le queda hoy aparece en ' +
         '«Correo vinculado». Los adjuntos no pueden pasar de unos 18 MB: si una bitácora con muchas fotos pesa más, el programa ' +
         'lo avisa y descarga el PDF para compartirlo por otro medio.</p>' });
+})();
+
+</script>
+<script id="v17-nube">
+/* ARKEN CONTROL v17 · Datos compartidos entre equipos (sincronización automática).
+   Los datos de la empresa y de cada proyecto se guardan cifrados en el Google
+   Drive de la empresa, a través del mismo servicio de Google Apps Script del
+   correo vinculado. Cada equipo (computador, iPhone, otro computador) sube lo
+   que cambió y baja lo que cambiaron los demás, solo y por proyecto:
+   · Se envía sólo la parte que cambió (bitácora, biblioteca, insumos…).
+   · Si dos equipos cambiaron lo mismo, se combina registro por registro; si
+     tocaron el mismo dato, gana el cambio más reciente y queda una copia de
+     respaldo en este equipo antes de combinar.
+   · El contenido viaja y se guarda cifrado (AES-256) con una llave que sólo
+     tienen los equipos vinculados; ni Google ni nadie más lo puede leer.
+   · Sin internet se sigue trabajando: los cambios suben al volver la conexión.
+   La configuración del equipo (dirección, llave) vive sólo en este navegador,
+   nunca dentro del archivo HTML ni en los respaldos. */
+const Nube = (function(){
+  const VERSION_SERVICIO = 2;
+  const CLAVE_CFG = 'arken_nube_v1';
+  const DBN = 'arken_nube', ST = 'kv';
+  const PIEZA_GRANDE = 256 * 1024;       // una llave más pesada que esto viaja como pieza propia
+  const PARTE = 4 * 1024 * 1024;         // tamaño de cada envío al servicio (texto base64)
+  const POLL_VISIBLE = 45000, POLL_OCULTO = 300000, ESPERA_CAMBIO = 6000;
+  const LOCALES_RAIZ = ['meta', 'licenciaVisto'];
+  const LOCALES_CONFIG = ['cifradoArchivo', 'noPedirEnlace'];
+  const CLAVES_ARREGLO = ['id', 'fecha', 'codigo', 'idInsumo', 'clave', 'k'];
+
+  let cfgMem = null, db = null, llaveCripto = null;
+  let ocupado = false, sucio = true, ultimoCambio = 0, tCambio = null, tPoll = null;
+  let estado = { fase:'apagado', texto:'', progreso:'', ultimo:0, error:'' };
+  let pendienteAplicar = false;
+
+  /* ═══════════ Configuración del equipo (sólo en este navegador) ═══════════ */
+  function cfg(){
+    if (cfgMem) return cfgMem;
+    try { cfgMem = JSON.parse(localStorage.getItem(CLAVE_CFG) || 'null'); } catch(e){ cfgMem = null; }
+    if (!cfgMem) cfgMem = { activo:false };
+    if (!cfgMem.equipo){
+      cfgMem.equipo = { id: 'eq_' + aleatorio(9), nombre: nombreEquipoPorDefecto() };
+      guardarCfg();
+    }
+    return cfgMem;
+  }
+  function guardarCfg(){ try { localStorage.setItem(CLAVE_CFG, JSON.stringify(cfgMem)); } catch(e){} }
+  function activo(){ const c = cfg(); return !!(c.activo && c.url && c.clave && c.llave); }
+  function nombreEquipoPorDefecto(){
+    const ua = navigator.userAgent || '';
+    if (/iPhone/.test(ua)) return 'iPhone';
+    if (/iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'iPad';
+    if (/Android/.test(ua)) return 'Celular Android';
+    if (/Mac/.test(ua)) return 'Mac';
+    if (/Windows/.test(ua)) return 'Computador Windows';
+    return 'Equipo';
+  }
+  function aleatorio(n){ const a = new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a, b => b.toString(36).padStart(2,'0')).join('').slice(0, n * 2); }
+  function equipoId(){ return cfg().equipo.id; }
+
+  /* ═══════════ Utilidades de bytes, cifrado y compresión ═══════════ */
+  function b64(u8){ let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+  function deb64(t){ const bin = atob(t); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+  function b64url(u8){ return b64(u8).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+  function deb64url(t){ t = String(t).replace(/-/g,'+').replace(/_/g,'/'); while (t.length % 4) t += '='; return deb64(t); }
+  async function gzip(u8){
+    if (typeof CompressionStream === 'undefined') return null;
+    return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
+  }
+  async function gunzip(u8){
+    return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+  }
+  async function llave(){
+    if (llaveCripto) return llaveCripto;
+    llaveCripto = await crypto.subtle.importKey('raw', deb64url(cfg().llave), { name:'AES-GCM' }, false, ['encrypt','decrypt']);
+    return llaveCripto;
+  }
+  /* Sobre: 1 byte de formato (1 = gzip, 0 = sin comprimir) + 12 de IV + cifrado AES-GCM. */
+  async function sellar(texto){
+    const plano = new TextEncoder().encode(texto);
+    const gz = await gzip(plano);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const c = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv }, await llave(), gz || plano));
+    const out = new Uint8Array(13 + c.length);
+    out[0] = gz ? 1 : 0; out.set(iv, 1); out.set(c, 13);
+    return b64(out);
+  }
+  async function abrirSobre(t){
+    const u = deb64(t);
+    let p = new Uint8Array(await crypto.subtle.decrypt({ name:'AES-GCM', iv: u.subarray(1, 13) }, await llave(), u.subarray(13)));
+    if (u[0] === 1) p = await gunzip(p);
+    return new TextDecoder().decode(p);
+  }
+  /* Huella de una pieza: SHA-256 de la llave + contenido (no revela el contenido). */
+  async function huella(texto){
+    const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(cfg().llave + '|' + texto));
+    return Array.from(new Uint8Array(d).subarray(0, 16), b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  /* ═══════════ Almacén local de la última versión común (IndexedDB) ═══════════ */
+  function abrirDB(){
+    return new Promise((res, rej) => {
+      if (db) return res(db);
+      const r = indexedDB.open(DBN, 1);
+      r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains(ST)) r.result.createObjectStore(ST); };
+      r.onsuccess = () => { db = r.result; res(db); };
+      r.onerror = () => rej(r.error);
+    });
+  }
+  function kv(modo, fn){
+    return abrirDB().then(d => new Promise((res, rej) => {
+      const t = d.transaction(ST, modo); const st = t.objectStore(ST); const q = fn(st);
+      t.oncomplete = () => res(q && 'result' in q ? q.result : undefined);
+      t.onerror = () => rej(t.error);
+    }));
+  }
+  const leer = k => kv('readonly', st => st.get(k));
+  const escribir = (k, v) => kv('readwrite', st => st.put(v, k));
+  const borrar = k => kv('readwrite', st => st.delete(k));
+  async function bases(){ return (await leer('bases')) || {}; }
+
+  /* ═══════════ Unidades: la empresa (general) y cada proyecto ═══════════ */
+  function unidadesLocales(){
+    const out = {};
+    const g = {};
+    Object.keys(S).forEach(k => {
+      if (k === 'proyectos' || LOCALES_RAIZ.includes(k)) return;
+      if (k === 'config'){
+        const c = {}; Object.keys(S.config || {}).forEach(x => { if (!LOCALES_CONFIG.includes(x)) c[x] = S.config[x]; });
+        g.config = c;
+      } else if (k === 'alertas' && S.alertas){
+        const a = {}; Object.keys(S.alertas).forEach(x => { if (x !== 'ultimaEvaluacion') a[x] = S.alertas[x]; });
+        g.alertas = a;
+      } else g[k] = S[k];
+    });
+    out.general = { obj:g, nombre:'Empresa, usuarios y configuración' };
+    (S.proyectos || []).forEach(p => { if (p && p.id && incluido('p:' + p.id)) out['p:' + p.id] = { obj:p, nombre:p.nombre || p.codigo || p.id }; });
+    return out;
+  }
+  function incluido(u){
+    const f = cfg().filtro;
+    return !f || u === 'general' || f.includes(u);
+  }
+  /* Parte la unidad en piezas para subir sólo lo que cambió. Todo sincrónico.
+     · Un valor liviano viaja junto con sus hermanos livianos (pieza «o»).
+     · Un objeto pesado se abre en sus llaves; una lista pesada con identificador (bitácora por fecha,
+       insumos por id…) se reparte en cubetas fijas según el identificador, más una pieza con el orden
+       (pieza «a»): al registrar un día de bitácora sólo sube la cubeta de ese día.
+     · Las llaves se ordenan: el mismo contenido da siempre la misma huella en cualquier equipo. */
+  function hashTxt(t){ let h = 0x811c9dc5; for (let i = 0; i < t.length; i++){ h ^= t.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; }
+  function piezas(obj){
+    const out = {};
+    partirObjeto([], obj, out);
+    return out;
+  }
+  function partirObjeto(ruta, obj, out){
+    const livianas = {};
+    Object.keys(obj).sort().forEach(k => {
+      const v = obj[k];
+      const t = JSON.stringify(v);
+      if (t === undefined) return;
+      if (t.length <= PIEZA_GRANDE){ livianas[k] = v; return; }
+      const r = ruta.concat([k]);
+      if (esObj(v)) partirObjeto(r, v, out);
+      else if (Array.isArray(v) && claveDe([v])) partirLista(r, v, t.length, out);
+      else out['v:' + JSON.stringify(r)] = JSON.stringify({ p:r, t:'v', v });
+    });
+    out['o:' + JSON.stringify(ruta)] = JSON.stringify({ p:ruta, t:'o', v:livianas });
+  }
+  function partirLista(ruta, arr, tam, out){
+    const kf = claveDe([arr]);
+    const n = Math.max(2, Math.pow(2, Math.ceil(Math.log2(tam / PIEZA_GRANDE))));
+    const cubetas = Array.from({ length:n }, () => []);
+    arr.forEach(x => cubetas[hashTxt(String(x[kf])) % n].push(x));
+    const base = JSON.stringify(ruta);
+    out['a:' + base] = JSON.stringify({ p:ruta, t:'a', kf, n, orden: arr.map(x => x[kf]) });
+    cubetas.forEach((c, j) => { if (c.length) out['b:' + base + ':' + j] = JSON.stringify({ p:ruta, t:'b', v:c }); });
+  }
+  function armar(pzTextos){
+    const raiz = {};
+    const listas = new Map();
+    const lugar = ruta => {          // devuelve el objeto contenedor de la ruta (lo crea si no existe)
+      let o = raiz;
+      for (const k of ruta){ if (!esObj(o[k])) o[k] = {}; o = o[k]; }
+      return o;
+    };
+    const fijar = (ruta, v) => { lugar(ruta.slice(0, -1))[ruta[ruta.length - 1]] = v; };
+    Object.keys(pzTextos).forEach(n => {
+      const x = JSON.parse(pzTextos[n]);
+      if (x.t === 'o') Object.assign(lugar(x.p), x.v);
+      else if (x.t === 'v') fijar(x.p, x.v);
+      else {
+        const k = JSON.stringify(x.p);
+        const l = listas.get(k) || { p:x.p, items:[] };
+        if (x.t === 'a') Object.assign(l, { kf:x.kf, orden:x.orden }); else l.items.push(...x.v);
+        listas.set(k, l);
+      }
+    });
+    listas.forEach(l => {
+      const m = new Map(l.items.map(x => [x[l.kf], x]));
+      fijar(l.p, (l.orden || []).map(id => m.get(id)).filter(x => x !== undefined));
+    });
+    return raiz;
+  }
+  async function huellas(pz, previo){
+    const h = {};
+    for (const n of Object.keys(pz)){
+      // Si el texto es idéntico al de la revisión anterior, no se vuelve a calcular la huella.
+      h[n] = (previo && previo.pz[n] === pz[n] && previo.h && previo.h[n]) ? previo.h[n] : await huella(pz[n]);
+    }
+    return h;
+  }
+  function huellaUnidad(h){ return Object.keys(h).sort().map(n => n + '=' + h[n]).join(';'); }
+
+  /* Las alertas creadas en este equipo se marcan para que sólo este equipo las envíe por correo. */
+  function marcarAlertas(){
+    let n = 0;
+    ((S.alertas && S.alertas.bandeja) || []).forEach(a => { if (a && !a.equipo){ a.equipo = equipoId(); n++; } });
+    return n;
+  }
+  function esMia(a){ return !activo() || !a || !a.equipo || a.equipo === equipoId(); }
+
+  /* ═══════════ Combinar dos versiones contra la versión común ═══════════ */
+  function texto(x){ return x === undefined ? '§u' : JSON.stringify(x); }
+  function igual(a, b){ return a === b || texto(a) === texto(b); }
+  const esObj = x => x && typeof x === 'object' && !Array.isArray(x);
+  function claveDe(arrs){
+    const conDatos = arrs.filter(a => Array.isArray(a) && a.length);
+    if (!conDatos.length) return null;
+    for (const k of CLAVES_ARREGLO){
+      const ok = conDatos.every(a => {
+        const vistos = new Set();
+        return a.every(x => {
+          if (!esObj(x) || (typeof x[k] !== 'string' && typeof x[k] !== 'number') || x[k] === '') return false;
+          if (vistos.has(x[k])) return false;
+          vistos.add(x[k]); return true;
+        });
+      });
+      if (ok) return k;
+    }
+    return null;
+  }
+  function primitivosUnicos(arrs){
+    return arrs.filter(Array.isArray).every(a => a.every(x => x === null || typeof x !== 'object') && new Set(a.map(texto)).size === a.length);
+  }
+  function combinar(b, l, r, ctx, ruta){
+    if (igual(l, r)) return l;
+    if (igual(b, l)) return r;
+    if (igual(b, r)) return l;
+    if (esObj(l) && esObj(r)){
+      const bo = esObj(b) ? b : {};
+      const out = {};
+      const llaves = Object.keys(l).concat(Object.keys(r).filter(k => !(k in l)));
+      for (const k of llaves){
+        const enL = k in l, enR = k in r, enB = k in bo;
+        if (!enR){ if (enB && igual(bo[k], l[k])) continue; out[k] = l[k]; continue; }
+        if (!enL){ if (enB && igual(bo[k], r[k])) continue; out[k] = r[k]; continue; }
+        out[k] = combinar(enB ? bo[k] : undefined, l[k], r[k], ctx, ruta + '.' + k);
+      }
+      return out;
+    }
+    if (Array.isArray(l) && Array.isArray(r)){
+      const ba = Array.isArray(b) ? b : [];
+      const k = claveDe([ba, l, r]);
+      if (k) return combinarLista(ba, l, r, k, ctx, ruta);
+      if (primitivosUnicos([ba, l, r])){
+        const tb = new Set(ba.map(texto)), tl = new Set(l.map(texto)), tr = new Set(r.map(texto));
+        const out = l.filter(x => tr.has(texto(x)) || !tb.has(texto(x)));
+        r.forEach(x => { if (!tl.has(texto(x)) && !tb.has(texto(x))) out.push(x); });
+        return out;
+      }
+    }
+    ctx.conflictos.push(ruta);
+    return ctx.ganaLocal ? l : r;
+  }
+  function combinarLista(b, l, r, k, ctx, ruta){
+    const mb = new Map(b.map(x => [x[k], x])), mr = new Map(r.map(x => [x[k], x])), ml = new Map(l.map(x => [x[k], x]));
+    const out = [];
+    for (const x of l){
+      const id = x[k];
+      if (mr.has(id)) out.push(combinar(mb.get(id), x, mr.get(id), ctx, ruta + '[' + id + ']'));
+      else if (mb.has(id) && igual(mb.get(id), x)) continue;          // otro equipo lo borró y aquí no se tocó
+      else out.push(x);                                                 // nuevo aquí, o editado aquí y borrado allá
+    }
+    let previo = null;
+    for (const x of r){
+      const id = x[k];
+      if (ml.has(id)){ previo = id; continue; }
+      if (mb.has(id) && igual(mb.get(id), x)) continue;                 // este equipo lo borró
+      const pos = previo === null ? 0 : out.findIndex(y => y[k] === previo) + 1;
+      out.splice(pos, 0, x);
+      previo = id;
+    }
+    return out;
+  }
+
+  /* ═══════════ Servicio de Google ═══════════ */
+  async function servicio(cuerpo, c){
+    c = c || cfg();
+    let r;
+    try {
+      r = await fetch(c.url, { method:'POST', redirect:'follow', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ clave: c.clave }, cuerpo)) });
+    } catch(e){ const err = new Error('Sin conexión con Google.'); err.red = true; throw err; }
+    let j;
+    try { j = await r.json(); }
+    catch(e){ throw new Error('El servicio de Google no respondió como se esperaba. Revise que esté implementado como aplicación web con acceso para «Cualquier persona».'); }
+    if (!j.ok){
+      const err = new Error(j.error || 'Error del servicio de Google.');
+      err.conflicto = !!j.conflicto; err.actual = j.actual; err.viejo = /acción desconocida|accion desconocida/i.test(j.error || '');
+      throw err;
+    }
+    return j;
+  }
+  async function versionServicio(c){
+    const j = await servicio({ accion:'estado' }, c);
+    return j.version || 1;
+  }
+  /* Varias piezas de una vez: las pequeñas viajan juntas en un solo envío (menos pedidos a Google). */
+  async function subirVarias(lista, indice, alProgreso){
+    indice.blobs = indice.blobs || {};
+    const vistas = new Set();
+    const faltan = lista.filter(x => !(indice.blobs[x.h] && indice.blobs[x.h].listo) && !vistas.has(x.h) && vistas.add(x.h));
+    let lote = [], peso = 0, hechas = 0;
+    const enviar = async () => {
+      if (!lote.length) return;
+      await servicio({ accion:'nubeSubirLote', lote });
+      lote.forEach(x => { indice.blobs[x.hash] = { listo:true, partes:1 }; });
+      hechas += lote.length; lote = []; peso = 0;
+      if (alProgreso) alProgreso(hechas, faltan.length);
+    };
+    for (const x of faltan){
+      const sobre = await sellar(x.t);
+      if (sobre.length > PARTE){
+        await enviar();
+        const partes = Math.ceil(sobre.length / PARTE);
+        for (let i = 0; i < partes; i++)
+          await servicio({ accion:'nubeSubir', hash:x.h, parte:i, partes, datos: sobre.slice(i * PARTE, (i + 1) * PARTE) });
+        indice.blobs[x.h] = { listo:true, partes };
+        hechas++; if (alProgreso) alProgreso(hechas, faltan.length);
+        continue;
+      }
+      if (peso + sobre.length > PARTE) await enviar();
+      lote.push({ hash:x.h, datos:sobre }); peso += sobre.length;
+    }
+    await enviar();
+  }
+  async function bajarVarias(hashes, indice, alProgreso){
+    const out = {};
+    const unicos = Array.from(new Set(hashes));
+    let pend = unicos.filter(h => (indice.blobs[h] || {}).partes === 1);
+    while (pend.length){
+      const j = await servicio({ accion:'nubeBajarLote', hashes: pend });
+      const llegaron = Object.keys(j.datos || {});
+      if (!llegaron.length) throw new Error('Falta una parte de los datos en la nube; se reintentará.');
+      for (const h of llegaron){
+        const txt = await abrirSobre(j.datos[h]);
+        if (await huella(txt) !== h) throw new Error('Una pieza bajada no coincide con su huella. Se descartó.');
+        out[h] = txt;
+      }
+      pend = pend.filter(h => !(h in out));
+      if (alProgreso) alProgreso(Object.keys(out).length, unicos.length);
+    }
+    for (const h of unicos) if (!(h in out)){ out[h] = await bajarPieza(h, indice); if (alProgreso) alProgreso(Object.keys(out).length, unicos.length); }
+    return out;
+  }
+  async function bajarPieza(h, indice){
+    const b = (indice.blobs || {})[h];
+    if (!b || !b.listo) throw new Error('Falta una parte de los datos en la nube; se reintentará.');
+    let t = '';
+    for (let i = 0; i < b.partes; i++) t += (await servicio({ accion:'nubeBajar', hash:h, parte:i })).datos;
+    const txt = await abrirSobre(t);
+    if (await huella(txt) !== h) throw new Error('Una pieza bajada no coincide con su huella. Se descartó.');
+    return txt;
+  }
+
+  /* ═══════════ El ciclo de sincronización ═══════════ */
+  function poner(fase, txt, extra){
+    estado = Object.assign(estado, { fase, texto: txt || '' }, extra || {});
+    pintarChip();
+  }
+  function seguroAplicar(){
+    if (!Sesion || !Sesion.usuario) return true;                          // pantalla de ingreso: nada abierto
+    // Una ventana abierta con campos para llenar: se espera a que se cierre (los avisos sin campos no detienen nada).
+    const campos = 'textarea, select, [contenteditable="true"], input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=hidden]):not([readonly])';
+    if (Array.from(document.querySelectorAll('.overlay')).some(o => o.querySelector(campos) && !o.querySelector('#nbTxt'))) return false;
+    const e = document.activeElement;
+    if (e && e !== document.body && /^(INPUT|TEXTAREA|SELECT)$/.test(e.tagName)) return false;
+    if (e && e.isContentEditable) return false;
+    return Date.now() - ultimaTecla > 4000;
+  }
+  // Lo que cuenta para no interrumpir es que la persona esté escribiendo, no los guardados automáticos del programa.
+  let ultimaTecla = 0;
+  ['keydown', 'input', 'paste'].forEach(ev => document.addEventListener(ev, () => { ultimaTecla = Date.now(); }, true));
+
+  async function ciclo(motivo){
+    if (!activo() || ocupado || typeof S === 'undefined' || !S) return;
+    if (navigator.onLine === false){ poner('sinred', 'Sin internet: los cambios quedan aquí y suben al volver la conexión'); return; }
+    ocupado = true;
+    let cambios = { subidas:0, bajadas:[], conflictos:0, borrados:[] };
+    try {
+      poner('trabajando', 'Revisando la nube…');
+      const ind = await servicio({ accion:'nubeIndice' });
+      const indice = { unidades: ind.unidades || {}, blobs: ind.blobs || {} };
+      if (!cfg().verificado){
+        if (ind.verif){
+          try { if (await abrirSobre(ind.verif) !== 'ARKEN') throw 0; }
+          catch(e){ throw new Error('La llave de este equipo no abre los datos de la nube. Vuelva a vincularlo con el código del equipo principal.'); }
+        }
+        cfg().verificado = true; guardarCfg();
+      }
+      const B = await bases();
+      if (sucio) marcarAlertas();
+      const loc = unidadesLocales();
+      // Instantánea sincrónica: textos de cada pieza de lo que hoy hay en este equipo.
+      const snap = {};
+      const recalcular = sucio || !ultimaInstantanea;
+      sucio = false;
+      for (const u of Object.keys(loc)){
+        if (!recalcular && ultimaInstantanea[u] && ultimaInstantanea[u].ref === loc[u].obj){ snap[u] = ultimaInstantanea[u]; continue; }
+        const pz = piezas(loc[u].obj);
+        snap[u] = { pz, ref: loc[u].obj, nombre: loc[u].nombre };
+      }
+      const previa = ultimaInstantanea || {};
+      for (const u of Object.keys(snap)) if (!snap[u].h){
+        snap[u].h = await huellas(snap[u].pz, previa[u]); snap[u].hu = huellaUnidad(snap[u].h);
+        if (previa[u] && previa[u].hu !== snap[u].hu) cambioLocal[u] = Date.now();
+      }
+      ultimaInstantanea = snap;
+
+      const todas = new Set([...Object.keys(snap), ...Object.keys(indice.unidades), ...Object.keys(B)]);
+      // Protección: si de una vez desaparecen dos o más proyectos de este equipo (por ejemplo, al restaurar un
+      // respaldo viejo), no se borran en los demás: se vuelven a traer de la nube.
+      const idos = Object.keys(B).filter(u => u.startsWith('p:') && incluido(u) && !B[u].borrado && !snap[u] && indice.unidades[u] && !indice.unidades[u].borrado);
+      if (idos.length >= 2) idos.forEach(u => { delete B[u]; });
+      let necesitaRespaldo = false;
+      const planBajar = [];
+      for (const u of todas){
+        if (!incluido(u)) continue;
+        const R = indice.unidades[u], b = B[u], L = snap[u];
+        const remotoCambio = R && (!b || R.rev !== b.rev);
+        const localCambio = L ? (!b || L.hu !== b.hu) : !!(b && !b.borrado);
+        if (window.ARKEN_NUBE_DEPURAR) console.log('ARKEN · sinc', u, 'R', R && R.rev, 'b', b && b.rev, 'remoto', !!remotoCambio, 'local', !!localCambio, L && b ? Object.keys(L.h).filter(n => !b.hu.includes(n + '=' + L.h[n])).join(',') : '');
+        if (!remotoCambio && !localCambio) continue;
+        if (R && R.borrado && !L && (!b || b.borrado)) { B[u] = { rev:R.rev, hu:'', borrado:true }; continue; }
+        if (localCambio && !remotoCambio){
+          await empujar(u, L, R, b, indice, B, cambios);
+        } else {
+          planBajar.push({ u, R, b, L, ambos: localCambio });
+          if (localCambio || R.borrado) necesitaRespaldo = true;
+        }
+      }
+      if (planBajar.length){
+        if (!seguroAplicar()){
+          pendienteAplicar = true;
+          poner('espera', 'Hay cambios de otro equipo; se aplican apenas cierre la ventana o termine de escribir');
+        } else {
+          pendienteAplicar = false;
+          // Bajar todo lo necesario primero; aplicar después de una vez, sin pausas, para no mezclar con ediciones.
+          const bajado = [];
+          let i = 0;
+          for (const t of planBajar){
+            i++;
+            poner('trabajando', 'Bajando cambios ' + i + ' de ' + planBajar.length + '…');
+            if (t.R.borrado){ bajado.push({ t, borrado:true }); continue; }
+            const baseTxt = (await leer('base:' + t.u)) || {};
+            const textos = {}, porBajar = [];
+            for (const n of Object.keys(t.R.piezas || {})){
+              const h = t.R.piezas[n];
+              if (baseTxt[n] && baseTxt[n].h === h) textos[n] = baseTxt[n].t;
+              else if (t.L && t.L.h[n] === h) textos[n] = t.L.pz[n];
+              else porBajar.push(n);
+            }
+            if (porBajar.length){
+              const b = await bajarVarias(porBajar.map(n => t.R.piezas[n]), indice);
+              porBajar.forEach(n => { textos[n] = b[t.R.piezas[n]]; });
+            }
+            bajado.push({ t, textos, baseTxt });
+          }
+          if (necesitaRespaldo && typeof Respaldos !== 'undefined'){
+            try { await Respaldos.crear('antes de combinar cambios de otro equipo'); } catch(e){}
+          }
+          if (!seguroAplicar()){ pendienteAplicar = true; poner('espera', 'Hay cambios de otro equipo; se aplican apenas cierre la ventana'); }
+          else {
+            for (const x of bajado) await aplicar(x, indice, B, cambios);
+            if (cambios.bajadas.length || cambios.borrados.length) refrescarPantalla(cambios);
+          }
+        }
+      }
+      await escribir('bases', B);
+      cfg().ultimo = Date.now(); cfg().error = ''; guardarCfg();
+      poner('ok', pendienteAplicar ? estado.texto : 'Al día', { ultimo: Date.now(), error:'' });
+      if (cambios.conflictos) avisarConflictos(cambios.conflictos);
+    } catch(e){
+      console.warn('ARKEN · sincronización', e && e.message, e && e.stack);
+      if (e.conflicto){ poner('trabajando', 'Otro equipo acaba de guardar; combinando…'); setTimeout(() => ciclo('conflicto'), 2500); }
+      else if (e.red) poner('sinred', 'Sin conexión con Google: se reintenta solo');
+      else if (e.viejo) poner('error', 'Actualice el servicio de Google (Administración › Datos entre equipos)', { error: e.message });
+      else { poner('error', e.message, { error: e.message }); cfg().error = e.message; guardarCfg(); }
+      sucio = true;
+    } finally { ocupado = false; }
+  }
+  let ultimaInstantanea = null;
+  const cambioLocal = {};
+
+  async function empujar(u, L, R, b, indice, B, cambios){
+    if (!L){   // se borró aquí
+      const j = await servicio({ accion:'nubeConfirmar', unidad:u, base: R ? R.rev : 0, borrado:true,
+        equipo: cfg().equipo.nombre, usuario: usuarioActual() });
+      B[u] = { rev: j.rev, hu:'', borrado:true };
+      await borrar('base:' + u);
+      cambios.subidas++;
+      return;
+    }
+    await subirVarias(Object.keys(L.pz).map(nm => ({ h:L.h[nm], t:L.pz[nm] })), indice,
+      (a, b) => poner('trabajando', 'Subiendo ' + L.nombre + ' (' + a + '/' + b + ' partes)…'));
+    let verif;
+    if (!indice.verif) verif = await sellar('ARKEN');
+    const j = await servicio({ accion:'nubeConfirmar', unidad:u, base: R ? R.rev : 0, piezas: L.h, nombre: L.nombre,
+      equipo: cfg().equipo.nombre, usuario: usuarioActual(), verif });
+    if (verif) indice.verif = verif;
+    indice.unidades[u] = { rev: j.rev, piezas: L.h };
+    B[u] = { rev: j.rev, hu: L.hu };
+    const bt = {}; Object.keys(L.pz).forEach(nm => bt[nm] = { h: L.h[nm], t: L.pz[nm] });
+    await escribir('base:' + u, bt);
+    cambios.subidas++;
+  }
+
+  async function aplicar(x, indice, B, cambios){
+    const { t } = x, u = t.u;
+    if (x.borrado){
+      if (u.startsWith('p:')){
+        const id = u.slice(2);
+        const i = (S.proyectos || []).findIndex(p => p.id === id);
+        if (i >= 0){
+          if (t.ambos && t.L && t.b && t.L.hu !== t.b.hu){
+            // Se borró en otro equipo pero aquí tiene cambios: se conserva y se vuelve a subir.
+            await empujar(u, t.L, t.R, t.b, indice, B, cambios);
+            return;
+          }
+          const nombre = S.proyectos[i].nombre;
+          S.proyectos.splice(i, 1);
+          if (Sesion.proyectoActivo === id) Sesion.proyectoActivo = null;
+          cambios.borrados.push(nombre);
+        }
+      }
+      B[u] = { rev: t.R.rev, hu:'', borrado:true };
+      await borrar('base:' + u);
+      return;
+    }
+    let remoto = armar(x.textos);
+    let final = remoto, combinado = false;
+    const actual = unidadesLocales()[u];          // lo que hay AHORA en este equipo (pudo cambiar mientras bajaba)
+    if (actual && t.b){
+      const baseObj = Object.keys(x.baseTxt).length ? armar(Object.fromEntries(Object.keys(x.baseTxt).map(n => [n, x.baseTxt[n].t]))) : null;
+      const actualTxt = piezas(actual.obj);
+      const actualHu = huellaUnidad(await huellas(actualTxt));
+      if (actualHu !== t.b.hu){
+        const ctx = { conflictos:[], ganaLocal: (cambioLocal[u] || 0) > (t.R.ts || 0) };
+        final = combinar(baseObj, actual.obj, remoto, ctx, u);
+        cambios.conflictos += ctx.conflictos.length;
+        combinado = true;
+      }
+    } else if (actual && !t.b){
+      // El mismo proyecto existe aquí y en la nube sin historia común: se combina sin perder registros.
+      const ctx = { conflictos:[], ganaLocal: (cambioLocal[u] || 0) > (t.R.ts || 0) };
+      final = combinar(undefined, actual.obj, remoto, ctx, u);
+      cambios.conflictos += ctx.conflictos.length;
+      combinado = !igual(final, remoto);
+    }
+    ponerUnidad(u, final);
+    // La versión común pasa a ser la remota; si hubo combinación, el próximo ciclo sube el resultado.
+    const bt = {}; Object.keys(x.textos).forEach(nm => bt[nm] = { h: t.R.piezas[nm], t: x.textos[nm] });
+    await escribir('base:' + u, bt);
+    B[u] = { rev: t.R.rev, hu: huellaUnidad(t.R.piezas) };
+    if (combinado) sucio = true;
+    cambios.bajadas.push({ u, nombre: t.R.nombre || u, equipo: t.R.equipo || 'otro equipo' });
+  }
+
+  function ponerUnidad(u, obj){
+    if (u === 'general'){
+      const local = {};
+      LOCALES_RAIZ.forEach(k => { if (k in S) local[k] = S[k]; });
+      const ultEval = S.alertas && S.alertas.ultimaEvaluacion;
+      const cfgLocal = {};
+      LOCALES_CONFIG.forEach(k => { if (S.config && k in S.config) cfgLocal[k] = S.config[k]; });
+      Object.keys(S).forEach(k => { if (k !== 'proyectos' && !LOCALES_RAIZ.includes(k) && !(k in obj)) delete S[k]; });
+      Object.keys(obj).forEach(k => { S[k] = obj[k]; });
+      S.config = Object.assign(S.config || {}, cfgLocal);
+      Object.assign(S, local);
+      if (S.alertas && ultEval) S.alertas.ultimaEvaluacion = ultEval;
+      return;
+    }
+    const id = u.slice(2);
+    S.proyectos = S.proyectos || [];
+    const p = S.proyectos.find(x => x.id === id);
+    if (p){
+      // Se conserva el mismo objeto del proyecto: las vistas abiertas siguen apuntando a él.
+      Object.keys(p).forEach(k => { if (!(k in obj)) delete p[k]; });
+      Object.assign(p, obj);
+    } else S.proyectos.push(obj);
+  }
+
+  function aviso(t, tipo){ try { UI.toast(t, tipo); } catch(e){} }
+  function refrescarPantalla(c){
+    try { Calculo.invalidar(); } catch(e){}
+    try { Store.guardar(true); } catch(e){}
+    try { if (Documentos.autoguardar) Documentos.autoguardar(); } catch(e){}
+    if (Sesion && Sesion.usuario){
+      try {
+        // ¿El usuario de esta sesión sigue existiendo? Si se cambió en otro equipo, se toma la versión nueva.
+        const yo = (S.usuarios || []).find(x => x.id === Sesion.usuario.id);
+        if (yo) Sesion.usuario = yo;
+      } catch(e){}
+      try { App.pintarRail(); App.render(); } catch(e){}
+      try { Vistas.refrescarInsignias(); } catch(e){}
+      const nombres = c.bajadas.map(x => x.u === 'general' ? 'datos de la empresa' : x.nombre);
+      const de = Array.from(new Set(c.bajadas.map(x => x.equipo))).join(', ');
+      if (nombres.length) aviso('☁ Llegaron cambios' + (de ? ' de ' + de : '') + ': ' + nombres.slice(0, 3).join(', ') + (nombres.length > 3 ? ' y ' + (nombres.length - 3) + ' más' : ''), 'ok');
+      if (c.borrados.length) aviso('☁ En otro equipo se eliminó: ' + c.borrados.join(', '), 'info');
+    }
+  }
+  function avisarConflictos(n){
+    if (!Sesion || !Sesion.usuario) return;
+    try { Modelo.auditar('sincronizar', 'datos entre equipos', n + ' dato(s) editados en dos equipos a la vez; se conservó el más reciente'); } catch(e){}
+    aviso('☁ ' + n + ' dato(s) se habían editado en dos equipos a la vez: quedó el cambio más reciente. Hay una copia previa en Cifrado y copias.', 'info');
+  }
+  function usuarioActual(){ return (Sesion && Sesion.usuario && (Sesion.usuario.nombre || Sesion.usuario.usuario)) || ''; }
+
+  /* ═══════════ Disparadores ═══════════ */
+  function marcarCambio(){
+    sucio = true; ultimoCambio = Date.now();
+    if (!activo()) return;
+    if (tCambio) clearTimeout(tCambio);
+    tCambio = setTimeout(() => ciclo('cambio'), ESPERA_CAMBIO);
+    if (estado.fase === 'ok') poner('pendiente', 'Cambios por subir');
+  }
+  function programar(){
+    if (tPoll) clearTimeout(tPoll);
+    const espera = document.visibilityState === 'hidden' ? POLL_OCULTO : (pendienteAplicar ? 8000 : POLL_VISIBLE);
+    tPoll = setTimeout(async () => { await ciclo('reloj'); programar(); }, espera);
+  }
+  const guardarOriginal = Store.guardar;
+  Store.guardar = function(){ const r = guardarOriginal.apply(this, arguments); marcarCambio(); return r; };
+  window.addEventListener('online', () => setTimeout(() => ciclo('red'), 2000));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(() => ciclo('visible'), 1500); programar(); });
+  document.addEventListener('focusout', () => { if (pendienteAplicar) setTimeout(() => ciclo('foco'), 1200); });
+  setTimeout(() => { pintarChip(); if (activo()) ciclo('inicio'); programar(); }, 4000);
+
+  /* ═══════════ Vincular, activar y unir equipos ═══════════ */
+  function codigoVinculo(){
+    const c = cfg();
+    return 'ARKEN-NUBE1.' + b64url(new TextEncoder().encode(JSON.stringify({ u:c.url, c:c.clave, k:c.llave, n: (S.empresa && S.empresa.razonSocial) || '' })));
+  }
+  function leerCodigo(txt){
+    const t = String(txt || '').trim().replace(/\s+/g, '');
+    if (!t.startsWith('ARKEN-NUBE1.')) throw new Error('Ese no es un código de vinculación de ARKEN CONTROL.');
+    let o;
+    try { o = JSON.parse(new TextDecoder().decode(deb64url(t.slice(12)))); } catch(e){ throw new Error('El código está incompleto. Cópielo otra vez.'); }
+    if (!o.u || !o.c || !o.k) throw new Error('El código está incompleto. Cópielo otra vez.');
+    return o;
+  }
+
+  /** Primer equipo: activa la nube con el servicio del correo vinculado. */
+  async function activarPrincipal(){
+    const cg = CorreoGmail.config;
+    if (!CorreoGmail.vinculado()) throw new Error('Primero vincule el servicio de Google en la pestaña «Correo vinculado».');
+    const prueba = { url: cg.url, clave: cg.clave };
+    const v = await versionServicio(prueba);
+    if (v < VERSION_SERVICIO){ const e = new Error('viejo'); e.viejo = true; throw e; }
+    const ind = await servicio({ accion:'nubeIndice' }, prueba);
+    if (Object.keys(ind.unidades || {}).length){
+      const e = new Error('La nube ya tiene datos de otro equipo. Para no mezclar empresas, una este equipo con el código de vinculación del equipo principal (Administración › Datos entre equipos › Vincular otro equipo).');
+      e.yaHayDatos = true; throw e;
+    }
+    const k = new Uint8Array(32); crypto.getRandomValues(k);
+    Object.assign(cfg(), { url: cg.url, clave: cg.clave, llave: b64url(k), activo:true, verificado:true, filtro:null, error:'' });
+    llaveCripto = null; guardarCfg();
+    await escribir('bases', {});
+    sucio = true; ultimaInstantanea = null;
+    Modelo.auditar('configurar', 'datos entre equipos', 'activado en ' + cfg().equipo.nombre);
+    await ciclo('activar');
+  }
+
+  /** Une este equipo a la nube con un código. modo: 'reemplazar' (trae todo) o 'combinar'. */
+  async function unir(codigo, modo, alProgreso){
+    const o = leerCodigo(codigo);
+    const prueba = { url:o.u, clave:o.c };
+    const v = await versionServicio(prueba);
+    if (v < VERSION_SERVICIO) throw new Error('El servicio de Google del equipo principal es de una versión anterior. Actualícelo desde el equipo principal (Administración › Datos entre equipos).');
+    const anterior = Object.assign({}, cfg());
+    Object.assign(cfg(), { url:o.u, clave:o.c, llave:o.k, activo:false, verificado:false, error:'' });
+    llaveCripto = null;
+    try {
+      const ind = await servicio({ accion:'nubeIndice' });
+      if (ind.verif){
+        try { if (await abrirSobre(ind.verif) !== 'ARKEN') throw 0; }
+        catch(e){ throw new Error('El código no corresponde a los datos que hay en la nube (la llave no abre los datos).'); }
+      }
+      const indice = { unidades: ind.unidades || {}, blobs: ind.blobs || {} };
+      const us = Object.keys(indice.unidades).filter(u => !indice.unidades[u].borrado && incluido(u));
+      if (!us.includes('general')) throw new Error('La nube todavía no tiene datos. Active primero la sincronización en el equipo principal.');
+      if (modo === 'reemplazar'){
+        const nuevo = { proyectos: [] };
+        const B = {};
+        let i = 0;
+        for (const u of us){
+          i++;
+          const R = indice.unidades[u];
+          if (alProgreso) alProgreso('Bajando ' + (u === 'general' ? 'datos de la empresa' : (R.nombre || u)) + ' (' + i + '/' + us.length + ')…');
+          const textos = {};
+          const b = await bajarVarias(Object.values(R.piezas), indice,
+            (a, c) => alProgreso && alProgreso('Bajando ' + (u === 'general' ? 'datos de la empresa' : (R.nombre || u)) + ' (' + i + '/' + us.length + ') · ' + a + '/' + c + ' partes…'));
+          Object.keys(R.piezas).forEach(n => { textos[n] = b[R.piezas[n]]; });
+          const obj = armar(textos);
+          if (u === 'general') Object.assign(nuevo, obj); else nuevo.proyectos.push(obj);
+          const bt = {}; Object.keys(textos).forEach(n => bt[n] = { h: R.piezas[n], t: textos[n] });
+          await escribir('base:' + u, bt);
+          B[u] = { rev: R.rev, hu: huellaUnidad(R.piezas) };
+        }
+        if (typeof Respaldos !== 'undefined' && S && (S.proyectos || []).length){ try { await Respaldos.crear('antes de unir este equipo a la nube'); } catch(e){} }
+        nuevo.meta = Object.assign({}, S.meta || {}, { app:'ARKEN CONTROL', demo:false, actualizado: Date.now() });
+        nuevo.config = Object.assign(nuevo.config || {}, {});
+        LOCALES_CONFIG.forEach(k => { if (S.config && k in S.config) nuevo.config[k] = S.config[k]; });
+        if ('licenciaVisto' in S) nuevo.licenciaVisto = S.licenciaVisto;
+        S = Modelo.migrar(nuevo);
+        await escribir('bases', B);
+        Object.assign(cfg(), { activo:true, verificado:true, ultimo: Date.now() }); guardarCfg();
+        sucio = true; ultimaInstantanea = null;
+        Store.guardar(true);
+        try { await Store.escritura; } catch(e){}
+        return { modo, proyectos: nuevo.proyectos.length };
+      }
+      // combinar: se conserva lo de este equipo y se mezcla con la nube en el primer ciclo
+      await escribir('bases', {});
+      Object.assign(cfg(), { activo:true, verificado:true }); guardarCfg();
+      sucio = true; ultimaInstantanea = null;
+      await ciclo('unir');
+      return { modo };
+    } catch(e){
+      cfgMem = anterior; llaveCripto = null; guardarCfg();
+      throw e;
+    }
+  }
+
+  async function desvincular(){
+    Object.assign(cfg(), { activo:false, url:'', clave:'', llave:'', verificado:false, filtro:null });
+    llaveCripto = null; guardarCfg();
+    try { const B = await bases(); for (const u of Object.keys(B)) await borrar('base:' + u); await escribir('bases', {}); } catch(e){}
+    poner('apagado', '');
+  }
+
+  async function fijarFiltro(lista){
+    const c = cfg();
+    const antes = c.filtro;
+    c.filtro = lista;          // null = todos
+    guardarCfg();
+    // Proyectos que dejan de sincronizarse aquí: se quitan de este equipo (siguen en la nube y en los demás).
+    if (lista){
+      const B = await bases();
+      const quitar = (S.proyectos || []).filter(p => !lista.includes('p:' + p.id) && B['p:' + p.id]);
+      if (quitar.length){
+        try { await Respaldos.crear('antes de quitar proyectos de este equipo'); } catch(e){}
+        S.proyectos = S.proyectos.filter(p => !quitar.includes(p));
+        for (const p of quitar){ delete B['p:' + p.id]; await borrar('base:p:' + p.id); }
+        await escribir('bases', B);
+        if (quitar.some(p => p.id === Sesion.proyectoActivo)) Sesion.proyectoActivo = null;
+        Store.guardar(true);
+      }
+    }
+    sucio = true; ultimaInstantanea = null;
+    await ciclo('filtro');
+    return antes;
+  }
+
+  /* ═══════════ Indicador en la barra superior ═══════════ */
+  function pintarChip(){
+    let el = document.getElementById('tbNube');
+    const sv = document.getElementById('tbSaved');
+    if (!el && sv){
+      el = document.createElement('button');
+      el.id = 'tbNube'; el.type = 'button'; el.className = 'btn sm ghost';
+      el.style.cssText = 'color:#D6D8D9;border-color:#3A3E43;gap:6px;display:inline-flex;align-items:center';
+      el.onclick = abrirPanel;
+      sv.insertAdjacentElement('afterend', el);
+    }
+    if (!el) return;
+    if (!activo()){ el.style.display = 'none'; return; }
+    el.style.display = '';
+    const m = { ok:['#5fbf7f','Al día'], trabajando:['#e0b45a','Sincronizando'], pendiente:['#e0b45a','Por subir'],
+                espera:['#e0b45a','Cambios por aplicar'], sinred:['#9aa0a6','Sin conexión'], error:['#e5735f','Revisar'], apagado:['#9aa0a6',''] }[estado.fase] || ['#9aa0a6',''];
+    el.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:' + m[0] + ';display:inline-block"></span>☁ ' + esc(m[1]);
+    el.title = (estado.texto || '') + (estado.ultimo ? ' · última revisión ' + fmtSello(estado.ultimo) : '');
+  }
+  function abrirPanel(){
+    if (Reglas.esAdmin(Sesion.usuario) || Reglas.puede('gestionarUsuarios')){ Admin.abrir('nube'); return; }
+    UI.modal({ titulo:'Datos entre equipos', eyebrow:'Sincronización',
+      cuerpo:'<p><b>' + esc(estado.texto || 'Al día') + '</b></p>' +
+        '<p class="muted small">Este equipo: ' + esc(cfg().equipo.nombre) + (estado.ultimo ? ' · última revisión ' + esc(fmtSello(estado.ultimo)) : '') + '</p>',
+      botones:[{ texto:'Sincronizar ahora', clase:'primary', accion: m => { m.cerrar(); sucio = true; ciclo('manual'); } }, { texto:'Cerrar' }] });
+  }
+
+  /* ═══════════ Pantalla Administración › Datos entre equipos ═══════════ */
+  async function pintarAdmin(cont){
+    const c = cfg();
+    const vinc = CorreoGmail.vinculado();
+    let cuerpo = '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px">' +
+      '<div><b style="font-size:15px">Datos compartidos entre el computador y los celulares</b>' +
+      '<div class="muted small">Lo que se registra en un equipo aparece solo en los demás, por proyecto y sin pasar archivos de respaldo.</div></div>' +
+      (activo() ? '<span class="tag ok">Activa</span>' : '<span class="tag warn">Apagada</span>') + '</div>';
+    if (activo()){
+      cuerpo +=
+        '<div class="alert ' + (estado.fase === 'error' ? 'bad' : 'ok') + '"><div class="ic">☁</div><div class="bd"><b>' + esc(estado.texto || 'Al día') + '</b>' +
+          '<div class="small">Este equipo: <b>' + esc(c.equipo.nombre) + '</b>' + (c.ultimo ? ' · última sincronización: ' + esc(fmtSello(c.ultimo)) : '') +
+          ' · revisa cada 45 segundos mientras el programa está abierto y sube cada cambio a los pocos segundos.</div>' +
+          (estado.error ? '<div class="small" style="margin-top:4px;color:var(--bad,#b3261e)">' + esc(estado.error) + '</div>' : '') + '</div></div>' +
+        '<div class="btn-row" style="margin:10px 0 14px">' +
+          '<button class="btn sm primary" id="nbAhora" type="button">Sincronizar ahora</button>' +
+          '<button class="btn sm" id="nbVincular" type="button">Vincular otro equipo</button>' +
+          '<button class="btn sm" id="nbNombre" type="button">Nombre de este equipo</button>' +
+          '<button class="btn sm danger" id="nbQuitar" type="button">Desvincular este equipo</button></div>' +
+        '<div class="p-sec">Equipos y proyectos en la nube</div><div id="nbTabla" class="muted small">Consultando…</div>' +
+        '<div class="p-sec" style="margin-top:14px">Proyectos que se guardan en este equipo</div>' +
+        '<div class="muted small" style="margin-bottom:6px">En un celular puede dejar sólo las obras que usa, para que ocupe menos. Los demás proyectos siguen en la nube y en los otros equipos.</div>' +
+        '<div id="nbFiltro"></div>';
+    } else {
+      cuerpo += '<div class="alert info"><div class="ic">ℹ</div><div class="bd"><b>Cómo funciona</b><div class="small">' +
+        'Se usa el mismo servicio gratuito de Google del correo vinculado. Los datos se guardan cifrados en una carpeta de su Google Drive ' +
+        '(«ARKEN CONTROL · nube»); cada equipo sube lo que cambió y baja lo de los demás. Sin internet se sigue trabajando y todo sube al volver la conexión.</div></div></div>' +
+        '<div class="p-sec">En el computador principal (el que hoy tiene los datos)</div>' +
+        '<ol class="small" style="line-height:1.75;padding-left:20px;margin:0 0 12px">' +
+          '<li>' + (vinc ? '✓ El servicio de Google ya está vinculado' + (CorreoGmail.config.cuenta ? ' (' + esc(CorreoGmail.config.cuenta) + ')' : '') + '.'
+                        : 'Vincule el servicio en la pestaña <b>Correo vinculado</b> (una sola vez).') + '</li>' +
+          '<li>Si lo vinculó con la versión 16, actualícelo: pulse <b>Copiar código nuevo</b>, en script.google.com reemplace todo el código del proyecto «ARKEN correo» y guarde; ejecute <b>autorizar</b> y acepte el permiso de Drive; luego <b>Implementar › Gestionar implementaciones › ✎ Editar › Versión: Nueva versión › Implementar</b>. La dirección /exec no cambia.</li>' +
+          '<li>Pulse <b>Activar en este equipo</b>. La primera subida tarda unos minutos según el tamaño de la biblioteca.</li>' +
+          '<li>Pulse <b>Vincular otro equipo</b> y, en el celular, toque <b>Unir este equipo</b> en la pantalla de ingreso.</li></ol>' +
+        '<div class="btn-row" style="margin-bottom:12px">' +
+          '<button class="btn sm" id="nbCodigo" type="button">Copiar código nuevo del servicio</button>' +
+          '<button class="btn sm primary" id="nbActivar" type="button"' + (vinc ? '' : ' disabled') + '>Activar en este equipo</button>' +
+          '<button class="btn sm" id="nbUnir" type="button">Unir este equipo con un código</button></div>';
+    }
+    cuerpo += '<div class="muted small" style="margin-top:12px;line-height:1.55">Si dos equipos cambian el mismo proyecto, los registros se combinan uno por uno ' +
+      '(una bitácora del celular y una causación del computador quedan las dos). Si los dos editaron el mismo dato, queda el cambio más reciente y antes se guarda ' +
+      'una copia en <b>Cifrado y copias</b>. Las alertas por correo las envía sólo el equipo donde se crearon. La llave de cifrado y la dirección del servicio se guardan ' +
+      'sólo en este navegador: no viajan dentro del archivo ni de los respaldos.</div>';
+    cont.innerHTML = cuerpo;
+    const $c = s => cont.querySelector(s);
+    if ($c('#nbCodigo')) $c('#nbCodigo').onclick = async () => {
+      try { await navigator.clipboard.writeText(CorreoGmail.codigo()); UI.toast('Código copiado. Péguelo en script.google.com encima del anterior', 'ok'); }
+      catch(e){ UI.modal({ titulo:'Código del servicio', ancho:'wide', cuerpo:'<textarea readonly style="width:100%;min-height:360px;font-family:monospace;font-size:12px" onclick="this.select()">' + esc(CorreoGmail.codigo()) + '</textarea>', botones:[{ texto:'Cerrar' }] }); }
+    };
+    if ($c('#nbActivar')) $c('#nbActivar').onclick = async () => {
+      const b = $c('#nbActivar'); b.disabled = true; b.textContent = 'Activando…';
+      try { await activarPrincipal(); UI.toast('☁ Sincronización activada en ' + cfg().equipo.nombre, 'ok'); }
+      catch(e){
+        if (e.viejo) UI.aviso('Falta actualizar el servicio de Google', '<p>El servicio vinculado es de la versión 16 y todavía no sabe guardar datos. Siga el paso 2: copie el código nuevo, péguelo encima del anterior en script.google.com, ejecute «autorizar» y publique una versión nueva de la implementación.</p>');
+        else UI.aviso('No se pudo activar', '<p>' + esc(e.message) + '</p>');
+      }
+      Admin.pintar();
+    };
+    if ($c('#nbUnir')) $c('#nbUnir').onclick = () => ventanaUnir(false);
+    if ($c('#nbAhora')) $c('#nbAhora').onclick = async () => { sucio = true; await ciclo('manual'); Admin.pintar(); };
+    if ($c('#nbVincular')) $c('#nbVincular').onclick = ventanaVincular;
+    if ($c('#nbNombre')) $c('#nbNombre').onclick = () => {
+      UI.modal({ titulo:'Nombre de este equipo', cuerpo:'<div class="field"><label>Cómo se llama este equipo en la nube</label><input id="nbN" value="' + esc(cfg().equipo.nombre) + '"></div>',
+        botones:[{ texto:'Guardar', clase:'primary', accion: m => { const v = $('#nbN', m.el).value.trim(); if (v){ cfg().equipo.nombre = v.slice(0, 40); guardarCfg(); } m.cerrar(); Admin.pintar(); } }, { texto:'Cancelar' }] });
+    };
+    if ($c('#nbQuitar')) $c('#nbQuitar').onclick = async () => {
+      const ok = await UI.confirmar({ titulo:'Desvincular este equipo', textoAceptar:'Desvincular',
+        mensaje:'Este equipo deja de compartir datos. Lo que tiene se queda aquí; la nube y los demás equipos siguen igual.' });
+      if (!ok) return;
+      await desvincular(); Modelo.auditar('configurar', 'datos entre equipos', 'desvinculado ' + cfg().equipo.nombre); Admin.pintar();
+    };
+    if (activo()){
+      try {
+        const ind = await servicio({ accion:'nubeIndice' });
+        const us = ind.unidades || {};
+        const filas = Object.keys(us).filter(u => !us[u].borrado).sort((a, b) => a === 'general' ? -1 : b === 'general' ? 1 : (us[a].nombre || '').localeCompare(us[b].nombre || ''))
+          .map(u => '<tr><td>' + esc(u === 'general' ? 'Empresa, usuarios y configuración' : (us[u].nombre || u)) + '</td><td class="mono">v' + us[u].rev + '</td><td>' +
+            esc(us[u].equipo || '') + (us[u].usuario ? ' · ' + esc(us[u].usuario) : '') + '</td><td>' + (us[u].ts ? esc(fmtSello(us[u].ts)) : '') + '</td></tr>').join('');
+        const t = cont.querySelector('#nbTabla');
+        if (t) t.innerHTML = '<div class="tw"><table class="tbl"><thead><tr><th>Contenido</th><th>Versión</th><th>Último cambio desde</th><th>Cuándo</th></tr></thead><tbody>' + filas + '</tbody></table></div>' +
+          '<div class="muted small" style="margin-top:4px">Espacio usado en Drive: ' + ((ind.bytes || 0) / 1048576).toFixed(1) + ' MB</div>';
+        const f = cont.querySelector('#nbFiltro');
+        if (f){
+          const sel = cfg().filtro;
+          const proys = Object.keys(us).filter(u => u.startsWith('p:') && !us[u].borrado);
+          f.innerHTML = proys.map(u => '<label class="checkline"><input type="checkbox" data-nbf="' + esc(u) + '"' + (!sel || sel.includes(u) ? ' checked' : '') + '> ' + esc(us[u].nombre || u) + '</label>').join('') +
+            '<div class="btn-row" style="margin-top:8px"><button class="btn sm" id="nbFiltroOk" type="button">Guardar selección</button></div>';
+          f.querySelector('#nbFiltroOk').onclick = async () => {
+            const marcados = Array.from(f.querySelectorAll('[data-nbf]')).filter(x => x.checked).map(x => x.dataset.nbf);
+            const lista = marcados.length === proys.length ? null : marcados;
+            if (lista && !(await UI.confirmar({ titulo:'Proyectos en este equipo', textoAceptar:'Guardar',
+              mensaje:'Los proyectos sin marcar se quitan de este equipo (quedan en la nube y en los demás equipos). Se guarda antes una copia de respaldo.' }))) return;
+            await fijarFiltro(lista); UI.toast('Selección guardada', 'ok'); Admin.pintar();
+          };
+        }
+      } catch(e){
+        const t = cont.querySelector('#nbTabla'); if (t) t.innerHTML = '<span class="bad">' + esc(e.message) + '</span>';
+      }
+    }
+  }
+
+  function ventanaVincular(){
+    const cod = codigoVinculo();
+    const qr = (typeof QRArken !== 'undefined') ? QRArken.png(cod, 320, 'M') : '';
+    UI.modal({ titulo:'Vincular otro equipo', eyebrow:'Datos entre equipos', ancho:'wide',
+      cuerpo:'<div class="grid" style="grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:16px;align-items:start">' +
+        (qr ? '<img src="' + qr + '" alt="Código QR de vinculación" style="width:100%;max-width:260px;border-radius:8px;background:#fff">' : '<div></div>') +
+        '<div><ol class="small" style="line-height:1.75;padding-left:18px;margin:0 0 10px">' +
+          '<li>En el celular abra ARKEN CONTROL (la app instalada desde Safari o la de Android).</li>' +
+          '<li>En la pantalla de ingreso toque <b>Unir este equipo</b>.</li>' +
+          '<li>Toque <b>Escanear</b> y apunte a este código, o pegue el texto de abajo (envíeselo por WhatsApp a usted mismo).</li>' +
+          '<li>Ingrese con su usuario y contraseña de siempre.</li></ol>' +
+          '<textarea readonly id="nbCod" style="width:100%;min-height:90px;font-family:monospace;font-size:11px" onclick="this.select()">' + esc(cod) + '</textarea>' +
+          '<div class="alert warn" style="margin-top:8px"><div class="ic">⚠</div><div class="bd small">Este código abre todos los datos de la empresa. Compártalo sólo con equipos de la empresa.</div></div></div></div>',
+      botones:[{ texto:'Copiar texto', clase:'primary', accion: async () => { try { await navigator.clipboard.writeText(cod); UI.toast('Código copiado', 'ok'); } catch(e){ UI.toast('Seleccione el texto y cópielo', 'info'); } } }, { texto:'Cerrar' }] });
+  }
+
+  /* Ventana para unir este equipo: desde la pantalla de ingreso (antes de entrar) o desde Administración. */
+  function ventanaUnir(desdeIngreso){
+    let flujo = null, vivo = true;
+    const m = UI.modal({ titulo:'Unir este equipo a los datos de la empresa', eyebrow:'Datos entre equipos', ancho:'wide', fijo:true,
+      cuerpo:'<p class="small">Pida en el computador principal: <b>Administración › Datos entre equipos › Vincular otro equipo</b>. Escanee el código QR o pegue el texto.</p>' +
+        '<div style="position:relative;background:#000;border-radius:8px;overflow:hidden;aspect-ratio:4/3;max-height:260px;display:none" id="nbCamZona">' +
+          '<video id="nbVid" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover"></video></div>' +
+        '<canvas id="nbCan" style="display:none"></canvas>' +
+        '<div class="btn-row" style="margin:8px 0"><button class="btn sm" id="nbEsc" type="button">Escanear con la cámara</button></div>' +
+        '<div class="field"><label>Código de vinculación</label><textarea id="nbTxt" style="width:100%;min-height:80px;font-family:monospace;font-size:11px" placeholder="ARKEN-NUBE1.…"></textarea></div>' +
+        '<div class="field" style="margin-top:8px"><label>Nombre de este equipo</label><input id="nbNom" value="' + esc(cfg().equipo.nombre) + '"></div>' +
+        ((S && (S.proyectos || []).some(p => !S.meta || !S.meta.demo)) && !desdeIngreso
+          ? '<label class="checkline" style="margin-top:8px"><input type="checkbox" id="nbComb"> Combinar con los proyectos que ya tiene este equipo (si no se marca, este equipo queda igual a la nube; antes se guarda una copia)</label>' : '') +
+        '<div id="nbProg" class="small muted" style="margin-top:8px"></div>',
+      botones:[{ texto:'Unir este equipo', clase:'primary', accion: async mm => {
+          const txt = $('#nbTxt', mm.el).value;
+          const nom = $('#nbNom', mm.el).value.trim();
+          if (nom){ cfg().equipo.nombre = nom.slice(0, 40); guardarCfg(); }
+          const comb = $('#nbComb', mm.el) && $('#nbComb', mm.el).checked;
+          const btn = mm.el.querySelector('[data-b="0"]'); if (btn) btn.disabled = true;
+          const prog = t => { const p = $('#nbProg', mm.el); if (p) p.textContent = t; };
+          prog('Conectando con la nube…');
+          try {
+            const r = await unir(txt, comb ? 'combinar' : 'reemplazar', prog);
+            detener();
+            try { Modelo.auditar('configurar', 'datos entre equipos', 'equipo unido: ' + cfg().equipo.nombre); } catch(e){}
+            prog('✓ Listo.');
+            if (r.modo === 'reemplazar'){
+              try { await Store.escritura; } catch(e){}
+              UI.toast('☁ Equipo unido: ' + r.proyectos + ' proyecto(s). Ingrese con su usuario de siempre.', 'ok');
+              setTimeout(() => location.reload(), 900);
+            } else { mm.cerrar(); UI.toast('☁ Equipo unido y combinado', 'ok'); try { Admin.pintar(); } catch(e){} }
+          } catch(e){
+            prog('');
+            if (btn) btn.disabled = false;
+            UI.aviso('No se pudo unir el equipo', '<p>' + esc(e.message) + '</p>');
+          }
+        } }, { texto:'Cancelar', accion: mm => { detener(); mm.cerrar(); } }],
+      alCerrar: () => detener()
+    });
+    function detener(){ vivo = false; if (flujo) { flujo.getTracks().forEach(t => t.stop()); flujo = null; } }
+    $('#nbEsc', m.el).onclick = () => {
+      if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ UI.toast('Este navegador no permite la cámara aquí: pegue el texto', 'info'); return; }
+      vivo = true;
+      navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }, audio:false }).then(s => {
+        flujo = s; $('#nbCamZona', m.el).style.display = '';
+        const v = $('#nbVid', m.el); v.srcObject = s;
+        const c = $('#nbCan', m.el), g = c.getContext('2d', { willReadFrequently:true });
+        const paso = () => {
+          if (!vivo) return;
+          if (v.videoWidth && typeof jsQR !== 'undefined'){
+            const W = 640, H = Math.round(640 * v.videoHeight / v.videoWidth);
+            c.width = W; c.height = H; g.drawImage(v, 0, 0, W, H);
+            const r = jsQR(g.getImageData(0, 0, W, H).data, W, H, { inversionAttempts:'dontInvert' });
+            if (r && r.data && r.data.startsWith('ARKEN-NUBE1.')){
+              $('#nbTxt', m.el).value = r.data; detener(); $('#nbCamZona', m.el).style.display = 'none';
+              try { if (navigator.vibrate) navigator.vibrate(80); } catch(e){}
+              UI.toast('Código leído. Toque «Unir este equipo».', 'ok'); return;
+            }
+          }
+          setTimeout(() => requestAnimationFrame(paso), 150);
+        };
+        paso();
+      }).catch(e => UI.toast('No se pudo abrir la cámara: ' + e.message + '. Pegue el texto.', 'bad'));
+    };
+  }
+
+  /* Botón en la pantalla de ingreso. */
+  function botonIngreso(){
+    const imp = document.getElementById('gImport');
+    if (!imp || document.getElementById('gNube')) return;
+    const b = document.createElement('button');
+    b.className = 'btn ghost sm'; b.id = 'gNube'; b.type = 'button';
+    b.textContent = activo() ? '☁ Datos compartidos' : '☁ Unir este equipo';
+    b.title = activo() ? 'Este equipo comparte los datos de la empresa' : 'Traer los datos de la empresa desde la nube con el código del equipo principal';
+    b.onclick = () => {
+      if (activo()){
+        UI.modal({ titulo:'Datos compartidos', cuerpo:'<p>Este equipo (' + esc(cfg().equipo.nombre) + ') ya comparte los datos de la empresa. ' +
+          esc(estado.texto || '') + '</p>', botones:[{ texto:'Sincronizar ahora', clase:'primary', accion: mm => { mm.cerrar(); sucio = true; ciclo('manual'); } }, { texto:'Cerrar' }] });
+      } else ventanaUnir(true);
+    };
+    imp.insertAdjacentElement('afterend', b);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', botonIngreso); else botonIngreso();
+
+  /* ═══════════ Código del servicio de Google (parte de datos) ═══════════ */
+  function codigoServidor(){
+    return `
+// ─────────── Datos compartidos entre equipos (ARKEN CONTROL 17) ───────────
+// Guarda los datos cifrados en la carpeta «ARKEN CONTROL · nube» de este Drive.
+// El contenido llega cifrado desde el programa: este servicio no puede leerlo.
+var VERSION_SERVICIO = 2;
+
+function nube_(d) {
+  var a = d.accion;
+  if (a === 'nubeIndice') return nubeIndice_();
+  if (a === 'nubeSubir') return nubeSubir_(d);
+  if (a === 'nubeSubirLote') return nubeSubirLote_(d);
+  if (a === 'nubeBajarLote') return nubeBajarLote_(d);
+  if (a === 'nubeBajar') return nubeBajar_(d);
+  if (a === 'nubeConfirmar') return nubeConfirmar_(d);
+  return {ok: false, error: 'Acción desconocida: ' + a};
+}
+
+function nubeCarpeta_() {
+  var p = PropertiesService.getScriptProperties();
+  var id = p.getProperty('NUBE_CARPETA');
+  if (id) { try { var f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+  var c = DriveApp.createFolder('ARKEN CONTROL · nube (no borrar)');
+  c.setDescription('Datos cifrados de ARKEN CONTROL compartidos entre equipos. No modifique ni borre estos archivos.');
+  p.setProperty('NUBE_CARPETA', c.getId());
+  p.deleteProperty('NUBE_INDICE');
+  return c;
+}
+
+function nubeLeer_() {
+  var p = PropertiesService.getScriptProperties();
+  var c = nubeCarpeta_();
+  var id = p.getProperty('NUBE_INDICE');
+  if (id) { try { var f = DriveApp.getFileById(id); if (!f.isTrashed()) return {archivo: f, datos: JSON.parse(f.getBlob().getDataAsString())}; } catch (e) {} }
+  var datos = {unidades: {}, blobs: {}};
+  var nuevo = c.createFile('ARKEN_nube_indice.json', JSON.stringify(datos), 'application/json');
+  p.setProperty('NUBE_INDICE', nuevo.getId());
+  return {archivo: nuevo, datos: datos};
+}
+
+function nubeIndice_() {
+  var x = nubeLeer_().datos, blobs = {}, bytes = 0;
+  Object.keys(x.blobs).forEach(function (h) {
+    var b = x.blobs[h];
+    blobs[h] = {listo: !!b.listo, partes: b.partes};
+    bytes += b.bytes || 0;
+  });
+  return {ok: true, unidades: x.unidades, blobs: blobs, verif: x.verif || '', bytes: bytes};
+}
+
+function nubeSubir_(d) {
+  if (!/^[0-9a-f]{32}$/.test(d.hash) || !(d.parte >= 0) || !(d.partes >= 1)) return {ok: false, error: 'Pedido inválido.'};
+  var c = nubeCarpeta_();
+  var f = c.createFile('ARKEN_nube_' + d.hash + '.' + d.parte, d.datos, 'text/plain');
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var ix = nubeLeer_();
+    var b = ix.datos.blobs[d.hash] || {partes: d.partes, ids: [], bytes: 0, ts: Date.now()};
+    if (b.ids[d.parte]) { try { DriveApp.getFileById(b.ids[d.parte]).setTrashed(true); } catch (e) {} }
+    b.ids[d.parte] = f.getId();
+    b.partes = d.partes;
+    b.bytes = (b.bytes || 0) + d.datos.length;
+    b.ts = Date.now();
+    var n = 0; for (var i = 0; i < b.partes; i++) if (b.ids[i]) n++;
+    b.listo = n === b.partes;
+    ix.datos.blobs[d.hash] = b;
+    ix.archivo.setContent(JSON.stringify(ix.datos));
+  } finally { lock.releaseLock(); }
+  return {ok: true};
+}
+
+function nubeSubirLote_(d) {
+  var c = nubeCarpeta_();
+  var creados = (d.lote || []).map(function (x) {
+    if (!/^[0-9a-f]{32}$/.test(x.hash)) throw new Error('Pedido inválido.');
+    return {h: x.hash, id: c.createFile('ARKEN_nube_' + x.hash + '.0', x.datos, 'text/plain').getId(), n: x.datos.length};
+  });
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var ix = nubeLeer_();
+    creados.forEach(function (x) {
+      var b = ix.datos.blobs[x.h];
+      if (b && b.listo) { try { DriveApp.getFileById(x.id).setTrashed(true); } catch (e) {} return; }
+      ix.datos.blobs[x.h] = {partes: 1, ids: [x.id], bytes: x.n, ts: Date.now(), listo: true};
+    });
+    ix.archivo.setContent(JSON.stringify(ix.datos));
+  } finally { lock.releaseLock(); }
+  return {ok: true};
+}
+
+function nubeBajarLote_(d) {
+  var x = nubeLeer_().datos, out = {}, total = 0;
+  (d.hashes || []).some(function (h) {
+    var b = x.blobs[h];
+    if (!b || !b.listo || b.partes !== 1) return false;
+    if (total > 0 && total + (b.bytes || 0) > 5000000) return true;
+    out[h] = DriveApp.getFileById(b.ids[0]).getBlob().getDataAsString();
+    total += out[h].length;
+    return false;
+  });
+  return {ok: true, datos: out};
+}
+
+function nubeBajar_(d) {
+  var x = nubeLeer_().datos, b = x.blobs[d.hash];
+  if (!b || !b.listo || !b.ids[d.parte]) return {ok: false, error: 'Esa parte de los datos no está en la nube.'};
+  return {ok: true, datos: DriveApp.getFileById(b.ids[d.parte]).getBlob().getDataAsString()};
+}
+
+function nubeConfirmar_(d) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var ix = nubeLeer_(), x = ix.datos;
+    var u = String(d.unidad || '');
+    if (!u) return {ok: false, error: 'Pedido inválido.'};
+    var actual = x.unidades[u];
+    var rev = actual ? actual.rev : 0;
+    if ((d.base || 0) !== rev) return {ok: false, conflicto: true, actual: rev, error: 'Otro equipo acaba de cambiar estos datos; se combinan en un momento.'};
+    if (!d.borrado) {
+      var faltan = Object.keys(d.piezas || {}).filter(function (n) { var b = x.blobs[d.piezas[n]]; return !b || !b.listo; });
+      if (faltan.length) return {ok: false, error: 'Faltan partes por subir; se reintenta.'};
+    }
+    x.unidades[u] = {rev: rev + 1, ts: Date.now(), piezas: d.borrado ? {} : d.piezas, nombre: d.nombre || (actual && actual.nombre) || u,
+                     borrado: !!d.borrado, equipo: d.equipo || '', usuario: d.usuario || ''};
+    if (d.verif && !x.verif) x.verif = d.verif;
+    nubeLimpiar_(x);
+    ix.archivo.setContent(JSON.stringify(x));
+    return {ok: true, rev: rev + 1};
+  } finally { lock.releaseLock(); }
+}
+
+// Las piezas que ya ninguna versión usa se mandan a la papelera después de dos días.
+function nubeLimpiar_(x) {
+  var usadas = {};
+  Object.keys(x.unidades).forEach(function (u) { var p = x.unidades[u].piezas || {}; Object.keys(p).forEach(function (n) { usadas[p[n]] = 1; }); });
+  var limite = Date.now() - 2 * 24 * 3600 * 1000, n = 0;
+  Object.keys(x.blobs).forEach(function (h) {
+    var b = x.blobs[h];
+    if (usadas[h] || b.ts > limite || n > 40) return;
+    (b.ids || []).forEach(function (id) { if (id) { try { DriveApp.getFileById(id).setTrashed(true); } catch (e) {} } });
+    delete x.blobs[h]; n++;
+  });
+}
+`;
+  }
+
+  return { ciclo: () => { sucio = true; return ciclo('manual'); }, activo, esMia, pintarAdmin, codigoServidor, ventanaUnir, ventanaVincular,
+           unir, activarPrincipal, desvincular, fijarFiltro, codigoVinculo, VERSION_SERVICIO,
+           get estado(){ return Object.assign({}, estado); }, get config(){ return Object.assign({}, cfg(), { llave: cfg().llave ? '••••' : '' }); },
+           _combinar: (b, l, r) => { const ctx = { conflictos:[], ganaLocal:true }; const o = combinar(b, l, r, ctx, ''); return { o, conflictos: ctx.conflictos }; } };
+})();
+
+if (typeof TABS_ADMIN !== 'undefined' && !TABS_ADMIN.some(t => t.k === 'nube')){
+  const i = TABS_ADMIN.findIndex(t => t.k === 'correo');
+  TABS_ADMIN.splice(i >= 0 ? i + 1 : TABS_ADMIN.length, 0, { k:'nube', n:'Datos entre equipos' });
+}
+function adNube(c){ Nube.pintarAdmin(c); }
+
+/* ARKEN CONTROL v17 · Ayuda de los datos compartidos entre equipos. */
+(function(){
+  if (typeof AYUDA_CONTENIDO === 'undefined') return;
+  const otros = AYUDA_CONTENIDO.otros || (AYUDA_CONTENIDO.otros = []);
+  otros.push(
+    { q:'¿Cómo hago para que los datos se compartan solos entre el computador y los celulares?',
+      a:'<p>En el computador principal entre a <b>Administración › Datos entre equipos</b>. Se usa el mismo servicio gratuito de Google del ' +
+        'correo vinculado: si lo instaló con la versión 16, pulse «Copiar código nuevo del servicio», péguelo encima del anterior en script.google.com, ' +
+        'ejecute «autorizar» (acepte el permiso de Drive) y publique una versión nueva en «Implementar › Gestionar implementaciones». Luego pulse ' +
+        '<b>Activar en este equipo</b>.</p><p>Para agregar un celular pulse <b>Vincular otro equipo</b>: aparece un código QR. En el celular, en la ' +
+        'pantalla de ingreso, toque <b>☁ Unir este equipo</b>, escanee el código y entre con su usuario de siempre. Desde ahí cada cambio sube a los ' +
+        'pocos segundos y los de los demás equipos llegan solos (revisa cada 45 segundos mientras el programa está abierto).</p>' },
+    { q:'¿Qué pasa si dos equipos cambian el mismo proyecto a la vez?',
+      a:'<p>Los registros se combinan uno por uno: una bitácora hecha en el celular y una causación hecha en el computador quedan las dos. ' +
+        'Sólo si los dos equipos cambiaron <i>el mismo dato</i> gana el cambio más reciente, y antes de combinar se guarda una copia completa en ' +
+        '<b>Administración › Cifrado y copias</b>. Sin internet se sigue trabajando normal; los cambios suben solos al volver la conexión.</p>' },
+    { q:'¿Dónde quedan los datos compartidos y quién los puede ver?',
+      a:'<p>En la carpeta «ARKEN CONTROL · nube (no borrar)» del Google Drive de la cuenta que instaló el servicio. El contenido va cifrado con ' +
+        'AES-256 con una llave que sólo tienen los equipos vinculados: ni Google ni quien abra la carpeta lo puede leer. En el índice sí se ven ' +
+        'los nombres de los proyectos y de los equipos. La llave no viaja dentro del archivo HTML ni de los respaldos; si un equipo se pierde, ' +
+        'desvincúlelo y cambie las contraseñas de los usuarios.</p>' });
 })();
 
 </script>
