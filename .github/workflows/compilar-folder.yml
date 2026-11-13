@@ -66,10 +66,16 @@ jobs:
         run: npm run dist:windows
       - name: La app empacada funciona en Windows
         run: npm run prueba:escritorio -- dist/win-unpacked/arken-folder.exe
+      # Con archive: false se sube un archivo por paso: el instalador y la versión portátil
       - uses: actions/upload-artifact@v7
         with:
           archive: false
-          path: folder/dist/ARKEN-FOLDER-*.exe
+          path: folder/dist/ARKEN-FOLDER-*-Windows.exe
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: folder/dist/ARKEN-FOLDER-*-Windows-portable.exe
           if-no-files-found: error
 
   publicar:
