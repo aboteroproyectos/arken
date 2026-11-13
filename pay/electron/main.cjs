@@ -173,6 +173,11 @@ function registrarIPC() {
     await fsp.writeFile(r.filePath, String(contenido), 'utf8');
     return r.filePath;
   });
+  manejar('pay:local:archivar', async () => {
+    const a = await asegurar();
+    if (a.modo !== 'local' || !a.archivar) throw new Error('Solo una instalación «Solo este equipo» puede empezar de cero. En la nube, use el código de recuperación.');
+    return a.archivar();
+  });
   manejar('pay:copias:abrir', async () => {
     const dir = (await asegurar()).carpetaCopias();
     await fsp.mkdir(dir, { recursive: true });

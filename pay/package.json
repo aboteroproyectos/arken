@@ -1,7 +1,7 @@
 {
   "name": "arken-pay",
   "productName": "ARKEN PAY",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "ARKEN PAY · Control de facturación electrónica, recaudo y cartera por proyecto, de la familia ARKEN.",
   "private": true,
   "main": "electron/main.cjs",

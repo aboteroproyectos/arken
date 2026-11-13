@@ -31,4 +31,5 @@ contextBridge.exposeInMainWorld('arkenPay', {
   },
   guardarArchivo: (nombre, contenido) => pedir('pay:archivo:guardar', String(nombre), String(contenido)),
   abrirCopias: () => pedir('pay:copias:abrir'),
+  empezarDeCero: () => pedir('pay:local:archivar'),
 });

@@ -49,6 +49,16 @@ const ir = async (vista) => {
   await pagina.click(`#rail [data-vista="${vista}"]`);
   await pagina.waitForSelector(`#rail [data-vista="${vista}"].active`);
 };
+/** Ventana del código de recuperación: lo lee, confirma que se guardó y continúa. */
+const guardarCodigo = async () => {
+  await pagina.waitForSelector('#codigoRec');
+  const c = (await pagina.textContent('#codigoRec')).trim();
+  assert.equal(await pagina.locator(`${modal} [data-ok]`).isDisabled(), true, 'no se sigue sin confirmar');
+  await pagina.check('#codigoGuardado');
+  await pagina.click(`${modal} [data-ok]`);
+  await pagina.waitForSelector('#codigoRec', { state: 'detached' });
+  return c;
+};
 const ingresar = async (usuario, clave) => {
   await pagina.waitForSelector('#fIngreso');
   await llenar('#fIngreso', { usuario, clave });
@@ -60,8 +70,16 @@ try {
 
   paso('Primer uso: administrador');
   await pagina.waitForSelector('#instalar');
-  await llenar('.ingreso-caja', { nombre: 'Adolfo Botero', usuario: 'adolfo', clave: 'ArkenPay2026', clave2: 'ArkenPay2026' });
+  // Un usuario con espacios se rechaza ANTES de iniciar la base (antes quedaba iniciada y sin usuarios)
+  await llenar('.ingreso-caja', { nombre: 'Adolfo Botero', usuario: 'Adolfo Botero', clave: 'ArkenPay2026', clave2: 'ArkenPay2026' });
   await pagina.click('#instalar');
+  await pagina.waitForSelector('.toast.bad');
+  assert.match(await pagina.textContent('.toast.bad'), /sin espacios/);
+  assert.equal(await pagina.evaluate(() => JSON.parse(localStorage.getItem('arken-pay-demo-eventos') || '[]').length), 0);
+  await llenar('.ingreso-caja', { usuario: 'adolfo' });
+  await pagina.click('#instalar');
+  const codigo = await guardarCodigo();
+  assert.match(codigo, /^[A-Z2-9]{5}(-[A-Z2-9]{5}){4}$/);
   await ingresar('adolfo', 'ArkenPay2026');
   await pagina.waitForSelector('#stage .page-head');
 
@@ -175,6 +193,32 @@ try {
   await llenar(modal, { motivo: 'Consignación devuelta por el banco' });
   await aceptar();
   assert.match(await pagina.textContent('#stage'), /Reversado/);
+
+  paso('Administrador que olvidó su contraseña: la recupera con el código, y el código usado deja de servir');
+  await pagina.click('#btnSalir');
+  await pagina.waitForSelector('#fIngreso');
+  await pagina.click('#olvido');
+  await llenar(modal, { usuario: 'adolfo', codigo: 'AAAAA-AAAAA-AAAAA-AAAAA-AAAAA', c1: 'Recuperada2026', c2: 'Recuperada2026' });
+  await pagina.click('#recuperar');
+  await pagina.waitForSelector('#recMsg .aviso.bad');
+  await llenar(modal, { usuario: 'ana', codigo });
+  await pagina.click('#recuperar');
+  await pagina.waitForFunction(() => document.querySelector('#recMsg').textContent.includes('no es un administrador'));
+  await llenar(modal, { usuario: 'adolfo', codigo: codigo.toLowerCase().replace(/-/g, ' ') });
+  await pagina.click('#recuperar');
+  const codigo2 = await guardarCodigo();
+  assert.notEqual(codigo2, codigo);
+  await ingresar('adolfo', 'Recuperada2026');
+  await pagina.waitForSelector('#stage .page-head');
+  await ir('bitacora');
+  assert.match(await pagina.textContent('#stage'), /restableció su contraseña con el código de recuperación/);
+  await pagina.click('#btnSalir');
+  await pagina.waitForSelector('#fIngreso');
+  await pagina.click('#olvido');
+  await llenar(modal, { usuario: 'adolfo', codigo, c1: 'OtraMas2026x', c2: 'OtraMas2026x' });
+  await pagina.click('#recuperar');
+  await pagina.waitForSelector('#recMsg .aviso.bad');
+  await pagina.click(`${modal} .modal-foot [data-cerrar]`);
 
   assert.deepEqual(errores, [], 'errores en la página');
   console.log('\n✔ Interfaz de ARKEN PAY probada de punta a punta.');

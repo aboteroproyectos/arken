@@ -4,7 +4,7 @@
 // bitácora en disco está encadenada.
 // Uso: npm run prueba:escritorio  (en Linux sin pantalla: xvfb-run -a npm run prueba:escritorio)
 
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,6 +46,9 @@ try {
   await ventana.fill('[name=clave]', 'ArkenPay2026');
   await ventana.fill('[name=clave2]', 'ArkenPay2026');
   await ventana.click('#instalar');
+  await ventana.waitForSelector('#codigoRec');
+  await ventana.check('#codigoGuardado');
+  await ventana.click('.modal [data-ok]');
   await ventana.waitForSelector('#fIngreso');
   await ventana.fill('#fIngreso [name=usuario]', 'adolfo');
   await ventana.fill('#fIngreso [name=clave]', 'ArkenPay2026');
@@ -61,7 +64,7 @@ try {
   await app.close();
 
   const lineas = readFileSync(join(datos, 'eventos.jsonl'), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
-  assert.equal(lineas.length, 3, 'sistema.iniciado, usuario.creado y empresa.registrada en disco');
+  assert.equal(lineas.length, 3, 'sistema.iniciado (con el código de recuperación), usuario.creado y empresa.registrada en disco');
   assert.equal((await N.verificarCadena(lineas)).ok, true, 'cadena de hashes en disco');
 
   console.log('· Segunda apertura: los datos siguen ahí');
@@ -73,8 +76,20 @@ try {
   await ventana.waitForSelector('#topEmpresa');
   assert.match(await ventana.textContent('#topEmpresa'), /ARKEN PROYECTOS/);
   assert.match(await ventana.textContent('#topCx'), /Solo este equipo/);
+
+  console.log('· Nadie recuerda la contraseña: empezar de cero sin borrar los datos');
+  await ventana.click('#btnSalir');
+  await ventana.waitForSelector('#olvido');
+  await ventana.click('#olvido');
+  await ventana.fill('#confirmaCero', 'empezar de cero');
+  await ventana.click('#empezarCero');
+  await ventana.waitForSelector('#instalar');
   assert.deepEqual(errores, []);
   await app.close();
+  const archivados = readdirSync(datos).filter((n) => /^eventos-archivado-.*\.jsonl$/.test(n));
+  assert.equal(archivados.length, 1, 'la bitácora anterior queda archivada');
+  assert.equal(readFileSync(join(datos, archivados[0]), 'utf8').trim().split('\n').length, 3, 'con sus 3 eventos');
+  assert.equal(existsSync(join(datos, 'eventos.jsonl')), false);
   console.log('\n✔ App de escritorio probada.');
 } catch (e) {
   console.error('\n✖ ' + (e.stack || e.message));

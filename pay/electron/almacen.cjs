@@ -109,6 +109,21 @@ function crearLocal({ carpeta, diarias = 10 }) {
         return { ok: true, seq: e.seq };
       }),
     carpetaCopias: () => dirDiarias,
+    // Empezar de cero en este equipo (por ejemplo, si nadie recuerda la contraseña del administrador
+    // y no hay código de recuperación). No borra: la bitácora se guarda aparte con la fecha.
+    archivar: () =>
+      enOrden(async () => {
+        await fsp.mkdir(carpeta, { recursive: true });
+        const sello = new Date().toISOString().replace(/[:.]/g, '-');
+        const destino = path.join(carpeta, `eventos-archivado-${sello}.jsonl`);
+        try {
+          await fsp.rename(archivo, destino);
+        } catch (e) {
+          if (e.code !== 'ENOENT') throw e;
+        }
+        eventos = null;
+        return { ok: true, archivo: destino };
+      }),
     documentos: crearDocumentosLocales(path.join(carpeta, 'documentos')),
   };
 }

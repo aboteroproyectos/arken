@@ -206,6 +206,8 @@
   // no registra ni aprueba movimientos: quien configura no mueve plata.
   const PERMISOS = {
     'sistema.iniciado': ['*'],
+    'sistema.recuperacion_definida': ['administrador'],
+    'usuario.clave_recuperada': ['*'],
     'usuario.creado': ['administrador'],
     'usuario.actualizado': ['administrador'],
     'usuario.clave_cambiada': ['*'],
@@ -344,6 +346,7 @@
       seq: 0,
       ultimoHash: '',
       iniciado: false,
+      recuperacion: null,
       usuarios: {},
       empresas: {},
       resoluciones: {},
@@ -423,6 +426,18 @@
     for (let i = 0; i < h.length; i++) dif |= h.charCodeAt(i) ^ otro.charCodeAt(i);
     return dif === 0 && h.length === otro.length;
   }
+  /** Código de recuperación: 25 caracteres (unos 120 bits) en grupos de 5, sin letras confusas. */
+  const ALFABETO_CODIGO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  function generarCodigoRecuperacion() {
+    let c = '';
+    while (c.length < 25) {
+      for (const x of globalThis.crypto.getRandomValues(new Uint8Array(32))) {
+        if (x < 248 && c.length < 25) c += ALFABETO_CODIGO[x % 31]; // 248 = 8 × 31: sin sesgo
+      }
+    }
+    return c.match(/.{5}/g).join('-');
+  }
+  const normalizarCodigo = (c) => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   function validarClaveNueva(clave) {
     const s = String(clave || '');
     exigir(s.length >= 10, 'La contraseña debe tener al menos 10 caracteres.');
@@ -520,7 +535,35 @@
       return () => {
         e.iniciado = true;
         e.nombreInstalacion = opcional(ev.datos.nombre, 120);
+        if (ev.datos.recuperacionHash) e.recuperacion = { hash: ev.datos.recuperacionHash, fecha: ev.fecha };
         return 'Se inició ARKEN PAY.';
+      };
+    },
+
+    // Código de recuperación del administrador: se guarda solo su huella PBKDF2. Definirlo de nuevo
+    // invalida el anterior.
+    'sistema.recuperacion_definida'(e, ev) {
+      exigir(/^pbkdf2\$/.test(ev.datos.recuperacionHash || ''), 'Código de recuperación inválido.');
+      return () => {
+        e.recuperacion = { hash: ev.datos.recuperacionHash, fecha: ev.fecha, por: ev.usuario };
+        return 'Se definió un código de recuperación nuevo; el anterior dejó de servir.';
+      };
+    },
+
+    // Un administrador que olvidó su contraseña la restablece con el código de recuperación. El
+    // programa verifica el código antes de emitir el evento; el código usado se reemplaza por uno nuevo.
+    'usuario.clave_recuperada'(e, ev) {
+      const d = ev.datos;
+      exigir(e.recuperacion, 'Esta instalación no tiene código de recuperación.');
+      const u = e.usuarios[d.id];
+      exigir(u && u.activo && u.roles.includes('administrador'), 'Solo un administrador activo recupera su contraseña con el código; los demás usuarios se la piden al administrador.');
+      exigir(/^pbkdf2\$/.test(d.claveHash || ''), 'Contraseña inválida.');
+      exigir(/^pbkdf2\$/.test(d.recuperacionHash || '') && d.recuperacionHash !== e.recuperacion.hash, 'Falta el código de recuperación nuevo.');
+      return () => {
+        u.claveHash = d.claveHash;
+        u.debeCambiarClave = false;
+        e.recuperacion = { hash: d.recuperacionHash, fecha: ev.fecha, por: u.id };
+        return `Usuario ${u.usuario} restableció su contraseña con el código de recuperación (se generó un código nuevo).`;
       };
     },
 
@@ -1167,7 +1210,7 @@
     exigir(m, `Tipo de evento desconocido: ${ev.tipo}.`);
     if (ev.tipo !== 'sistema.iniciado') exigir(e.iniciado, 'El sistema no ha sido iniciado.');
     // Autorización: el primer administrador se crea en el evento 2, sin usuario previo
-    const arranque = (ev.tipo === 'usuario.creado' && Object.keys(e.usuarios).length === 0) || ev.tipo === 'sistema.iniciado';
+    const arranque = (ev.tipo === 'usuario.creado' && Object.keys(e.usuarios).length === 0) || ev.tipo === 'sistema.iniciado' || ev.tipo === 'usuario.clave_recuperada';
     if (!arranque) {
       const u = e.usuarios[ev.usuario];
       exigir(u && u.activo, 'Usuario no autorizado.', 'permiso');
@@ -1478,6 +1521,8 @@
     derivarClave,
     verificarClave,
     validarClaveNueva,
+    generarCodigoRecuperacion,
+    normalizarCodigo,
     // consultas
     totalesFactura,
     totalesAlCorte,

@@ -44,6 +44,13 @@
         },
       },
       documentos: { guardar: async (h, b) => ((docs[h] = b), { ok: true }), leer: async (h) => docs[h] || null },
+      empezarDeCero: async () => {
+        try {
+          localStorage.setItem(CLAVE + '-archivado-' + Date.now(), localStorage.getItem(CLAVE) || '[]');
+          localStorage.removeItem(CLAVE);
+        } catch {}
+        return { ok: true };
+      },
       guardarArchivo: async (nombre, contenido) => {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([contenido], { type: 'text/csv;charset=utf-8' }));
@@ -133,7 +140,7 @@
   const fallo = (e) => aviso(e && e.message ? e.message : String(e), true);
 
   /* ═══════════ Ventanas ═══════════ */
-  function ventana({ titulo, cuerpo, pie, clase = '', alAbrir }) {
+  function ventana({ titulo, cuerpo, pie, clase = '', alAbrir, fijo = false }) {
     const velo = document.createElement('div');
     velo.className = 'velo';
     velo.innerHTML = `<div class="modal ${clase}" role="dialog" aria-modal="true" aria-label="${esc(titulo)}"><div class="modal-head"><h2>${esc(titulo)}</h2><button class="cerrar" aria-label="Cerrar" data-cerrar>×</button></div><div class="modal-body">${cuerpo}</div>${pie ? `<div class="modal-foot">${pie}</div>` : ''}</div>`;
@@ -141,7 +148,7 @@
     velo.addEventListener('click', (e) => {
       if (e.target.closest('[data-cerrar]')) cerrar();
     });
-    velo.addEventListener('keydown', (e) => e.key === 'Escape' && cerrar());
+    if (!fijo) velo.addEventListener('keydown', (e) => e.key === 'Escape' && cerrar());
     document.body.appendChild(velo);
     const m = velo.querySelector('.modal');
     m.cerrar = cerrar;
@@ -245,7 +252,8 @@
     } catch (e) {
       return pantallaError(e);
     }
-    if (!E.iniciado) return pantallaInstalacion();
+    // Sin usuarios (por ejemplo, si el primer intento de crear el administrador falló) se vuelve a pedir.
+    if (!E.iniciado || !Object.keys(E.usuarios).length) return pantallaInstalacion();
     pantallaIngreso();
   }
 
@@ -316,10 +324,21 @@
         const d = leerForm($('.ingreso-caja'));
         if (d.clave !== d.clave2) throw new Error('Las contraseñas no coinciden.');
         N.validarClaveNueva(d.clave);
+        const usuario = d.usuario.toLowerCase();
+        if (!/^[a-z0-9._-]{3,60}$/.test(usuario)) throw new Error('El usuario solo admite letras sin tildes, números, punto, guion y guion bajo, sin espacios (mínimo 3). Ejemplo: adolfo');
+        if (!d.nombre) throw new Error('Escriba su nombre.');
         const claveHash = await N.derivarClave(d.clave);
+        const codigo = N.generarCodigoRecuperacion();
+        const recuperacionHash = await N.derivarClave(N.normalizarCodigo(codigo));
         const id = N.nuevoId('u');
-        await emitir('sistema.iniciado', { nombre: d.instalacion }, { usuario: '' });
-        await emitir('usuario.creado', { id, usuario: d.usuario, nombre: d.nombre, roles: ['administrador'], claveHash }, { usuario: '' });
+        if (!E.iniciado) await emitir('sistema.iniciado', { nombre: d.instalacion, recuperacionHash }, { usuario: '' });
+        await emitir('usuario.creado', { id, usuario, nombre: d.nombre, roles: ['administrador'], claveHash }, { usuario: '' });
+        if (!E.recuperacion) {
+          USUARIO = id;
+          await emitir('sistema.recuperacion_definida', { recuperacionHash });
+          USUARIO = null;
+        }
+        await mostrarCodigo(codigo, true);
         aviso('Administrador creado. Ingrese con su usuario.');
         pantallaIngreso();
       });
@@ -334,11 +353,14 @@
         <label class="f">Contraseña<input name="clave" type="password" autocomplete="current-password"></label>
         <div id="ingMsg"></div>
         <button class="btn pri" type="submit">Ingresar</button>
+        <div class="ingreso-enlaces"><a href="#" id="olvido">¿Olvidó su contraseña?</a>${host.escritorio ? '<a href="#" id="cambiarCx">Cambiar la conexión</a>' : ''}</div>
         ${host.navegador ? '<div class="aviso warn">Modo demostración en el navegador: los datos quedan solo en este navegador.</div>' : ''}
       </form>`);
     const f = $('#fIngreso');
     if (f.usuario.value) f.clave.focus();
     else f.usuario.focus();
+    $('#olvido').onclick = (ev) => (ev.preventDefault(), olvidoClave());
+    if ($('#cambiarCx')) $('#cambiarCx').onclick = (ev) => (ev.preventDefault(), pantallaConexion());
     let intentos = 0;
     f.onsubmit = (ev) => {
       ev.preventDefault();
@@ -361,6 +383,108 @@
         entrar();
       });
     };
+  }
+
+  /** Muestra el código de recuperación una sola vez. Con «obligatorio», no deja seguir sin confirmar. */
+  function mostrarCodigo(codigo, obligatorio) {
+    return new Promise((res) => {
+      const m = ventana({
+        titulo: 'Código de recuperación',
+        clase: 'angosto',
+        fijo: !!obligatorio,
+        cuerpo: `<p>Si olvida la contraseña del administrador, este código es la única forma de recuperarla. <b>Guárdelo fuera del computador</b> (impreso o en su gestor de contraseñas). No se volverá a mostrar.</p>
+          <div class="codigo-recuperacion" id="codigoRec">${esc(codigo)}</div>
+          <div class="acciones" style="margin:12px 0"><button class="btn peq" id="copiarCodigo">Copiar</button><button class="btn peq" id="guardarCodigo">Guardar en un archivo</button><button class="btn peq" id="imprimirCodigo">Imprimir</button></div>
+          <label class="f check"><input type="checkbox" id="codigoGuardado"> Ya guardé el código en un lugar seguro</label>`,
+        pie: '<button class="btn pri" data-ok disabled>Continuar</button>',
+      });
+      const ok = m.querySelector('[data-ok]');
+      $('#codigoGuardado', m).onchange = (e) => (ok.disabled = !e.target.checked);
+      $('#copiarCodigo', m).onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(codigo);
+          aviso('Código copiado.');
+        } catch {
+          aviso('No se pudo copiar; anótelo a mano.', true);
+        }
+      };
+      $('#guardarCodigo', m).onclick = () => exportar('ARKEN_PAY_codigo_recuperacion.txt', `ARKEN PAY · código de recuperación del administrador\r\nGenerado: ${new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })}\r\n\r\n${codigo}\r\n\r\nGuárdelo fuera del computador. Al usarlo, ARKEN PAY entrega uno nuevo y este deja de servir.\r\n`);
+      $('#imprimirCodigo', m).onclick = () => window.print();
+      const cerrar = m.querySelector('[data-cerrar]');
+      if (obligatorio && cerrar) cerrar.remove();
+      ok.onclick = () => {
+        m.cerrar();
+        res(true);
+      };
+      if (!obligatorio) cerrar && cerrar.addEventListener('click', () => res(true));
+    });
+  }
+
+  /** «¿Olvidó su contraseña?»: código de recuperación, o empezar de cero si los datos están solo en este equipo. */
+  async function olvidoClave() {
+    try {
+      await sincronizar();
+    } catch {}
+    const local = host.empezarDeCero && (CONEXION.modo === 'local' || host.navegador);
+    const nFacturas = Object.keys(E.facturas).length;
+    const m = ventana({
+      titulo: '¿Olvidó su contraseña?',
+      clase: 'angosto',
+      cuerpo: `<p><b>Si usted no es el administrador:</b> pídale que le asigne una contraseña temporal en Configuración › Usuarios.</p>
+        ${
+          E.recuperacion
+            ? `<p><b>Si es el administrador:</b> use el código de recuperación que recibió al crear la instalación.</p>
+          <div class="form" id="fRecuperar">
+            <label class="f full">Usuario del administrador<input name="usuario" autocomplete="username" value="${esc(pref.get('ultimoUsuario', ''))}"></label>
+            <label class="f full">Código de recuperación<input name="codigo" autocomplete="off" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" class="cufe"></label>
+            <label class="f">Contraseña nueva<input name="c1" type="password" autocomplete="new-password"></label>
+            <label class="f">Repítala<input name="c2" type="password" autocomplete="new-password"></label>
+          </div><div id="recMsg"></div><button class="btn pri" id="recuperar" style="margin-top:10px">Restablecer contraseña</button>`
+            : `<div class="aviso warn">Esta instalación se creó sin código de recuperación.</div>`
+        }
+        ${
+          local
+            ? `<hr style="border:0;border-top:1px solid var(--line-soft);margin:18px 0">
+          <p><b>Empezar de cero en este equipo.</b> Si nadie puede ingresar, ARKEN PAY puede iniciar una instalación nueva. Los datos actuales no se borran: quedan archivados en la carpeta de la app${nFacturas ? `, incluidas <b>${nFacturas} factura(s)</b> registradas` : ''}.</p>
+          <label class="f">Para confirmar, escriba EMPEZAR DE CERO<input id="confirmaCero" autocomplete="off"></label>
+          <button class="btn peligro" id="empezarCero" style="margin-top:10px">Archivar y empezar de cero</button>`
+            : !E.recuperacion
+              ? '<p>Los datos están en la nube y los comparten otros equipos. Si otro usuario es administrador, él puede asignarle una contraseña temporal. Si no, escríbanos en el proyecto para recuperarla desde la base de datos.</p>'
+              : ''
+        }`,
+      pie: '<button class="btn" data-cerrar>Cerrar</button>',
+    });
+    if ($('#recuperar', m))
+      $('#recuperar', m).onclick = (ev) =>
+        accion(ev.target, async () => {
+          const d = leerForm($('#fRecuperar', m));
+          const u = Object.values(E.usuarios).find((x) => x.usuario === d.usuario.toLowerCase());
+          const valido = u && u.activo && u.roles.includes('administrador') && (await N.verificarClave(N.normalizarCodigo(d.codigo), E.recuperacion.hash));
+          if (!valido) {
+            await new Promise((r) => setTimeout(r, 1500));
+            $('#recMsg', m).innerHTML = '<div class="aviso bad">El usuario no es un administrador o el código no es correcto.</div>';
+            return;
+          }
+          if (d.c1 !== d.c2) throw new Error('Las contraseñas no coinciden.');
+          N.validarClaveNueva(d.c1);
+          const nuevo = N.generarCodigoRecuperacion();
+          await emitir('usuario.clave_recuperada', { id: u.id, claveHash: await N.derivarClave(d.c1), recuperacionHash: await N.derivarClave(N.normalizarCodigo(nuevo)) }, { usuario: '' });
+          m.cerrar();
+          aviso('Contraseña restablecida. El código usado ya no sirve: guarde el nuevo.');
+          await mostrarCodigo(nuevo, true);
+          pref.set('ultimoUsuario', u.usuario);
+          pantallaIngreso();
+        });
+    if ($('#empezarCero', m))
+      $('#empezarCero', m).onclick = (ev) =>
+        accion(ev.target, async () => {
+          if ($('#confirmaCero', m).value.trim().toUpperCase() !== 'EMPEZAR DE CERO') throw new Error('Escriba EMPEZAR DE CERO para confirmar.');
+          await host.empezarDeCero();
+          m.cerrar();
+          E = N.crearEstado();
+          aviso('Datos anteriores archivados. Cree el administrador de la instalación nueva.');
+          arrancar();
+        });
   }
 
   function cambiarClave(obligatorio) {
@@ -505,6 +629,7 @@
     st.innerHTML =
       cabeza('Tablero', `Corte al ${h}`) +
       (faltan.length ? `<div class="aviso warn">Para registrar facturas falta configurar ${faltan.join(' y ')}. ${tieneRol('administrador') ? '<a href="#" data-ir="configuracion">Ir a Configuración</a>' : 'Pídaselo al administrador.'}</div>` : '') +
+      (tieneRol('administrador') && !E.recuperacion ? `<div class="aviso warn">No hay código de recuperación: si olvida su contraseña de administrador no podrá recuperarla. <a href="#" data-ir="configuracion">Generarlo en Configuración</a>.</div>` : '') +
       num.map((a) => `<div class="aviso warn">${esc(a)}</div>`).join('') +
       (plazo.length ? `<div class="aviso info">${plazo.length} factura(s) a grandes empresas superan 60 días sin pago total (Ley 2024 de 2020, plazos justos a mipymes).</div>` : '') +
       (SIN_CONEXION ? `<div class="aviso warn">Sin conexión con la nube: se muestran los datos guardados en este equipo. No se pueden registrar cambios hasta reconectar.</div>` : '') +
@@ -1738,6 +1863,7 @@
       <div class="card"><div class="card-head"><h2>Usuarios</h2>${adm ? '<button class="btn peq" id="nuevoUsuario">Agregar</button>' : ''}</div><div class="card-body flush"><table class="t"><thead><tr><th>Nombre</th><th>Usuario</th><th>Roles</th><th>Estado</th><th></th></tr></thead><tbody>${Object.values(E.usuarios)
         .map((u) => `<tr><td>${esc(u.nombre)}</td><td>${esc(u.usuario)}</td><td>${u.roles.map((r) => N.ROLES[r]).join(', ')}</td><td>${u.activo ? '<span class="tag ok">Activo</span>' : '<span class="tag">Inactivo</span>'}</td><td>${adm ? `<button class="btn peq" data-usuario="${u.id}">Editar</button>` : ''}</td></tr>`)
         .join('')}</tbody></table></div></div>
+      ${adm ? `<div class="card"><div class="card-head"><h2>Código de recuperación</h2><button class="btn peq" id="nuevoCodigo">Generar código nuevo</button></div><div class="card-body">${E.recuperacion ? `Definido el ${esc(new Date(E.recuperacion.fecha).toLocaleString('es-CO', { timeZone: 'America/Bogota' }))}. Sirve para que un administrador recupere su contraseña. Si cree que alguien más lo vio, genere uno nuevo: el anterior deja de servir.` : '<div class="aviso warn">No hay código de recuperación. Si olvida su contraseña, no podrá recuperarla. Genere uno ahora.</div>'}</div></div>` : ''}
       <div class="card"><div class="card-head"><h2>Conexión</h2></div><div class="card-body"><dl class="defs"><dt>Modo</dt><dd>${esc(CONEXION.modo === 'nube' ? 'Base de datos en la nube' : CONEXION.modo === 'local' ? 'Solo este equipo' : 'Demostración')}</dd><dt>Ubicación</dt><dd>${esc(CONEXION.ubicacion || '')}</dd><dt>Eventos</dt><dd>${E.seq}</dd></dl>${host.abrirCopias ? '<button class="btn peq" id="abrirCopias" style="margin-top:10px">Abrir carpeta de copias</button>' : ''}</div></div>`;
     const on = (sel, fn) => $(sel) && ($(sel).onclick = fn);
     on('#nuevaEmpresa', () => formEmpresa());
@@ -1759,6 +1885,15 @@
         }),
     );
     on('#abrirCopias', () => host.abrirCopias());
+    on('#nuevoCodigo', () =>
+      accion(null, async () => {
+        if (E.recuperacion && !(await confirmar('Código nuevo', 'El código actual dejará de servir. ¿Generar uno nuevo?', 'Generar'))) return;
+        const codigo = N.generarCodigoRecuperacion();
+        await emitir('sistema.recuperacion_definida', { recuperacionHash: await N.derivarClave(N.normalizarCodigo(codigo)) });
+        await mostrarCodigo(codigo, true);
+        render();
+      }),
+    );
   };
 
   function formEmpresa(id) {

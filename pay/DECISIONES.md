@@ -47,10 +47,14 @@ Saldo = total + notas débito − notas crédito − pagos − retenciones − a
 - Períodos cerrados: con un mes cerrado no se registran ni reversan movimientos con fecha de ese mes.
 - Control de numeración: compara lo registrado con el rango de cada resolución y muestra los números que faltan.
 
-## 8. Datos personales
+## 8. Recuperación de la contraseña
+
+El administrador recibe un código de recuperación de unos 124 bits al crear la instalación; la bitácora guarda solo su huella PBKDF2. Con él restablece su contraseña (evento `usuario.clave_recuperada`), y el código se reemplaza por uno nuevo en el mismo evento. Como en el resto de la fase 1, el programa verifica el código antes de escribir (ver §3). En «Solo este equipo» se puede además archivar la bitácora y empezar de cero: es equivalente a renombrar el archivo a mano, así que no abre un acceso nuevo, y no se pierde nada.
+
+## 9. Datos personales
 
 Los contactos de los clientes son datos personales (Ley 1581 de 2012). La ficha del cliente tiene la casilla de autorización; la base en la nube solo la leen los usuarios autenticados del proyecto y el registro público de cuentas queda desactivado (paso 3 de la guía).
 
-## 9. Tecnología
+## 10. Tecnología
 
 La misma de ARKEN PRECIOS: Electron, con la interfaz aislada (`contextIsolation`, `sandbox`, sin Node en la página, política de seguridad de contenido) y un puente mínimo (`window.arkenPay`). La contraseña de la conexión se cifra con el sistema operativo (`safeStorage`, DPAPI en Windows). El núcleo no tiene dependencias y se prueba solo, en la interfaz y en la app de escritorio.

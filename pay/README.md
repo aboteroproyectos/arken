@@ -51,6 +51,12 @@ Si el computador pierde internet, ARKEN PAY muestra los datos guardados en ese e
 
 **Solo este equipo:** para probar, se puede elegir «Solo este equipo». Los datos quedan en `%APPDATA%\ARKEN PAY\datos\eventos.jsonl`, con una copia diaria (las últimas 10).
 
+## Si olvida la contraseña
+
+- **Un usuario cualquiera:** el administrador le asigna una contraseña temporal en Configuración › Usuarios › Editar.
+- **El administrador:** al crear la instalación, ARKEN PAY entrega un **código de recuperación** (25 caracteres) que se muestra una sola vez; guárdelo impreso o en un gestor de contraseñas. En la pantalla de ingreso, «¿Olvidó su contraseña?» pide ese código y una contraseña nueva, y entrega un código nuevo (el usado deja de servir). Queda en la bitácora. Se puede generar otro en Configuración › Código de recuperación.
+- **Solo este equipo, sin código:** «¿Olvidó su contraseña?» › «Archivar y empezar de cero». No borra nada: la bitácora anterior queda como `eventos-archivado-<fecha>.jsonl` en la carpeta de datos.
+
 ## Roles
 
 | Rol | Puede |

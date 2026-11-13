@@ -277,3 +277,30 @@ test('reportes: proyectos, numeración, plazo legal y estado de cuenta', async (
   const texto = N.csv([{ a: 'x;y', b: 1 }], [{ titulo: 'A', valor: 'a' }, { titulo: 'B', valor: (f) => f.b + 1 }]);
   assert.equal(texto, '﻿A;B\r\n"x;y";2');
 });
+
+test('recuperación de la contraseña del administrador con el código', async () => {
+  const L = await base();
+  const h = (x) => N.derivarClave(x, null, 1000);
+  // Sin código definido no se puede
+  await L.falla('usuario.clave_recuperada', { id: 'u_admin', claveHash: await h('Nueva2026xx'), recuperacionHash: await h('X') }, '', /no tiene código/);
+  // Solo el administrador lo define
+  await L.falla('sistema.recuperacion_definida', { recuperacionHash: await h('A') }, 'u_fac', /no permite/);
+  const codigo = N.generarCodigoRecuperacion();
+  assert.match(codigo, /^[A-Z2-9]{5}(-[A-Z2-9]{5}){4}$/);
+  const hashCodigo = await h(N.normalizarCodigo(codigo));
+  await L.emitir('sistema.recuperacion_definida', { recuperacionHash: hashCodigo });
+  assert.equal(await N.verificarClave(N.normalizarCodigo(codigo.toLowerCase()), L.estado.recuperacion.hash), true);
+  // No sirve para usuarios que no son administradores
+  await L.falla('usuario.clave_recuperada', { id: 'u_fac', claveHash: await h('Nueva2026xx'), recuperacionHash: await h('B') }, '', /Solo un administrador/);
+  // Debe traer un código nuevo distinto
+  await L.falla('usuario.clave_recuperada', { id: 'u_admin', claveHash: await h('Nueva2026xx'), recuperacionHash: hashCodigo }, '', /código de recuperación nuevo/);
+  const nuevo = await h('OTRO');
+  await L.emitir('usuario.clave_recuperada', { id: 'u_admin', claveHash: await h('Nueva2026xx'), recuperacionHash: nuevo }, '');
+  assert.equal(await N.verificarClave('Nueva2026xx', L.estado.usuarios.u_admin.claveHash), true);
+  assert.equal(L.estado.recuperacion.hash, nuevo, 'el código usado deja de servir');
+  assert.match(L.estado.bitacora.at(-1).resumen, /restableció su contraseña/);
+  // También se puede definir al iniciar
+  const L2 = libro();
+  await L2.emitir('sistema.iniciado', { nombre: 'X', recuperacionHash: hashCodigo }, '');
+  assert.equal(L2.estado.recuperacion.hash, hashCodigo);
+});
