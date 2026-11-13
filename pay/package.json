@@ -1,0 +1,76 @@
+{
+  "name": "arken-pay",
+  "productName": "ARKEN PAY",
+  "version": "0.1.0",
+  "description": "ARKEN PAY · Control de facturación electrónica, recaudo y cartera por proyecto, de la familia ARKEN.",
+  "private": true,
+  "main": "electron/main.cjs",
+  "author": "ARKEN CONTROL",
+  "scripts": {
+    "preparar": "node herramientas/preparar-web.mjs",
+    "prueba:nucleo": "node --test pruebas/nucleo.mjs",
+    "prueba:app": "npm run preparar && node pruebas/app.mjs",
+    "prueba": "npm run prueba:nucleo && npm run prueba:nube && npm run prueba:app",
+    "escritorio": "npm run preparar && electron .",
+    "dist:windows": "npm run preparar && electron-builder --win nsis --x64 --publish never",
+    "dist:linux": "npm run preparar && electron-builder --linux dir --publish never",
+    "prueba:escritorio": "npm run preparar && node pruebas/escritorio.mjs",
+    "prueba:nube": "node --test pruebas/nube.mjs"
+  },
+  "devDependencies": {
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "playwright-core": "^1.63.0"
+  },
+  "build": {
+    "appId": "com.aboteroproyectos.arkenpay",
+    "productName": "ARKEN PAY",
+    "executableName": "arken-pay",
+    "copyright": "© ARKEN PAY",
+    "directories": {
+      "output": "dist",
+      "buildResources": "recursos"
+    },
+    "files": [
+      "electron/**",
+      "www/**",
+      "recursos/icono.png",
+      "package.json",
+      "!**/*.{map,d.ts,md}"
+    ],
+    "asar": true,
+    "npmRebuild": false,
+    "icon": "recursos/icono.png",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "ARKEN-PAY-${version}-Windows.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ARKEN PAY",
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": [
+        "es_ES"
+      ],
+      "language": "3082"
+    },
+    "linux": {
+      "target": [
+        "dir"
+      ],
+      "category": "Office"
+    },
+    "publish": null
+  }
+}

@@ -483,6 +483,7 @@
     if (t.saldo === 0) return 'pagada';
     if (t.saldo < 0) return 'saldo_a_favor';
     if (f.radian.reclamo && !f.radian.aceptada) return 'en_reclamo';
+    if (t.saldoExigible <= 0 && t.garantiaPendiente > 0) return 'garantia';
     const vencida = hoy && t.saldoExigible > 0 && f.fechaVencimiento < hoy;
     if (vencida) return 'vencida';
     if (t.recaudado + t.retenido + t.saldoFavorAplicado > 0) return 'con_abonos';
@@ -493,6 +494,7 @@
     registrada: 'Registrada',
     aceptada: 'Aceptada',
     con_abonos: 'Con abonos',
+    garantia: 'Solo garantía pendiente',
     pagada: 'Pagada',
     vencida: 'Vencida',
     en_reclamo: 'En reclamo',
