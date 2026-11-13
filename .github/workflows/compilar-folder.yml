@@ -1,0 +1,102 @@
+name: Compilar ARKEN FOLDER
+
+# ARKEN FOLDER (carpeta folder/): tablero de accesos directos a carpetas, solo para Windows.
+# Prueba el núcleo y la app empacada en Linux y en Windows, y deja en la pestaña Actions
+# (sección «Artifacts») el instalador y la versión portátil (.exe que no se instala).
+# Una etiqueta folder-vX.Y.Z publica además una versión en «Releases».
+
+on:
+  push:
+    branches: [main]
+    tags: ['folder-v*']
+    paths:
+      - 'folder/**'
+      - '.github/workflows/compilar-folder.yml'
+  pull_request:
+    paths:
+      - 'folder/**'
+      - '.github/workflows/compilar-folder.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: compilar-folder-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: folder
+
+jobs:
+  pruebas:
+    name: Pruebas (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: folder/package-lock.json
+      - run: npm ci
+      - name: Núcleo (permisos por carpeta y guardado del tablero)
+        run: npm run prueba:nucleo
+      - name: Empaquetar la app
+        run: npm run dist:linux
+      - name: La app empacada (acceso, explorar, vista previa, búsqueda, solo lectura, sin internet)
+        run: xvfb-run -a -s "-screen 0 1600x1000x24" npm run prueba:escritorio -- dist/linux-unpacked/arken-folder
+
+  windows:
+    name: Windows
+    needs: pruebas
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: folder/package-lock.json
+      - run: npm ci
+      - name: Núcleo
+        run: npm run prueba:nucleo
+      - name: Instalador y versión portátil
+        run: npm run dist:windows
+      - name: La app empacada funciona en Windows
+        run: npm run prueba:escritorio -- dist/win-unpacked/arken-folder.exe
+      # Con archive: false se sube un archivo por paso: el instalador y la versión portátil
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: folder/dist/ARKEN-FOLDER-*-Windows.exe
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: folder/dist/ARKEN-FOLDER-*-Windows-portable.exe
+          if-no-files-found: error
+
+  publicar:
+    name: Publicar versión
+    if: startsWith(github.ref, 'refs/tags/folder-v')
+    needs: windows
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: instaladores
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v3
+        with:
+          name: ARKEN FOLDER ${{ github.ref_name }}
+          files: instaladores/**/*.exe
+          fail_on_unmatched_files: true
+          body: |
+            **Windows:** …-Windows.exe (instalador, crea el acceso en el escritorio) · …-Windows-portable.exe (se abre sin instalar).

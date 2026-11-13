@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es" data-tema="claro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' app: arkenarchivo: data: blob:; media-src arkenarchivo:; frame-src arkenarchivo:; object-src arkenarchivo:; connect-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'">
+<title>ARKEN FOLDER</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<div id="fondo" class="fondo" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <img class="brand-mark" src="logo.png" alt="">
+    <div class="brand-txt">
+      <span class="brand-name">ARKEN</span>
+      <span class="brand-sub">FOLDER</span>
+    </div>
+  </div>
+  <div class="buscador">
+    <svg class="lupa" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="buscar" type="search" placeholder="Buscar carpetas y archivos…  (Ctrl+K)" autocomplete="off" spellcheck="false" aria-label="Buscar">
+    <div id="sugerencias" class="sugerencias hide" role="listbox"></div>
+  </div>
+  <div class="top-acciones">
+    <button class="btn btn-brass" id="btnAcceso" type="button" title="Dar acceso a una carpeta (Ctrl+O)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13h6"/></svg>
+      <span>Dar acceso</span>
+    </button>
+    <button class="btn-icono" id="btnTema" type="button" title="Tema claro u oscuro" aria-label="Tema claro u oscuro">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="btn-icono" id="btnPersonalizar" type="button" title="Personalizar el tablero" aria-label="Personalizar el tablero">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A5.6 5.6 0 0 0 22 9.8C22 5.5 17.5 2 12 2z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="cuerpo">
+  <aside class="rail" aria-label="Navegación">
+    <nav class="rail-nav">
+      <button class="rail-btn" data-vista="tablero" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span>Tablero</span>
+      </button>
+      <button class="rail-btn" data-vista="explorar" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span>Explorar</span>
+      </button>
+      <button class="rail-btn" data-vista="favoritos" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1 6.2L12 17.4 6.5 20.3l1-6.2L3 9.7l6.2-.9z"/></svg>
+        <span>Favoritos</span>
+      </button>
+      <button class="rail-btn" data-vista="recientes" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span>Recientes</span>
+      </button>
+    </nav>
+    <div class="rail-sec">
+      <div class="eyebrow">Carpetas con acceso</div>
+      <div id="listaAccesos" class="accesos"></div>
+    </div>
+    <div class="rail-pie">
+      <div class="seguro">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.4 8 9 4.6-.6 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span>Solo lectura · sin internet</span>
+      </div>
+      <span class="version" id="version"></span>
+    </div>
+  </aside>
+  <main id="vista" class="vista" tabindex="-1"></main>
+</div>
+
+<div id="capa" class="capa hide"></div>
+<div id="menuCtx" class="ctx hide" role="menu"></div>
+<div id="avisos" class="avisos" aria-live="polite"></div>
+
+<script src="iconos.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

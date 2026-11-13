@@ -1,0 +1,67 @@
+{
+  "name": "arken-folder",
+  "productName": "ARKEN FOLDER",
+  "version": "1.0.0",
+  "description": "ARKEN FOLDER · Tablero personalizable de accesos directos a sus carpetas, de la familia ARKEN 360.",
+  "private": true,
+  "author": "ARKEN CONTROL",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "escritorio": "electron .",
+    "prueba:nucleo": "node pruebas/nucleo.mjs",
+    "prueba:escritorio": "node pruebas/escritorio.mjs",
+    "prueba": "npm run prueba:nucleo",
+    "dist:windows": "electron-builder --win nsis portable --x64 --publish never",
+    "dist:linux": "electron-builder --linux dir --publish never"
+  },
+  "devDependencies": {
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "playwright-core": "^1.63.0"
+  },
+  "build": {
+    "appId": "com.aboteroproyectos.arkenfolder",
+    "productName": "ARKEN FOLDER",
+    "executableName": "arken-folder",
+    "copyright": "© ARKEN FOLDER",
+    "directories": {
+      "output": "dist",
+      "buildResources": "recursos"
+    },
+    "files": [
+      "electron/**",
+      "ui/**",
+      "recursos/icono.png",
+      "package.json"
+    ],
+    "asar": true,
+    "npmRebuild": false,
+    "icon": "recursos/icono.png",
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "artifactName": "ARKEN-FOLDER-${version}-Windows.${ext}"
+    },
+    "portable": {
+      "artifactName": "ARKEN-FOLDER-${version}-Windows-portable.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ARKEN FOLDER",
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": ["es_ES"],
+      "language": "3082"
+    },
+    "linux": {
+      "target": ["dir"],
+      "category": "Utility"
+    },
+    "publish": null
+  }
+}
