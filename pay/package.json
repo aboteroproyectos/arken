@@ -1,7 +1,7 @@
 {
   "name": "arken-pay",
   "productName": "ARKEN PAY",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "ARKEN PAY · Control de facturación electrónica, recaudo y cartera por proyecto, de la familia ARKEN.",
   "private": true,
   "main": "electron/main.cjs",
@@ -10,12 +10,13 @@
     "preparar": "node herramientas/preparar-web.mjs",
     "prueba:nucleo": "node --test pruebas/nucleo.mjs",
     "prueba:app": "npm run preparar && node pruebas/app.mjs",
-    "prueba": "npm run prueba:nucleo && npm run prueba:nube && npm run prueba:app",
+    "prueba": "npm run prueba:nucleo && npm run prueba:almacen && npm run prueba:nube && npm run prueba:app",
     "escritorio": "npm run preparar && electron .",
     "dist:windows": "npm run preparar && electron-builder --win nsis --x64 --publish never",
     "dist:linux": "npm run preparar && electron-builder --linux dir --publish never",
     "prueba:escritorio": "npm run preparar && node pruebas/escritorio.mjs",
-    "prueba:nube": "node --test pruebas/nube.mjs"
+    "prueba:nube": "node --test pruebas/nube.mjs",
+    "prueba:almacen": "node --test pruebas/almacen.mjs"
   },
   "devDependencies": {
     "electron": "^44.4.5",

@@ -31,10 +31,28 @@ function validarForma(ev) {
   return { seq: ev.seq, id: ev.id, tipo: ev.tipo, fecha: ev.fecha, usuario: ev.usuario, datos: ev.datos, hashPrevio: ev.hashPrevio, hash: ev.hash };
 }
 
+// En Windows, el antivirus, el indexador o una copia en curso pueden tener el archivo abierto un
+// instante y la operación falla con EBUSY, EPERM o EACCES. Se reintenta con espera creciente
+// (hasta unos 6 segundos) antes de mostrar el error.
+const BLOQUEO = new Set(['EBUSY', 'EPERM', 'EACCES', 'EAGAIN']);
+async function reintentar(fn, intentos = 12) {
+  for (let i = 0; ; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (!BLOQUEO.has(e && e.code) || i >= intentos - 1) {
+        if (e && BLOQUEO.has(e.code)) e.message = `Windows tiene ocupado el archivo de datos (${e.code}). Cierre otras ventanas de ARKEN PAY y programas que lo estén abriendo (antivirus, OneDrive, Excel) e intente de nuevo. Detalle: ${e.message}`;
+        throw e;
+      }
+      await new Promise((r) => setTimeout(r, Math.min(1000, 50 * 2 ** i)));
+    }
+  }
+}
+
 async function leerJsonl(archivo) {
   let texto;
   try {
-    texto = await fsp.readFile(archivo, 'utf8');
+    texto = await reintentar(() => fsp.readFile(archivo, 'utf8'));
   } catch (e) {
     if (e.code === 'ENOENT') return [];
     throw e;
@@ -55,7 +73,7 @@ async function leerJsonl(archivo) {
 }
 
 async function agregarLinea(archivo, obj) {
-  const fh = await fsp.open(archivo, 'a');
+  const fh = await reintentar(() => fsp.open(archivo, 'a'));
   try {
     await fh.write(JSON.stringify(obj) + '\n');
     await fh.sync();
@@ -85,11 +103,19 @@ function crearLocal({ carpeta, diarias = 10 }) {
     }
     return eventos;
   }
+  // La copia del día se hace en la misma cola que las escrituras (nunca al mismo tiempo que una) y
+  // leyendo el archivo, no con copyFile: en Windows, copyFile abre el original sin permitir que otro
+  // lo escriba, y la escritura siguiente fallaba con EBUSY.
+  let ultimaCopia = 0;
   async function copiaDiaria() {
+    if (Date.now() - ultimaCopia < 10 * 60 * 1000) return;
+    ultimaCopia = Date.now();
     const hoy = new Date().toISOString().slice(0, 10);
     const destino = path.join(dirDiarias, `ARKEN_PAY_eventos_${hoy}.jsonl`);
     await fsp.mkdir(dirDiarias, { recursive: true });
-    await fsp.copyFile(archivo, destino);
+    const contenido = await reintentar(() => fsp.readFile(archivo));
+    await reintentar(() => fsp.writeFile(destino + '.tmp', contenido));
+    await reintentar(() => fsp.rename(destino + '.tmp', destino));
     const viejas = (await fsp.readdir(dirDiarias)).filter((n) => RE_DIARIA.test(n)).sort();
     for (const n of viejas.slice(0, Math.max(0, viejas.length - diarias))) await fsp.unlink(path.join(dirDiarias, n)).catch(() => {});
   }
@@ -105,7 +131,7 @@ function crearLocal({ carpeta, diarias = 10 }) {
         if (e.seq !== lista.length + 1 || e.hashPrevio !== (ultimo ? ultimo.hash : '')) return { conflicto: true, ultimo: lista.length };
         await agregarLinea(archivo, e);
         lista.push(e);
-        copiaDiaria().catch(() => {});
+        enOrden(() => copiaDiaria()).catch(() => {});
         return { ok: true, seq: e.seq };
       }),
     carpetaCopias: () => dirDiarias,
@@ -117,7 +143,7 @@ function crearLocal({ carpeta, diarias = 10 }) {
         const sello = new Date().toISOString().replace(/[:.]/g, '-');
         const destino = path.join(carpeta, `eventos-archivado-${sello}.jsonl`);
         try {
-          await fsp.rename(archivo, destino);
+          await reintentar(() => fsp.rename(archivo, destino));
         } catch (e) {
           if (e.code !== 'ENOENT') throw e;
         }
