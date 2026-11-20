@@ -1,0 +1,114 @@
+name: Compilar ARKEN OBRA
+
+# ARKEN OBRA (carpeta obra/) junta en un solo programa de escritorio las apps de la familia:
+# ARKEN CONTROL, ARKEN PRECIOS, ARKEN ANALYTICA y, cuando esté en el repositorio, ARKEN BANK.
+# Cada cambio en main, en cualquiera de ellas, arma de nuevo el instalador de Windows; queda en la
+# pestaña Actions (sección «Artifacts» de cada ejecución). Una etiqueta obra-vX.Y.Z publica además
+# una versión en «Releases», que se descarga sin iniciar sesión.
+
+on:
+  push:
+    branches: [main]
+    tags: ['obra-v*']
+    paths:
+      - 'obra/**'
+      - 'programa/**'
+      - 'app/**'
+      - 'electron/**'
+      - 'herramientas/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'analytica/**'
+      - 'precios/**'
+      - 'bank/**'
+      - '.github/workflows/compilar-obra.yml'
+  pull_request:
+    paths:
+      - 'obra/**'
+      - '.github/workflows/compilar-obra.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: obra-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Nadie necesita el Electron de npm: electron-builder baja el suyo y la prueba abre la app empaquetada
+  ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+
+jobs:
+  # ─── Se empaqueta para Linux (el mismo código de Windows) y se abre de verdad ───
+  pruebas:
+    name: Pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Los programas no traen datos de la empresa
+        run: npm ci && npm run verificar-sin-datos
+      - name: Preparar las apps de la familia
+        shell: bash
+        run: |
+          npm run preparar
+          (cd analytica && npm ci && npm run preparar)
+          (cd precios && npm ci && npm run preparar)
+      - name: Empaquetar ARKEN OBRA para Linux
+        working-directory: obra
+        run: npm ci && npm run dist:linux
+      - name: Prueba de la app empaquetada
+        working-directory: obra
+        run: |
+          command -v xvfb-run || (sudo apt-get update && sudo apt-get install -y xvfb)
+          xvfb-run -a npm run prueba:escritorio
+
+  windows:
+    name: Windows
+    needs: pruebas
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Preparar las apps de la familia
+        shell: bash
+        run: |
+          npm ci && npm run preparar
+          (cd analytica && npm ci && npm run preparar)
+          (cd precios && npm ci && npm run preparar)
+      - name: Instalador
+        working-directory: obra
+        shell: bash
+        run: npm ci && npm run dist:windows
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: obra/dist/*.exe
+          if-no-files-found: error
+
+  # ─── Publicación: solo con una etiqueta obra-vX.Y.Z ───
+  publicar:
+    name: Publicar versión
+    if: startsWith(github.ref, 'refs/tags/obra-v')
+    needs: [windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: instaladores
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v3
+        with:
+          name: ARKEN OBRA ${{ github.ref_name }}
+          files: instaladores/**/*.exe
+          fail_on_unmatched_files: true
+          body: |
+            **Windows:** ARKEN-OBRA-…-Windows.exe · ARKEN CONTROL, ARKEN PRECIOS y ARKEN ANALYTICA en un solo programa (y ARKEN BANK cuando esté en el repositorio).
+            La primera vez, SmartScreen avisa porque la app no está firmada: «Más información» › «Ejecutar de todas formas».
