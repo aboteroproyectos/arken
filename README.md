@@ -4,6 +4,8 @@ Sistema integral para el control de obra, empaquetado como app para **Android, i
 
 Las cuatro apps usan el mismo programa: [`programa/ARKEN_CONTROL.html`](programa/ARKEN_CONTROL.html). Solo cambia lo que el programa hace distinto dentro de una app: guardado, descargas, impresión y enlaces. Todo funciona sin internet.
 
+> **¿Quiere todas las apps en el PC en un solo programa?** [ARKEN OBRA](obra/README.md) junta ARKEN CONTROL, ARKEN PRECIOS y ARKEN ANALYTICA (y ARKEN BANK cuando esté lista) con una pantalla de inicio y un solo instalador de Windows.
+
 ## Descargar las apps
 
 Cada cambio en `main` compila las apps en GitHub Actions:
