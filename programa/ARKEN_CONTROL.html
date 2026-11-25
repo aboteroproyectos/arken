@@ -61968,10 +61968,11 @@ adPUC = function(c){
    segunda fórmula— y cada indicador se calcula aislado: si un dato falta,
    ese indicador muestra «—» y el resto del tablero sigue en pie.
    ════════════════════════════════════════════════════════════════════════ */
-const ARKEN_VERSION = '18.0.0';
+const ARKEN_VERSION = '18.0.1';
 const ARKEN_VERSION_FECHA = '2026-11-08';
 const HISTORIAL_VERSIONES = [
-  ['18.0.0', '2026-11-25', 'Resumen para pagos en Causaciones: se escogen documentos de pago y cortes de obra y sale para el cliente una hoja con beneficiario, cuenta bancaria, número y valor de cada documento, el total por beneficiario y la tabla de giros. Vista previa, impresión o PDF, y registro con consecutivo de cada resumen enviado. Envío de documentos también lleva ahora su registro de remisiones (RM-###) con reimpresión.'],
+  ['18.0.1', '2026-11-25', 'Resumen para pagos: el valor de cada documento es el neto a pagar, con la amortización del anticipo y las retenciones descontadas, igual que en Envío de documentos.'],
+  ['18.0.0', '2026-11-25', 'Resumen para pagos en Causaciones: se escogen documentos de pago y cortes de obra y sale para el cliente una hoja con beneficiario, cuenta bancaria, número y neto a pagar de cada documento, el total por beneficiario y la tabla de giros. Vista previa, impresión o PDF, y registro con consecutivo de cada resumen enviado. Envío de documentos también lleva ahora su registro de remisiones (RM-###) con reimpresión.'],
   ['17.0.0', '2026-11-11', 'Datos compartidos entre equipos: lo que se registra en el computador o en el celular aparece solo en los demás, por proyecto, sin pasar respaldos. Los datos se guardan cifrados en el Google Drive de la empresa con el mismo servicio del correo vinculado; los cambios de dos equipos se combinan registro por registro y sin internet se sigue trabajando. Para unir un celular basta escanear un código QR.'],
   ['16.0.0', '2026-11-11', 'Correo vinculado: las alertas, la bitácora y las actas de comité se envían desde el Gmail de la empresa con el PDF adjunto, sin abrir el correo (servicio gratuito de Google Apps Script que se instala una vez). Envío automático de la bandeja de salida y envío a todos los destinatarios de una vez.'],
   ['15.0.0', '2026-11-09', 'Memorias de cálculo profesionales: 25 formatos con criterio de medida, norma y fórmula; dibujo explicativo que toma las medidas de cada fila; operación escrita con números reales; deducciones, desperdicio y planos; resumen de acero por diámetro; trazabilidad de cada actividad del presupuesto contra sus memorias con historial de aplicación; PDF completo. Dictado por voz en todos los campos de texto.'],
@@ -74563,7 +74564,9 @@ function adNube(c){ Nube.pintarAdmin(c); }
    Botón verde transversal de Causaciones. El usuario escoge los documentos de
    pago y los cortes de obra que va a mandar al cliente, y sale una hoja para
    que el cliente gire sin errores: beneficiario, identificación, cuenta
-   bancaria, número del documento y valor del documento, con el total por
+   bancaria, número del documento y valor neto a pagar (el mismo del final de
+   cada documento y de Envío de documentos, con la amortización de anticipo
+   y las retenciones descontadas), con el total por
    beneficiario cuando tiene varios documentos y una tabla de giros (una
    transferencia por beneficiario).
 
@@ -74590,7 +74593,7 @@ function itemsResumenPagos(p){
       num: d.numero || d.consecutivo || '', idProv: d.idProveedor || ('?' + (pv.razonSocial||'')),
       prov: pv.razonSocial || '—', ident: pv.identificacion ? pv.identificacion + (pv.dv ? '-' + pv.dv : '') : '',
       cuenta: cuentaBancariaTxt(pv.banco, pv.tipoCuenta, pv.numeroCuenta),
-      total: t.total, pagado: !!d.pagado, rp: d.resumenPago || null });
+      total: t.neto, bruto: t.total, amort: t.amortizacion, pagado: !!d.pagado, rp: d.resumenPago || null });
   });
   (p.cortes||[]).forEach(c => {
     if (c.anulado || c.estado === 'anulado') return;
@@ -74602,7 +74605,7 @@ function itemsResumenPagos(p){
     items.push({ k:'cor:' + c.id, ref:c, fecha:c.fecha, tipo:'Corte de obra' + (k.consecutivo ? ' · ' + k.consecutivo : ''),
       num: c.consecutivo || '', idProv: k.idProveedor || ('?' + (pv.razonSocial||'')),
       prov: pv.razonSocial || '—', ident: pv.identificacion ? pv.identificacion + (pv.dv ? '-' + pv.dv : '') : '',
-      cuenta: cta, total: l.total, pagado: !!c.pagado, rp: c.resumenPago || null });
+      cuenta: cta, total: l.neto, bruto: l.total, amort: l.amortizacion, pagado: !!c.pagado, rp: c.resumenPago || null });
   });
   items.sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)));
   return items;
@@ -74641,7 +74644,7 @@ function docResumenPagos(p, r){
         ['Dirigido a', r.para || '—'], ['Asunto', r.asunto || '—'], ['Elaboró', r.nombreUsuario || r.usuario || '—'],
         ['Documentos', String(r.items.length)], ['Beneficiarios', String(lista.length)], ['Total a pagar', money(r.total)]] },
       { t:'texto', txt:'Relacionamos los documentos de pago y cortes de obra del proyecto ' + p.nombre +
-        ' para que se gestionen los pagos. El valor de cada línea es el valor del documento; cuando un beneficiario tiene varios documentos se indica el total a girarle.' },
+        ' para que se gestionen los pagos. El valor de cada línea es el neto a pagar del documento (con retenciones y amortización de anticipo descontadas); cuando un beneficiario tiene varios documentos se indica el total a girarle.' },
       { t:'sec', txt:'Detalle por documento' },
       { t:'tabla', tam:7.4,
         head:[['Proveedor / contratista', 'Identificación', 'Cuenta bancaria', 'Tipo', 'Número', 'Fecha', { content:'Total a pagar', styles:{ halign:'right' } }]],
@@ -74657,6 +74660,7 @@ function docResumenPagos(p, r){
         foot:[[{ content:'TOTAL', colSpan:5, styles:{ fontStyle:'bold' } }, { content:money(r.total), styles:{ halign:'right', fontStyle:'bold' } }]] },
       (sinCuenta || variasCuentas) ? { t:'nota', txt:(sinCuenta ? sinCuenta + ' beneficiario(s) sin cuenta bancaria registrada: solicítela antes de girar. ' : '') +
         (variasCuentas ? variasCuentas + ' beneficiario(s) con más de una cuenta según el contrato: verifique a cuál girar.' : '') } : null,
+      r.items.some(x => x.total < 0) ? { t:'nota', txt:'Un valor negativo indica que las deducciones del documento (retenido, retenciones, amortización de anticipo u otras) superan su valor: no hay nada que girar por él y ese saldo se descuenta del total del beneficiario.' } : null,
       r.observaciones ? { t:'texto', txt:'Observaciones: ' + r.observaciones, gris:true, tam:8 } : null,
       { t:'firmas', firmas:[{ n:'Elaboró' }, { n:'Aprobó' }, { n:'Recibió', s:'Nombre, firma y fecha' }] }
     ].filter(Boolean)
@@ -74729,7 +74733,7 @@ function resumenPagos(p){
             '<option value="">Documentos y cortes</option><option value="doc">Sólo documentos de pago</option><option value="cor">Sólo cortes de obra</option></select></div>' +
           '<div class="field grow"><label>Buscar</label><input id="rpBuscar" type="search" placeholder="Proveedor, número, tipo…"></div></div>' +
         '<div class="tw scroll" style="max-height:40vh"><table class="t" id="rpT"><thead><tr><th></th><th>Fecha</th><th>Tipo</th><th>Número</th>' +
-          '<th>Proveedor / contratista</th><th>Cuenta bancaria</th><th class="n">Total a pagar</th><th>Estado</th></tr></thead><tbody></tbody></table></div>' +
+          '<th>Proveedor / contratista</th><th>Cuenta bancaria</th><th class="n">Neto a pagar</th><th>Estado</th></tr></thead><tbody></tbody></table></div>' +
         '<div id="rpSuma" style="margin-top:10px"></div>' +
       '</div>' +
       '<div id="rpReg" style="display:none"></div>',
@@ -74818,7 +74822,7 @@ function resumenPagos(p){
       para: $('#rpPara', m.el).value.trim(), asunto: $('#rpAsunto', m.el).value.trim(), observaciones: $('#rpObs', m.el).value.trim(),
       usuario: u ? u.usuario : 'sistema', nombreUsuario: u ? ((u.nombre||'') + ' ' + (u.apellidos||'')).trim() : '',
       creado: Date.now(),
-      items: el.map(x => ({ k:x.k, fecha:x.fecha, tipo:x.tipo, num:x.num, idProv:x.idProv, prov:x.prov, ident:x.ident, cuenta:x.cuenta, total:x.total })),
+      items: el.map(x => ({ k:x.k, fecha:x.fecha, tipo:x.tipo, num:x.num, idProv:x.idProv, prov:x.prov, ident:x.ident, cuenta:x.cuenta, total:x.total, bruto:x.bruto, amort:x.amort })),
       total: redondear(el.reduce((t, x) => t + x.total, 0)), emisiones: []
     };
     // Queda en el registro al imprimir o guardar el PDF; cerrar la vista previa no registra nada.
@@ -75034,7 +75038,7 @@ function envioDocumentos(p){
         a:'<p>En <b>05 Causaciones</b> pulse el botón verde <b>Resumen para pagos</b>. Marque los documentos de pago y los cortes de obra que va a enviar ' +
           '(por defecto se ven los que están por pagar y aún no han salido en otro resumen). Abajo ve cuántos lleva, cuántos beneficiarios y el total.</p>' +
           '<p>Pulse <b>Vista previa</b> y luego <b>Imprimir</b> o <b>Guardar PDF</b>. El documento trae, por cada documento, el proveedor o contratista, su identificación, ' +
-          'la cuenta bancaria, el número y el valor del documento; si un beneficiario tiene varios, el total que hay que girarle. Al final va la tabla ' +
+          'la cuenta bancaria, el número y el neto a pagar del documento (el mismo valor del final del documento y de Envío de documentos: ya descuenta retenciones y amortización de anticipo); si un beneficiario tiene varios, el total que hay que girarle. Al final va la tabla ' +
           '<b>Giros por beneficiario</b>: una transferencia por cada uno.</p>' },
       { q:'¿Dónde veo los resúmenes para pagos que ya envié?',
         a:'<p>En el mismo botón, pestaña <b>Registro de resúmenes</b>. Cada resumen tiene consecutivo (RP-001, RP-002…), fecha, a quién se dirigió, total, ' +
