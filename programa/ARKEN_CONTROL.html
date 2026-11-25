@@ -1977,6 +1977,10 @@ table.t tbody tr:hover > td{ background:rgba(169,139,84,.06); }
 @media print{ .tbx{ display:none !important; } }
 [data-tema="oscuro"] .tbx{ background:radial-gradient(120% 140% at 100% 0%, #23272B 0%, #141618 50%, #0B0C0D 100%); border-color:#262A2E; }
 </style>
+<style id="v18-resumen-pagos">
+.btn.verde{ background:#2E7D4F; border-color:#2E7D4F; color:#fff; }
+.btn.verde:hover{ background:#24663F; border-color:#24663F; color:#fff; }
+</style>
 </head>
 <body>
 
@@ -29685,6 +29689,7 @@ Vistas.render05 = function(st){
       'Registro contable y de almacén del proyecto. Comprar alimenta el inventario; sólo la salida de almacén y el corte de obra consumen presupuesto.',
       '<button class="btn" id="b5Dev" type="button">Devolución de retenido</button>' +
       '<button class="btn primary" id="b5Res" type="button">Resumen de contratos</button>' +
+      '<button class="btn verde" id="b5Pag" type="button">RESUMEN PARA PAGOS</button>' +
       '<button class="btn" id="b5Env" type="button">Envío de documentos</button>' +
       '<button class="btn" id="b5Cer" type="button">Cerrar documentos a la fecha</button>') +
     UI.tabs(TABS_05, tab, k => { Sesion.tab05 = k; App.render(); }) +
@@ -29692,6 +29697,7 @@ Vistas.render05 = function(st){
   $('#b5Dev').onclick = () => devolucionRetenido(p);
   $('#b5Res').onclick = () => resumenContratos(p);
   $('#b5Env').onclick = () => envioDocumentos(p);
+  $('#b5Pag').onclick = () => resumenPagos(p);
   $('#b5Cer').onclick = () => cerrarDocumentosPeriodo(p);
   ({ prov:tabProveedores, req:tabRequerimientos, docs:tabDocumentos, inv:tabInventario,
      sal:tabSalidas, comp:tabComparativos, con:tabContratos, ctrl:tabControlContractual, cor:tabCortes, rev:tabRevision,
@@ -35523,7 +35529,7 @@ function resumenContratos(p){
 }
 
 /* ═══════════════════ 5.9 ENVÍO DE DOCUMENTOS ═══════════════════ */
-function envioDocumentos(p){
+function envioDocumentosV17(p){
   const items = [];
   (p.documentos||[]).forEach(d => {
     const pv = Modelo.proveedor(p, d.idProveedor) || {};
@@ -61962,9 +61968,10 @@ adPUC = function(c){
    segunda fórmula— y cada indicador se calcula aislado: si un dato falta,
    ese indicador muestra «—» y el resto del tablero sigue en pie.
    ════════════════════════════════════════════════════════════════════════ */
-const ARKEN_VERSION = '17.0.0';
+const ARKEN_VERSION = '18.0.0';
 const ARKEN_VERSION_FECHA = '2026-11-08';
 const HISTORIAL_VERSIONES = [
+  ['18.0.0', '2026-11-25', 'Resumen para pagos en Causaciones: se escogen documentos de pago y cortes de obra y sale para el cliente una hoja con beneficiario, cuenta bancaria, número y valor de cada documento, el total por beneficiario y la tabla de giros. Vista previa, impresión o PDF, y registro con consecutivo de cada resumen enviado. Envío de documentos también lleva ahora su registro de remisiones (RM-###) con reimpresión.'],
   ['17.0.0', '2026-11-11', 'Datos compartidos entre equipos: lo que se registra en el computador o en el celular aparece solo en los demás, por proyecto, sin pasar respaldos. Los datos se guardan cifrados en el Google Drive de la empresa con el mismo servicio del correo vinculado; los cambios de dos equipos se combinan registro por registro y sin internet se sigue trabajando. Para unir un celular basta escanear un código QR.'],
   ['16.0.0', '2026-11-11', 'Correo vinculado: las alertas, la bitácora y las actas de comité se envían desde el Gmail de la empresa con el PDF adjunto, sin abrir el correo (servicio gratuito de Google Apps Script que se instala una vez). Envío automático de la bandeja de salida y envío a todos los destinatarios de una vez.'],
   ['15.0.0', '2026-11-09', 'Memorias de cálculo profesionales: 25 formatos con criterio de medida, norma y fórmula; dibujo explicativo que toma las medidas de cada fila; operación escrita con números reales; deducciones, desperdicio y planos; resumen de acero por diámetro; trazabilidad de cada actividad del presupuesto contra sus memorias con historial de aplicación; PDF completo. Dictado por voz en todos los campos de texto.'],
@@ -74547,6 +74554,507 @@ function adNube(c){ Nube.pintarAdmin(c); }
         'AES-256 con una llave que sólo tienen los equipos vinculados: ni Google ni quien abra la carpeta lo puede leer. En el índice sí se ven ' +
         'los nombres de los proyectos y de los equipos. La llave no viaja dentro del archivo HTML ni de los respaldos; si un equipo se pierde, ' +
         'desvincúlelo y cambie las contraseñas de los usuarios.</p>' });
+})();
+
+</script>
+<script id="v18-resumen-pagos-js">
+/* ══════════════════════════════════════════════════════════════════════════
+   ARKEN CONTROL v18 · MÓDULO 05 — RESUMEN PARA PAGOS
+   Botón verde transversal de Causaciones. El usuario escoge los documentos de
+   pago y los cortes de obra que va a mandar al cliente, y sale una hoja para
+   que el cliente gire sin errores: beneficiario, identificación, cuenta
+   bancaria, número del documento y valor del documento, con el total por
+   beneficiario cuando tiene varios documentos y una tabla de giros (una
+   transferencia por beneficiario).
+
+   Trazabilidad: cada resumen que se imprime o se guarda en PDF queda en
+   p.resumenesPago con consecutivo RP-###, la foto exacta de lo que se envió
+   (no se recalcula después) y cada emisión con fecha, usuario y modo. Cada
+   documento o corte incluido guarda la marca resumenPago para saber en qué
+   resumen salió.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function cuentaBancariaTxt(banco, tipo, numero){
+  if (!numero && !banco) return '';
+  return [banco, tipo, numero].filter(Boolean).join(' · ');
+}
+
+/** Lista de documentos y cortes que se pueden incluir en un resumen. */
+function itemsResumenPagos(p){
+  const items = [];
+  (p.documentos||[]).forEach(d => {
+    if (d.anulado || d.estado === 'anulado') return;
+    const pv = Modelo.proveedor(p, d.idProveedor) || {};
+    const t = Calculo.totalesDocumento(d);
+    items.push({ k:'doc:' + d.id, ref:d, fecha:d.fecha, tipo:tipoDocNombre(d.tipo),
+      num: d.numero || d.consecutivo || '', idProv: d.idProveedor || ('?' + (pv.razonSocial||'')),
+      prov: pv.razonSocial || '—', ident: pv.identificacion ? pv.identificacion + (pv.dv ? '-' + pv.dv : '') : '',
+      cuenta: cuentaBancariaTxt(pv.banco, pv.tipoCuenta, pv.numeroCuenta),
+      total: t.total, pagado: !!d.pagado, rp: d.resumenPago || null });
+  });
+  (p.cortes||[]).forEach(c => {
+    if (c.anulado || c.estado === 'anulado') return;
+    const k = Modelo.contrato(p, c.idContrato) || {};
+    const pv = Modelo.proveedor(p, k.idProveedor) || {};
+    const l = Calculo.liquidacionCorte(p, c);
+    const cta = k.numeroCuenta ? cuentaBancariaTxt(k.banco, k.tipoCuenta, k.numeroCuenta)
+                               : cuentaBancariaTxt(pv.banco, pv.tipoCuenta, pv.numeroCuenta);
+    items.push({ k:'cor:' + c.id, ref:c, fecha:c.fecha, tipo:'Corte de obra' + (k.consecutivo ? ' · ' + k.consecutivo : ''),
+      num: c.consecutivo || '', idProv: k.idProveedor || ('?' + (pv.razonSocial||'')),
+      prov: pv.razonSocial || '—', ident: pv.identificacion ? pv.identificacion + (pv.dv ? '-' + pv.dv : '') : '',
+      cuenta: cta, total: l.total, pagado: !!c.pagado, rp: c.resumenPago || null });
+  });
+  items.sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)));
+  return items;
+}
+
+/** Arma el documento (bloques) a partir de la foto guardada de un resumen. */
+function docResumenPagos(p, r){
+  const grupos = new Map();
+  r.items.forEach(x => {
+    const g = grupos.get(x.idProv) || { prov:x.prov, ident:x.ident, cuentas:new Set(), filas:[], total:0 };
+    g.filas.push(x); g.total = redondear(g.total + x.total);
+    if (x.cuenta) g.cuentas.add(x.cuenta);
+    grupos.set(x.idProv, g);
+  });
+  const lista = [...grupos.values()].sort((a,b) => a.prov.localeCompare(b.prov, 'es'));
+  const gris = [240,237,230];
+  const der = v => ({ content: money(v), styles:{ halign:'right' } });
+  const body = [];
+  lista.forEach(g => {
+    g.filas.sort((a,b) => String(a.fecha).localeCompare(String(b.fecha)));
+    g.filas.forEach(x => body.push([x.prov, x.ident || '—', x.cuenta || 'SIN CUENTA REGISTRADA', x.tipo, x.num || '—', fmtFecha(x.fecha), der(x.total)]));
+    if (g.filas.length > 1){
+      const f = [{ content:'TOTAL ' + g.prov + ' — ' + g.filas.length + ' documentos', colSpan:6, styles:{ fontStyle:'bold', fillColor:gris } },
+                 { content:money(g.total), styles:{ halign:'right', fontStyle:'bold', fillColor:gris } }];
+      f._clase = 'subtotal';
+      body.push(f);
+    }
+  });
+  const sinCuenta = lista.filter(g => !g.cuentas.size).length;
+  const variasCuentas = lista.filter(g => g.cuentas.size > 1).length;
+  return {
+    nombre:'ARKEN_resumen_pagos_' + r.consecutivo, titulo:'RESUMEN PARA PAGOS', documento:'Resumen para pagos',
+    proyecto:p, orientacion:'l',
+    bloques:[
+      { t:'kv', cols:3, pares:[['Consecutivo', r.consecutivo], ['Fecha', fmtFecha(r.fecha)], ['Proyecto', p.nombre + (p.codigo ? ' · ' + p.codigo : '')],
+        ['Dirigido a', r.para || '—'], ['Asunto', r.asunto || '—'], ['Elaboró', r.nombreUsuario || r.usuario || '—'],
+        ['Documentos', String(r.items.length)], ['Beneficiarios', String(lista.length)], ['Total a pagar', money(r.total)]] },
+      { t:'texto', txt:'Relacionamos los documentos de pago y cortes de obra del proyecto ' + p.nombre +
+        ' para que se gestionen los pagos. El valor de cada línea es el valor del documento; cuando un beneficiario tiene varios documentos se indica el total a girarle.' },
+      { t:'sec', txt:'Detalle por documento' },
+      { t:'tabla', tam:7.4,
+        head:[['Proveedor / contratista', 'Identificación', 'Cuenta bancaria', 'Tipo', 'Número', 'Fecha', { content:'Total a pagar', styles:{ halign:'right' } }]],
+        anchos:{ 6:{ halign:'right' } },
+        body: body.length ? body : [[{ content:'Sin documentos.', colSpan:7 }]],
+        foot:[[{ content:'TOTAL A PAGAR', colSpan:6, styles:{ fontStyle:'bold' } }, { content:money(r.total), styles:{ halign:'right', fontStyle:'bold' } }]] },
+      { t:'sec', txt:'Giros por beneficiario' },
+      { t:'tabla', tam:7.6,
+        head:[['#', 'Beneficiario', 'Identificación', 'Cuenta bancaria', 'Documentos', { content:'Valor a girar', styles:{ halign:'right' } }]],
+        anchos:{ 0:{ cellWidth:10 }, 5:{ halign:'right' } },
+        body: lista.map((g,i) => [String(i+1), g.prov, g.ident || '—', g.cuentas.size ? [...g.cuentas].join(' / ') : 'SIN CUENTA REGISTRADA',
+          g.filas.map(x => x.num || '—').join(', '), der(g.total)]),
+        foot:[[{ content:'TOTAL', colSpan:5, styles:{ fontStyle:'bold' } }, { content:money(r.total), styles:{ halign:'right', fontStyle:'bold' } }]] },
+      (sinCuenta || variasCuentas) ? { t:'nota', txt:(sinCuenta ? sinCuenta + ' beneficiario(s) sin cuenta bancaria registrada: solicítela antes de girar. ' : '') +
+        (variasCuentas ? variasCuentas + ' beneficiario(s) con más de una cuenta según el contrato: verifique a cuál girar.' : '') } : null,
+      r.observaciones ? { t:'texto', txt:'Observaciones: ' + r.observaciones, gris:true, tam:8 } : null,
+      { t:'firmas', firmas:[{ n:'Elaboró' }, { n:'Aprobó' }, { n:'Recibió', s:'Nombre, firma y fecha' }] }
+    ].filter(Boolean)
+  };
+}
+
+/** Vista previa propia: igual a la del sistema, pero deja constancia de cada
+    impresión o PDF en el registro del resumen. */
+function previaResumenPagos(p, r, alEmitir){
+  const cfg = docResumenPagos(p, r);
+  UI.modal({
+    titulo:'Resumen para pagos ' + r.consecutivo, eyebrow:'Vista previa del documento', ancho:'xwide',
+    cuerpo:'<div class="doc-view">' + Documentos.bloquesAHTML(cfg) + '</div>',
+    botones:[
+      { texto:'Cerrar' },
+      { texto:'Imprimir', accion: m => { m.cerrar(); registrarEmisionRP(p, r, 'impreso', alEmitir); Documentos.emitir(cfg, 'imprimir'); } },
+      { texto:'Guardar PDF', clase:'primary', accion: m => { m.cerrar(); registrarEmisionRP(p, r, 'PDF', alEmitir); Documentos.emitir(cfg, 'pdf'); } }
+    ]
+  });
+}
+
+function registrarEmisionRP(p, r, modo, alEmitir){
+  const u = Sesion.usuario ? Sesion.usuario.usuario : 'sistema';
+  if (!p.resumenesPago) p.resumenesPago = [];
+  const nuevo = !p.resumenesPago.some(x => x.id === r.id);
+  if (nuevo){
+    p.resumenesPago.push(r);
+    // la marca en cada documento: en qué resumen salió
+    r.items.forEach(x => {
+      const lista = x.k.indexOf('doc:') === 0 ? p.documentos : p.cortes;
+      const o = (lista||[]).find(z => z.id === x.k.slice(4));
+      if (o) o.resumenPago = { id:r.id, consecutivo:r.consecutivo, fecha:r.fecha };
+    });
+  }
+  (r.emisiones = r.emisiones || []).push({ ts: Date.now(), usuario:u, modo });
+  Modelo.auditar(nuevo ? 'generar' : 'reimprimir', 'resumen para pagos',
+    r.consecutivo + ' — ' + r.items.length + ' documento(s), ' + money(r.total) + ' — ' + modo + (r.para ? ' — para ' + r.para : ''), p.id);
+  App.guardar();
+  if (alEmitir) alEmitir();
+}
+
+function siguienteConsecutivoRP(p){
+  const n = (p.resumenesPago||[]).reduce((m, r) => Math.max(m, Number(String(r.consecutivo||'').replace(/\D/g,'')) || 0), 0);
+  return 'RP-' + String(n + 1).padStart(3, '0');
+}
+
+function resumenPagos(p){
+  const items = itemsResumenPagos(p);
+  const sel = new Set();
+  let vista = 'nuevo';
+  const ult = (p.resumenesPago||[]).slice(-1)[0] || {};
+  UI.modal({
+    titulo:'Resumen para pagos', eyebrow:'Para que el cliente gire rápido y sin errores — documentos de pago y cortes de obra', ancho:'xwide',
+    cuerpo:
+      '<div class="btn-row" style="margin-bottom:10px"><button class="btn sm verde" id="rpVNuevo" type="button">Nuevo resumen</button>' +
+        '<button class="btn sm" id="rpVReg" type="button">Registro de resúmenes (' + (p.resumenesPago||[]).length + ')</button></div>' +
+      '<div id="rpNuevo">' +
+        '<div class="grid g3">' +
+          '<div class="field"><label>Dirigido a (cliente)</label><input id="rpPara" placeholder="Nombre del cliente o dependencia" value="' + esc(ult.para||'') + '"></div>' +
+          '<div class="field"><label>Asunto</label><input id="rpAsunto" value="Resumen de documentos para pago"></div>' +
+          '<div class="field"><label>Fecha</label><input id="rpFecha" type="date" value="' + hoyISO() + '"></div>' +
+        '</div>' +
+        '<div class="field"><label>Observaciones (opcional)</label><input id="rpObs" placeholder="Ej.: pagar antes del viernes"></div>' +
+        '<div class="btn-row" style="margin:10px 0"><button class="btn sm" id="rpTodo" type="button">Seleccionar todo lo visible</button>' +
+          '<button class="btn sm" id="rpNada" type="button">Quitar selección</button>' +
+          '<div class="field" style="min-width:210px"><label>Mostrar</label><select id="rpFiltro">' +
+            '<option value="pend">Por pagar y sin resumen</option><option value="porpagar">Todos los por pagar</option>' +
+            '<option value="todos">Todos</option></select></div>' +
+          '<div class="field" style="min-width:150px"><label>Clase</label><select id="rpClase">' +
+            '<option value="">Documentos y cortes</option><option value="doc">Sólo documentos de pago</option><option value="cor">Sólo cortes de obra</option></select></div>' +
+          '<div class="field grow"><label>Buscar</label><input id="rpBuscar" type="search" placeholder="Proveedor, número, tipo…"></div></div>' +
+        '<div class="tw scroll" style="max-height:40vh"><table class="t" id="rpT"><thead><tr><th></th><th>Fecha</th><th>Tipo</th><th>Número</th>' +
+          '<th>Proveedor / contratista</th><th>Cuenta bancaria</th><th class="n">Total a pagar</th><th>Estado</th></tr></thead><tbody></tbody></table></div>' +
+        '<div id="rpSuma" style="margin-top:10px"></div>' +
+      '</div>' +
+      '<div id="rpReg" style="display:none"></div>',
+    botones:[{ texto:'Cerrar' }, { texto:'Vista previa', clase:'verde', accion: m => generar(m) }],
+    alAbrir: m => {
+      const q = s => $(s, m.el);
+      const btnGen = $$('.modal-foot .btn', m.el).slice(-1)[0];
+      function visibles(){
+        const f = q('#rpFiltro').value, cl = q('#rpClase').value, b = normaliza(q('#rpBuscar').value);
+        return items.filter(x => {
+          if (f === 'pend' && (x.pagado || x.rp)) return false;
+          if (f === 'porpagar' && x.pagado) return false;
+          if (cl && x.k.indexOf(cl + ':') !== 0) return false;
+          if (b && normaliza(x.prov + ' ' + x.num + ' ' + x.tipo + ' ' + x.ident).indexOf(b) < 0) return false;
+          return true;
+        });
+      }
+      function pinta(){
+        const l2 = visibles();
+        q('#rpT tbody').innerHTML = l2.length ? l2.map(x =>
+          '<tr><td><input type="checkbox" data-rp="' + x.k + '"' + (sel.has(x.k) ? ' checked' : '') + '></td>' +
+          '<td>' + fmtFecha(x.fecha) + '</td><td>' + esc(x.tipo) + '</td><td class="mono">' + esc(x.num || '—') + '</td>' +
+          '<td>' + esc(x.prov) + '<div class="muted small mono">' + esc(x.ident) + '</div></td>' +
+          '<td class="small">' + (x.cuenta ? esc(x.cuenta) : '<span class="tag warn">Sin cuenta</span>') + '</td>' +
+          '<td class="n">' + money(x.total) + '</td>' +
+          '<td>' + (x.pagado ? '<span class="tag ok">Pagado</span> ' : '') +
+            (x.rp ? '<span class="tag">En ' + esc(x.rp.consecutivo) + '</span><div class="muted small">' + fmtFecha(x.rp.fecha) + '</div>' : (x.pagado ? '' : '<span class="tag warn">Por pagar</span>')) +
+          '</td></tr>').join('')
+          : '<tr><td colspan="8" class="muted small" style="padding:14px">Ningún documento con ese filtro.</td></tr>';
+        $$('[data-rp]', m.el).forEach(c => c.onchange = () => { if (c.checked) sel.add(c.dataset.rp); else sel.delete(c.dataset.rp); suma(); });
+        suma();
+      }
+      function suma(){
+        const el = items.filter(x => sel.has(x.k));
+        const tot = el.reduce((t, x) => t + x.total, 0);
+        const benef = new Set(el.map(x => x.idProv)).size;
+        const sinC = el.filter(x => !x.cuenta).length;
+        q('#rpSuma').innerHTML = '<div class="alert ' + (sinC ? 'warn' : 'ok') + '"><div class="bd"><b>' + el.length + '</b> documento(s) seleccionados · <b>' + benef +
+          '</b> beneficiario(s) · Total a pagar <b>' + money(tot) + '</b>' +
+          (sinC ? '<br>' + sinC + ' sin cuenta bancaria registrada: complétela en la ficha del proveedor o en el contrato.' : '') + '</div></div>';
+      }
+      function pintaRegistro(){
+        const R = (p.resumenesPago||[]).slice().reverse();
+        q('#rpReg').innerHTML = '<div class="muted small" style="margin-bottom:8px">Cada resumen queda aquí con lo que se envió exactamente, ' +
+          'quién lo hizo y cada vez que se imprimió o se guardó en PDF.</div>' +
+          '<div class="tw scroll" style="max-height:52vh"><table class="t"><thead><tr><th>Consecutivo</th><th>Fecha</th><th>Dirigido a</th>' +
+          '<th class="n">Documentos</th><th class="n">Total</th><th>Elaboró</th><th>Emisiones</th><th></th></tr></thead><tbody>' +
+          (R.length ? R.map(r => '<tr><td class="mono"><b>' + esc(r.consecutivo) + '</b></td><td>' + fmtFecha(r.fecha) + '</td>' +
+            '<td>' + esc(r.para || '—') + '<div class="muted small">' + esc(r.asunto || '') + '</div></td>' +
+            '<td class="n">' + r.items.length + '</td><td class="n">' + money(r.total) + '</td>' +
+            '<td class="small">' + esc(r.nombreUsuario || r.usuario || '—') + '</td>' +
+            '<td class="small">' + (r.emisiones||[]).map(e => esc(fmtSello(e.ts)) + ' · ' + esc(e.modo) + ' · ' + esc(e.usuario)).join('<br>') + '</td>' +
+            '<td class="act"><button class="btn xs" data-rpv="' + r.id + '" type="button">Ver / reimprimir</button></td></tr>').join('')
+            : '<tr><td colspan="8" class="muted small" style="padding:14px">Aún no se ha generado ningún resumen para pagos.</td></tr>') +
+          '</tbody></table></div>';
+        $$('[data-rpv]', m.el).forEach(b => b.onclick = () => {
+          const r = p.resumenesPago.find(x => x.id === b.dataset.rpv);
+          if (r) previaResumenPagos(p, r, pintaRegistro);
+        });
+      }
+      function cambia(v){
+        vista = v;
+        q('#rpNuevo').style.display = v === 'nuevo' ? '' : 'none';
+        q('#rpReg').style.display = v === 'reg' ? '' : 'none';
+        q('#rpVNuevo').className = 'btn sm' + (v === 'nuevo' ? ' verde' : '');
+        q('#rpVReg').className = 'btn sm' + (v === 'reg' ? ' verde' : '');
+        q('#rpVReg').textContent = 'Registro de resúmenes (' + (p.resumenesPago||[]).length + ')';
+        if (btnGen) btnGen.style.display = v === 'nuevo' ? '' : 'none';
+        if (v === 'reg') pintaRegistro();
+      }
+      m._cambia = cambia;
+      q('#rpVNuevo').onclick = () => cambia('nuevo');
+      q('#rpVReg').onclick = () => cambia('reg');
+      q('#rpFiltro').onchange = pinta; q('#rpClase').onchange = pinta; q('#rpBuscar').oninput = pinta;
+      q('#rpTodo').onclick = () => { visibles().forEach(x => sel.add(x.k)); pinta(); };
+      q('#rpNada').onclick = () => { sel.clear(); pinta(); };
+      pinta();
+    }
+  });
+  function generar(m){
+    if (!sel.size){ UI.toast('Seleccione al menos un documento o corte', 'bad'); return; }
+    const el = items.filter(x => sel.has(x.k));
+    const u = Sesion.usuario;
+    const r = {
+      id: uid('rp'), consecutivo: siguienteConsecutivoRP(p), fecha: $('#rpFecha', m.el).value || hoyISO(),
+      para: $('#rpPara', m.el).value.trim(), asunto: $('#rpAsunto', m.el).value.trim(), observaciones: $('#rpObs', m.el).value.trim(),
+      usuario: u ? u.usuario : 'sistema', nombreUsuario: u ? ((u.nombre||'') + ' ' + (u.apellidos||'')).trim() : '',
+      creado: Date.now(),
+      items: el.map(x => ({ k:x.k, fecha:x.fecha, tipo:x.tipo, num:x.num, idProv:x.idProv, prov:x.prov, ident:x.ident, cuenta:x.cuenta, total:x.total })),
+      total: redondear(el.reduce((t, x) => t + x.total, 0)), emisiones: []
+    };
+    // Queda en el registro al imprimir o guardar el PDF; cerrar la vista previa no registra nada.
+    previaResumenPagos(p, r, () => {
+      el.forEach(x => { x.rp = { id:r.id, consecutivo:r.consecutivo, fecha:r.fecha }; });
+      sel.clear();
+      if (m._cambia) m._cambia('reg');
+      UI.toast('Resumen ' + r.consecutivo + ' guardado en el registro', 'ok');
+    });
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ARKEN CONTROL v18 · MÓDULO 05 — ENVÍO DE DOCUMENTOS con registro
+   Igual que en v17 (seleccionar, generar la remisión y marcar lo enviado),
+   y además cada remisión queda en p.remisiones con consecutivo RM-###, la
+   foto exacta de lo remitido y cada impresión o PDF (fecha, usuario, modo).
+   Desde el «Registro de remisiones» se ve y reimprime cualquiera.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function siguienteConsecutivoRM(p){
+  const n = (p.remisiones||[]).reduce((m, r) => Math.max(m, Number(String(r.consecutivo||'').replace(/\D/g,'')) || 0), 0);
+  return 'RM-' + String(n + 1).padStart(3, '0');
+}
+
+function docRemision(p, r){
+  return {
+    nombre:'ARKEN_remision_' + r.consecutivo, titulo:'REMISIÓN DE DOCUMENTOS', documento:'Remisión', proyecto:p, orientacion:'p',
+    bloques:[
+      { t:'kv', cols:2, pares:[['Consecutivo', r.consecutivo], ['Fecha', fmtFecha(r.fecha)],
+        ['Dirigido a', r.para||'—'], ['Asunto', r.asunto||'—'],
+        ['Remite', r.nombreUsuario || r.usuario || '—'], ['Documentos remitidos', String(r.items.length)],
+        ['Proyecto', p.nombre + (p.codigo ? ' · ' + p.codigo : '')]] },
+      { t:'texto', txt:'Por medio del presente se remiten los documentos relacionados a continuación, correspondientes al proyecto ' +
+        p.nombre + ', para su revisión, causación y trámite de pago.' },
+      { t:'tabla', tam:7.4, head:[['#','Fecha','Tipo','Número','Proveedor','Identificación','Total','Neto a pagar']],
+        anchos:{ 0:{cellWidth:10}, 6:{halign:'right'}, 7:{halign:'right'} },
+        body: r.items.map((x,i) => [String(i+1), fmtFecha(x.fecha), x.tipo, x.num, x.prov, x.id,
+          { content:money(x.total), styles:{halign:'right'} }, { content:money(x.neto), styles:{halign:'right'} }]) },
+      { t:'totales', ancho:88, lineas:[
+        { lab:'Total documentos', val: money(r.total) },
+        { lab:'NETO A PAGAR', val: money(r.neto), fuerte:true } ] },
+      { t:'sec', txt:'Constancia de recibido' },
+      { t:'kv', cols:2, pares:[['Recibido por', ''], ['Cargo', ''], ['Fecha de recibido', ''], ['Hora', '']] },
+      { t:'firmas', firmas:[{ n:'Entregó' },{ n:'Recibió', s:'Nombre, firma y fecha' }] }
+    ]
+  };
+}
+
+function previaRemision(p, r, alEmitir){
+  const cfg = docRemision(p, r);
+  const emite = modo => {
+    (r.emisiones = r.emisiones || []).push({ ts:Date.now(), usuario: Sesion.usuario ? Sesion.usuario.usuario : 'sistema', modo });
+    Modelo.auditar('emitir', 'remisión de documentos', r.consecutivo + ' — ' + modo, p.id);
+    App.guardar();
+    if (alEmitir) alEmitir();
+  };
+  UI.modal({
+    titulo:'Remisión ' + r.consecutivo, eyebrow:'Vista previa del documento', ancho:'xwide',
+    cuerpo:'<div class="doc-view">' + Documentos.bloquesAHTML(cfg) + '</div>',
+    botones:[
+      { texto:'Cerrar' },
+      { texto:'Imprimir', accion: m => { m.cerrar(); emite('impreso'); Documentos.emitir(cfg, 'imprimir'); } },
+      { texto:'Guardar PDF', clase:'primary', accion: m => { m.cerrar(); emite('PDF'); Documentos.emitir(cfg, 'pdf'); } }
+    ]
+  });
+}
+
+function registroRemisiones(p){
+  UI.modal({
+    titulo:'Registro de remisiones', eyebrow:'Trazabilidad de los documentos enviados', ancho:'xwide',
+    cuerpo:'<div id="rmReg"></div>',
+    botones:[{ texto:'Cerrar' }],
+    alAbrir: m => {
+      function pinta(){
+        const R = (p.remisiones||[]).slice().reverse();
+        $('#rmReg', m.el).innerHTML =
+          '<div class="field" style="margin-bottom:8px"><label>Buscar</label><input id="rmBuscar" type="search" placeholder="Consecutivo, destinatario, proveedor, número…"></div>' +
+          '<div class="tw scroll" style="max-height:55vh"><table class="t" id="rmT"><thead><tr><th>Consecutivo</th><th>Fecha</th><th>Dirigido a</th>' +
+          '<th class="n">Documentos</th><th class="n">Neto a pagar</th><th>Remite</th><th>Emisiones</th><th></th></tr></thead><tbody>' +
+          (R.length ? R.map(r => '<tr data-q="' + esc(normaliza(r.consecutivo + ' ' + r.para + ' ' + r.asunto + ' ' + r.items.map(x => x.prov + ' ' + x.num).join(' '))) + '">' +
+            '<td class="mono"><b>' + esc(r.consecutivo) + '</b></td><td>' + fmtFecha(r.fecha) + '</td>' +
+            '<td>' + esc(r.para||'—') + '<div class="muted small">' + esc(r.asunto||'') + '</div></td>' +
+            '<td class="n">' + r.items.length + '</td><td class="n">' + money(r.neto) + '</td>' +
+            '<td class="small">' + esc(r.nombreUsuario || r.usuario || '—') + '</td>' +
+            '<td class="small">' + ((r.emisiones||[]).length ? r.emisiones.map(e => esc(fmtSello(e.ts)) + ' · ' + esc(e.modo) + ' · ' + esc(e.usuario)).join('<br>') : '<span class="muted">Generada, sin imprimir</span>') + '</td>' +
+            '<td class="act"><button class="btn xs" data-rmv="' + r.id + '" type="button">Ver / reimprimir</button></td></tr>').join('')
+            : '<tr><td colspan="8" class="muted small" style="padding:14px">Aún no hay remisiones registradas. Las remisiones generadas antes de la versión 18 quedan marcadas en cada documento («Enviado»), pero no en este registro.</td></tr>') +
+          '</tbody></table></div>';
+        $('#rmBuscar', m.el).oninput = e => { const q = normaliza(e.target.value);
+          $$('#rmT tbody tr[data-q]', m.el).forEach(tr => tr.style.display = !q || tr.dataset.q.indexOf(q) >= 0 ? '' : 'none'); };
+        $$('[data-rmv]', m.el).forEach(b => b.onclick = () => {
+          const r = p.remisiones.find(x => x.id === b.dataset.rmv);
+          if (r) previaRemision(p, r, pinta);
+        });
+      }
+      pinta();
+    }
+  });
+}
+
+function envioDocumentos(p){
+  const items = [];
+  (p.documentos||[]).forEach(d => {
+    const pv = Modelo.proveedor(p, d.idProveedor) || {};
+    const t = Calculo.totalesDocumento(d);
+    items.push({ k:'doc:'+d.id, ref:d, fecha:d.fecha, tipo:tipoDocNombre(d.tipo), num:d.numero,
+      prov:pv.razonSocial||'—', id:pv.identificacion||'', total:t.total, neto:t.neto,
+      enviado: !!d.envio, envio: d.envio || null });
+  });
+  (p.cortes||[]).forEach(c => {
+    const k = Modelo.contrato(p, c.idContrato) || {};
+    const pv = Modelo.proveedor(p, k.idProveedor) || {};
+    const l = Calculo.liquidacionCorte(p, c);
+    items.push({ k:'cor:'+c.id, ref:c, fecha:c.fecha, tipo:'Corte de obra', num:c.consecutivo,
+      prov:pv.razonSocial||'—', id:pv.identificacion||'', total:l.total, neto:l.neto,
+      enviado: !!c.envio, envio: c.envio || null });
+  });
+  items.sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)));
+  const sel = new Set();
+  UI.modal({
+    titulo:'Envío de documentos', eyebrow:'Remisión consolidada — incluye los cortes de obra', ancho:'xwide',
+    cuerpo:
+      '<div class="grid g3">' +
+        '<div class="field"><label>Dirigido a</label><input id="enPara" placeholder="Nombre o dependencia"></div>' +
+        '<div class="field"><label>Asunto</label><input id="enAsunto" value="Remisión de documentos para pago"></div>' +
+        '<div class="field"><label>Fecha</label><input id="enFecha" type="date" value="' + hoyISO() + '"></div>' +
+      '</div>' +
+      '<div class="btn-row" style="margin:10px 0"><button class="btn sm" id="enTodo" type="button">Seleccionar todo</button>' +
+      '<button class="btn sm" id="enNada" type="button">Quitar selección</button>' +
+      '<button class="btn sm" id="enReg" type="button">Registro de remisiones (' + (p.remisiones||[]).length + ')</button>' +
+      '<div class="field" style="min-width:190px"><label>Mostrar</label><select id="enFiltro">' +
+        '<option value="pend">Sólo los no enviados</option>' +
+        '<option value="env">Sólo los enviados</option>' +
+        '<option value="todos">Todos</option></select></div>' +
+      '<div class="field grow"><label>Buscar</label><input id="enBuscar" type="search" placeholder="Proveedor, número, tipo…"></div>' +
+      '<span class="muted small" id="enCuenta"></span></div>' +
+      '<div class="tw scroll" style="max-height:44vh"><table class="t" id="enT"><thead><tr><th></th><th>Fecha</th><th>Tipo</th>' +
+      '<th>Número</th><th>Proveedor</th><th class="n">Total</th><th class="n">Neto</th><th>Envío</th></tr></thead><tbody></tbody></table></div>',
+    botones:[{ texto:'Cerrar' }, { texto:'Generar remisión', clase:'primary', accion: m => generar(m) }],
+    alAbrir: m => {
+      function visibles(){
+        const f = $('#enFiltro', m.el).value;
+        const q = normaliza($('#enBuscar', m.el).value);
+        return items.filter(x => {
+          if (f === 'pend' && x.enviado) return false;
+          if (f === 'env' && !x.enviado) return false;
+          if (q && normaliza(x.prov + ' ' + x.num + ' ' + x.tipo).indexOf(q) < 0) return false;
+          return true;
+        });
+      }
+      function pinta(){
+        const l2 = visibles();
+        $('#enT tbody', m.el).innerHTML = l2.length ? l2.map(x =>
+          '<tr><td><input type="checkbox" data-e="' + x.k + '"' + (sel.has(x.k)?' checked':'') + '></td>' +
+          '<td>' + fmtFecha(x.fecha) + '</td><td>' + esc(x.tipo) + '</td><td class="mono">' + esc(x.num) + '</td>' +
+          '<td>' + esc(x.prov) + '</td><td class="n">' + money(x.total) + '</td><td class="n">' + money(x.neto) + '</td>' +
+          '<td>' + (x.enviado
+            ? '<span class="tag ok">Enviado' + (x.envio.consecutivo ? ' · ' + esc(x.envio.consecutivo) : '') + '</span><div class="muted small">' + fmtFecha(x.envio.fecha) +
+              (x.envio.para ? ' · ' + esc(x.envio.para) : '') + '</div>'
+            : '<span class="tag warn">No enviado</span>') + '</td></tr>').join('')
+          : '<tr><td colspan="8" class="muted small" style="padding:14px">Ningún documento con ese filtro.</td></tr>';
+        $$('[data-e]', m.el).forEach(c => c.onchange = () => {
+          if (c.checked) sel.add(c.dataset.e); else sel.delete(c.dataset.e); cuenta(); });
+        cuenta();
+      }
+      function cuenta(){
+        const env = items.filter(x => x.enviado).length;
+        $('#enCuenta', m.el).textContent = sel.size + ' seleccionado(s) · ' + env + ' ya enviados · ' +
+          (items.length - env) + ' pendientes';
+      }
+      $('#enFiltro', m.el).onchange = pinta;
+      $('#enBuscar', m.el).oninput = pinta;
+      $('#enTodo', m.el).onclick = () => { visibles().forEach(x => sel.add(x.k)); pinta(); };
+      $('#enNada', m.el).onclick = () => { sel.clear(); pinta(); };
+      $('#enReg', m.el).onclick = () => registroRemisiones(p);
+      pinta();
+    }
+  });
+  function generar(m){
+    if (!sel.size){ UI.toast('Seleccione al menos un documento', 'bad'); return; }
+    const elegidos = items.filter(x => sel.has(x.k));
+    const para = $('#enPara', m.el).value, asunto = $('#enAsunto', m.el).value, fecha = $('#enFecha', m.el).value;
+    const u = Sesion.usuario;
+    const r = { id: uid('rm'), consecutivo: siguienteConsecutivoRM(p), fecha, para: para||'', asunto: asunto||'',
+      usuario: u ? u.usuario : 'sistema', nombreUsuario: u ? ((u.nombre||'') + ' ' + (u.apellidos||'')).trim() : '',
+      creado: Date.now(),
+      items: elegidos.map(x => ({ k:x.k, fecha:x.fecha, tipo:x.tipo, num:x.num, prov:x.prov, id:x.id, total:x.total, neto:x.neto })),
+      total: redondear(elegidos.reduce((t,x) => t + x.total, 0)), neto: redondear(elegidos.reduce((t,x) => t + x.neto, 0)),
+      emisiones: [] };
+    // Generar la remisión es el acto de enviar: queda marcado en cada documento
+    // y en el registro de remisiones, con su consecutivo.
+    (p.remisiones = p.remisiones || []).push(r);
+    elegidos.forEach(x => {
+      x.ref.envio = { fecha, para: para || '', asunto: asunto || '', consecutivo: r.consecutivo, idRemision: r.id,
+        usuario: u ? u.usuario : 'sistema', ts: Date.now() };
+      x.enviado = true; x.envio = x.ref.envio;
+    });
+    Modelo.auditar('enviar', 'remisión de documentos',
+      r.consecutivo + ' — ' + elegidos.length + ' documento(s) marcados como enviados a ' + (para||'—'), p.id);
+    App.guardar(); App.render();
+    m.cerrar();
+    previaRemision(p, r);
+  }
+}
+
+/* ARKEN CONTROL v18 · Ayuda del Resumen para pagos (módulo 05). */
+(function(){
+  if (typeof AYUDA_CONTENIDO !== 'undefined'){
+    const otros = AYUDA_CONTENIDO.otros || (AYUDA_CONTENIDO.otros = []);
+    otros.push(
+      { q:'¿Cómo le mando al cliente un resumen para que haga los pagos?',
+        a:'<p>En <b>05 Causaciones</b> pulse el botón verde <b>Resumen para pagos</b>. Marque los documentos de pago y los cortes de obra que va a enviar ' +
+          '(por defecto se ven los que están por pagar y aún no han salido en otro resumen). Abajo ve cuántos lleva, cuántos beneficiarios y el total.</p>' +
+          '<p>Pulse <b>Vista previa</b> y luego <b>Imprimir</b> o <b>Guardar PDF</b>. El documento trae, por cada documento, el proveedor o contratista, su identificación, ' +
+          'la cuenta bancaria, el número y el valor del documento; si un beneficiario tiene varios, el total que hay que girarle. Al final va la tabla ' +
+          '<b>Giros por beneficiario</b>: una transferencia por cada uno.</p>' },
+      { q:'¿Dónde veo los resúmenes para pagos que ya envié?',
+        a:'<p>En el mismo botón, pestaña <b>Registro de resúmenes</b>. Cada resumen tiene consecutivo (RP-001, RP-002…), fecha, a quién se dirigió, total, ' +
+          'quién lo elaboró y cada vez que se imprimió o se guardó en PDF. Se guarda la foto exacta de lo enviado, así que <b>Ver / reimprimir</b> ' +
+          'saca el mismo documento aunque después cambie algo. En la lista de selección cada documento muestra en qué resumen salió.</p>' +
+          '<p><b>Envío de documentos</b> lleva el mismo control: cada remisión queda con consecutivo (RM-001…) en <b>Registro de remisiones</b>, con lo remitido, quién la hizo y cada impresión, y se puede reimprimir.</p>' +
+          '<p>La cuenta bancaria sale de la ficha del proveedor; en los cortes se usa la del contrato si la tiene. Si falta, aparece «Sin cuenta».</p>' });
+  }
+  if (typeof GUIAS_MODULO !== 'undefined'){
+    const g = GUIAS_MODULO.find(x => x.id === '05');
+    if (g){
+      g.tareas.push({ t:'Enviar al cliente un resumen para pagos', pasos:[
+        'Pulse el botón verde «Resumen para pagos».',
+        'Escriba a quién va dirigido y marque los documentos de pago y cortes de obra que va a enviar.',
+        'Pulse «Vista previa» y revise beneficiarios, cuentas y totales.',
+        'Pulse «Imprimir» o «Guardar PDF»: el resumen queda con su consecutivo en el «Registro de resúmenes».'],
+        res:'El cliente recibe una hoja con lo que debe girar a cada beneficiario, y usted conserva la trazabilidad de lo enviado.' });
+      (g.consejos = g.consejos || []).push('«Resumen para pagos» (verde) arma la hoja de giros para el cliente y guarda el registro de cada envío.');
+    }
+  }
 })();
 
 </script>
