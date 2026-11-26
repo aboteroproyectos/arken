@@ -84,6 +84,31 @@ try {
   });
   ok(/ARKEN PRUEBA PDF/.test(texto), 'el lector de PDF funciona sin internet');
 
+  // Clic derecho sobre una palabra mal escrita: el menú trae las sugerencias y «Agregar al diccionario»
+  const menu = await app.evaluate(({ BrowserWindow, Menu }) => {
+    const wc = BrowserWindow.getAllWindows()[0].webContents;
+    const popup = Menu.prototype.popup;
+    let etiquetas = null;
+    Menu.prototype.popup = function () {
+      etiquetas = this.items.map((i) => i.label || i.type);
+    };
+    try {
+      wc.emit('context-menu', {}, {
+        isEditable: true,
+        misspelledWord: 'consreto',
+        dictionarySuggestions: ['concreto', 'concierto'],
+        editFlags: { canCut: true, canCopy: true, canPaste: true, canSelectAll: true },
+      });
+    } finally {
+      Menu.prototype.popup = popup;
+    }
+    return { etiquetas, oyentes: wc.listenerCount('context-menu') };
+  });
+  ok(
+    menu.oyentes > 0 && menu.etiquetas && menu.etiquetas[0] === 'concreto' && menu.etiquetas.some((t) => /Agregar «consreto» al diccionario/.test(t)) && menu.etiquetas.includes('Pegar'),
+    'el clic derecho ofrece corregir la ortografía: ' + JSON.stringify(menu.etiquetas),
+  );
+
   await w.evaluate(() => {
     S.empresa.razonSocial = 'EMPRESA DE PRUEBA';
     App.guardar();

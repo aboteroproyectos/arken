@@ -180,7 +180,47 @@ function protegerContenido(contenido) {
     abrirFuera(url);
   });
   contenido.on('will-attach-webview', (e) => e.preventDefault());
+  menuContextual(contenido);
   contenido.on('did-create-window', (hija) => protegerContenido(hija.webContents));
+}
+
+/** Menú del clic derecho: sugerencias de ortografía y edición.
+ *  Electron no trae menú contextual propio; sin esto la palabra subrayada en rojo
+ *  no se podía corregir. */
+function menuContextual(contenido) {
+  contenido.on('context-menu', (_e, p) => {
+    const items = [];
+    const f = p.editFlags || {};
+    if (p.isEditable && p.misspelledWord) {
+      const sugerencias = (p.dictionarySuggestions || []).slice(0, 6);
+      if (sugerencias.length) {
+        for (const s of sugerencias) items.push({ label: s, click: () => contenido.replaceMisspelling(s) });
+      } else {
+        items.push({ label: 'Sin sugerencias', enabled: false });
+      }
+      items.push({ type: 'separator' });
+      items.push({
+        label: `Agregar «${p.misspelledWord}» al diccionario`,
+        click: () => contenido.session.addWordToSpellCheckerDictionary(p.misspelledWord),
+      });
+      items.push({ type: 'separator' });
+    }
+    if (p.isEditable) {
+      items.push(
+        { role: 'undo', label: 'Deshacer', enabled: !!f.canUndo },
+        { role: 'redo', label: 'Rehacer', enabled: !!f.canRedo },
+        { type: 'separator' },
+        { role: 'cut', label: 'Cortar', enabled: !!f.canCut },
+        { role: 'copy', label: 'Copiar', enabled: !!f.canCopy },
+        { role: 'paste', label: 'Pegar', enabled: !!f.canPaste },
+        { role: 'selectAll', label: 'Seleccionar todo', enabled: !!f.canSelectAll },
+      );
+    } else if (p.selectionText && p.selectionText.trim()) {
+      items.push({ role: 'copy', label: 'Copiar' });
+    }
+    if (!items.length) return;
+    Menu.buildFromTemplate(items).popup({ window: BrowserWindow.fromWebContents(contenido) || undefined });
+  });
 }
 
 function abrirFuera(url) {
@@ -195,6 +235,15 @@ function configurarSesion(ses) {
     responder(PERMITIDOS.has(permiso) && esNuestro(detalle.requestingUrl || detalle.securityOrigin)),
   );
   ses.setPermissionCheckHandler((_wc, permiso, origen) => PERMITIDOS.has(permiso) && esNuestro(origen));
+  // Ortografía en español (en macOS el sistema elige el idioma solo)
+  if (process.platform !== 'darwin') {
+    try {
+      const disponibles = ses.availableSpellCheckerLanguages || [];
+      const quiero = ['es-419', 'es-CO', 'es-ES', 'es-MX', 'es', 'en-US'];
+      const elegidos = quiero.filter((l) => disponibles.includes(l)).slice(0, 3);
+      if (elegidos.length) ses.setSpellCheckerLanguages(elegidos);
+    } catch {}
+  }
   ses.on('will-download', (_e, item) => {
     item.setSaveDialogOptions({
       title: 'Guardar archivo',

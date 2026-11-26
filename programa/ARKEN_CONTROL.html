@@ -1981,6 +1981,59 @@ table.t tbody tr:hover > td{ background:rgba(169,139,84,.06); }
 .btn.verde{ background:#2E7D4F; border-color:#2E7D4F; color:#fff; }
 .btn.verde:hover{ background:#24663F; border-color:#24663F; color:#fff; }
 </style>
+<style id="v18-1-pestanas">
+/* ═══════════ v18.1 · Pestañas con tono propio ═══════════
+   Cada pestaña lleva un matiz muy suave (champaña, salvia, acero, palo de rosa,
+   ciruela, piedra) y una pequeña joya de color delante del nombre. El tono se
+   repite por posición, así dos pestañas vecinas nunca se parecen y cada una
+   conserva siempre el suyo. La activa toma su color con más cuerpo y un filete
+   inferior del mismo tono. */
+.tabs{ gap:4px; }
+div.tabs > button.tab{
+  --tt:169,139,84;
+  position:relative; display:inline-flex; align-items:center; gap:7px;
+  background:linear-gradient(180deg, rgba(var(--tt),.025) 0%, rgba(var(--tt),.075) 100%);
+  border-radius:7px 7px 0 0; border-bottom:2px solid rgba(var(--tt),.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
+  color:var(--slate); letter-spacing:.01em;
+  transition:background .18s, color .18s, border-color .18s, box-shadow .18s;
+}
+div.tabs > button.tab::before{
+  content:''; flex:none; width:6px; height:6px; border-radius:50%;
+  background:rgba(var(--tt),.55); box-shadow:0 0 0 2px rgba(var(--tt),.10);
+  transition:background .18s, box-shadow .18s;
+}
+div.tabs > button.tab:hover{
+  color:var(--ink); border-bottom-color:rgba(var(--tt),.55);
+  background:linear-gradient(180deg, rgba(var(--tt),.05) 0%, rgba(var(--tt),.13) 100%);
+}
+div.tabs > button.tab.active, div.tabs > button.tab.on{
+  color:var(--ink); font-weight:600; border-bottom-color:rgb(var(--tt));
+  background:linear-gradient(180deg, rgba(var(--tt),.10) 0%, rgba(var(--tt),.20) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 -1px 0 rgba(var(--tt),.18), 0 6px 14px -10px rgba(var(--tt),.9);
+}
+div.tabs > button.tab.active::before, div.tabs > button.tab.on::before{ background:rgb(var(--tt)); box-shadow:0 0 0 3px rgba(var(--tt),.20); }
+div.tabs > button.tab:focus-visible{ outline:2px solid rgba(var(--tt),.65); outline-offset:1px; }
+/* Paleta: champaña, salvia, acero, palo de rosa, ciruela, piedra */
+div.tabs > button.tab:nth-child(6n+1){ --tt:169,139,84; }
+div.tabs > button.tab:nth-child(6n+2){ --tt:104,134,108; }
+div.tabs > button.tab:nth-child(6n+3){ --tt:88,118,150; }
+div.tabs > button.tab:nth-child(6n+4){ --tt:154,104,98; }
+div.tabs > button.tab:nth-child(6n+5){ --tt:122,102,140; }
+div.tabs > button.tab:nth-child(6n+6){ --tt:74,128,124; }
+[data-tema="oscuro"] div.tabs > button.tab{ box-shadow:none; background:linear-gradient(180deg, rgba(var(--tt),.05) 0%, rgba(var(--tt),.11) 100%); }
+[data-tema="oscuro"] div.tabs > button.tab:hover{ color:#E6E8EA; background:linear-gradient(180deg, rgba(var(--tt),.08) 0%, rgba(var(--tt),.18) 100%); }
+[data-tema="oscuro"] div.tabs > button.tab.active, [data-tema="oscuro"] div.tabs > button.tab.on{
+  color:#F1F2F3; background:linear-gradient(180deg, rgba(var(--tt),.16) 0%, rgba(var(--tt),.28) 100%); box-shadow:0 6px 14px -10px rgba(var(--tt),.9); }
+[data-tema="oscuro"] div.tabs > button.tab:nth-child(6n+1){ --tt:201,166,103; }
+[data-tema="oscuro"] div.tabs > button.tab:nth-child(6n+2){ --tt:140,173,143; }
+[data-tema="oscuro"] div.tabs > button.tab:nth-child(6n+3){ --tt:128,160,194; }
+[data-tema="oscuro"] div.tabs > button.tab:nth-child(6n+4){ --tt:196,140,132; }
+[data-tema="oscuro"] div.tabs > button.tab:nth-child(6n+5){ --tt:165,145,186; }
+[data-tema="oscuro"] div.tabs > button.tab:nth-child(6n+6){ --tt:112,170,165; }
+@media print{ div.tabs > button.tab{ background:none !important; box-shadow:none !important; } }
+@media (prefers-reduced-motion:reduce){ div.tabs > button.tab, div.tabs > button.tab::before{ transition:none; } }
+</style>
 </head>
 <body>
 
@@ -61968,9 +62021,10 @@ adPUC = function(c){
    segunda fórmula— y cada indicador se calcula aislado: si un dato falta,
    ese indicador muestra «—» y el resto del tablero sigue en pie.
    ════════════════════════════════════════════════════════════════════════ */
-const ARKEN_VERSION = '18.0.1';
+const ARKEN_VERSION = '18.1.0';
 const ARKEN_VERSION_FECHA = '2026-11-08';
 const HISTORIAL_VERSIONES = [
+  ['18.1.0', '2026-11-26', 'Pestañas con un tono suave propio y un punto de color para reconocerlas de un vistazo. Corrección de ortografía con clic derecho: sugerencias, Agregar al diccionario, Cortar, Copiar y Pegar (app de escritorio). El micrófono del dictado aparece fuera del campo y ya no tapa el texto.'],
   ['18.0.1', '2026-11-25', 'Resumen para pagos: el valor de cada documento es el neto a pagar, con la amortización del anticipo y las retenciones descontadas, igual que en Envío de documentos.'],
   ['18.0.0', '2026-11-25', 'Resumen para pagos en Causaciones: se escogen documentos de pago y cortes de obra y sale para el cliente una hoja con beneficiario, cuenta bancaria, número y neto a pagar de cada documento, el total por beneficiario y la tabla de giros. Vista previa, impresión o PDF, y registro con consecutivo de cada resumen enviado. Envío de documentos también lleva ahora su registro de remisiones (RM-###) con reimpresión.'],
   ['17.0.0', '2026-11-11', 'Datos compartidos entre equipos: lo que se registra en el computador o en el celular aparece solo en los demás, por proyecto, sin pasar respaldos. Los datos se guardan cifrados en el Google Drive de la empresa con el mismo servicio del correo vinculado; los cambios de dos equipos se combinan registro por registro y sin internet se sigue trabajando. Para unir un celular basta escanear un código QR.'],
@@ -72781,14 +72835,61 @@ const Dictado = (function(){
     boton.addEventListener('click', () => { if (sesion) detener(); else if (campo) iniciar(campo); });
     document.body.appendChild(boton);
   }
+  /* v18.1 · El micrófono va FUERA del campo, nunca encima del texto.
+     Prueba, en orden: a la derecha del campo, encima de su esquina derecha,
+     debajo, a la izquierda. Toma el primer lugar libre (sin otro campo, botón,
+     enlace o texto debajo) y lo conserva mientras el campo siga activo. */
+  const MIC = 24, SEP = 5;
+  let ladoMic = '', campoMic = null;
+  function posicionMic(r, lado){
+    const centroY = campo.tagName === 'TEXTAREA' || campo.isContentEditable ? r.top + 2 : r.top + (r.height - MIC) / 2;
+    if (lado === 'derecha') return { x:r.right + SEP, y:centroY };
+    if (lado === 'arriba') return { x:r.right - MIC, y:r.top - MIC - SEP };
+    if (lado === 'abajo') return { x:r.right - MIC, y:r.bottom + SEP };
+    return { x:r.left - MIC - SEP, y:centroY };
+  }
+  function puntoLibre(px, py){
+    const pila = document.elementsFromPoint ? document.elementsFromPoint(px, py) : [];
+    const el = pila.find(x => x !== boton && !(boton && boton.contains(x)) && !(panel && panel.contains(x)));
+    if (!el) return false;
+    if (el === campo || campo.contains(el)) return false;
+    if (el.closest('input,textarea,select,button,a,[contenteditable="true"],[role="button"],img,svg,canvas,.tab,.chip,.badge')) return false;
+    try {
+      const rg = document.caretRangeFromPoint ? document.caretRangeFromPoint(px, py) : null;
+      const n = rg && rg.startContainer;
+      if (n && n.nodeType === 3 && n.textContent.trim()){
+        const rr = document.createRange(); rr.selectNodeContents(n);
+        for (const q of rr.getClientRects()) if (px >= q.left - 2 && px <= q.right + 2 && py >= q.top - 2 && py <= q.bottom + 2) return false;
+      }
+    } catch(e){}
+    return true;
+  }
+  function libre(p){
+    if (p.x < 2 || p.y < 2 || p.x + MIC > innerWidth - 2 || p.y + MIC > innerHeight - 2) return false;
+    const r = campo.getBoundingClientRect();
+    if (p.x < r.right && p.x + MIC > r.left && p.y < r.bottom && p.y + MIC > r.top) return false;
+    const m = 3, pts = [[p.x + MIC/2, p.y + MIC/2], [p.x + m, p.y + m], [p.x + MIC - m, p.y + m], [p.x + m, p.y + MIC - m], [p.x + MIC - m, p.y + MIC - m]];
+    return pts.every(([x, y]) => puntoLibre(x, y));
+  }
   function ubicar(){
-    if (!boton || !campo || !document.body.contains(campo)){ if (boton) boton.style.display = 'none'; return; }
+    if (!boton || !campo || !document.body.contains(campo)){ if (boton) boton.style.display = 'none'; ladoMic = ''; campoMic = null; return; }
     const r = campo.getBoundingClientRect();
     if (!r.width || r.bottom < 0 || r.top > innerHeight){ boton.style.display = 'none'; return; }
-    const alto = Math.min(26, Math.max(20, r.height - 6));
-    boton.style.display = 'flex'; boton.style.width = boton.style.height = alto + 'px';
-    boton.style.left = (r.right - alto - 4) + 'px';
-    boton.style.top = (campo.tagName === 'TEXTAREA' ? r.top + 4 : r.top + (r.height - alto) / 2) + 'px';
+    boton.style.width = boton.style.height = MIC + 'px';
+    const fuera = p => !(p.x < r.right && p.x + MIC > r.left && p.y < r.bottom && p.y + MIC > r.top) && p.x >= 2 && p.y >= 2 && p.x + MIC <= innerWidth - 2 && p.y + MIC <= innerHeight - 2;
+    let lado = '';
+    if (campoMic === campo && ladoMic && fuera(posicionMic(r, ladoMic))) lado = ladoMic;
+    if (!lado){
+      const prev = boton.style.display; boton.style.display = 'none';
+      lado = ['derecha', 'arriba', 'abajo', 'izquierda'].find(l => libre(posicionMic(r, l))) ||
+             ['arriba', 'derecha', 'abajo', 'izquierda'].find(l => fuera(posicionMic(r, l))) || '';
+      boton.style.display = prev;
+    }
+    if (!lado){ boton.style.display = 'none'; return; }
+    ladoMic = lado; campoMic = campo;
+    const p = posicionMic(r, lado);
+    boton.style.display = 'flex'; boton.dataset.lado = lado;
+    boton.style.left = Math.round(p.x) + 'px'; boton.style.top = Math.round(p.y) + 'px';
     boton.classList.toggle('on', !!sesion);
   }
   function abrirPanel(html){
@@ -72798,7 +72899,7 @@ const Dictado = (function(){
     const w = Math.min(360, innerWidth - 24);
     panel.style.width = w + 'px';
     panel.style.left = Math.max(12, Math.min(r.left, innerWidth - w - 12)) + 'px';
-    const abajo = r.bottom + 8, alto = 150;
+    const abajo = r.bottom + 8 + (ladoMic === 'abajo' ? MIC + 6 : 0), alto = 150;
     panel.style.top = (abajo + alto < innerHeight ? abajo : Math.max(12, r.top - alto - 8)) + 'px';
     panel.addEventListener('mousedown', ev => { if (!ev.target.closest('input,textarea')) ev.preventDefault(); });
     return panel;
@@ -72927,6 +73028,8 @@ const Dictado = (function(){
       '.dictado-mic{position:fixed;z-index:10050;display:none;align-items:center;justify-content:center;border:1px solid var(--line,#d6d6d6);border-radius:50%;' +
         'background:var(--paper,#fff);color:var(--slate,#5a5f64);cursor:pointer;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.12);opacity:.85}' +
       '.dictado-mic:hover{opacity:1;color:var(--brass,#A98B54)}' +
+      '.dictado-mic{opacity:.92;border-color:var(--brass-line,#DCCFB4);box-shadow:0 2px 6px rgba(22,24,26,.14)}' +
+      '.dictado-mic:not(.on):hover{border-color:var(--brass,#A98B54)}' +
       '.dictado-mic.on{background:#B0413E;color:#fff;border-color:#B0413E;opacity:1;animation:dpLatido 1.2s infinite}' +
       '@keyframes dpLatido{0%,100%{box-shadow:0 0 0 0 rgba(176,65,62,.45)}50%{box-shadow:0 0 0 6px rgba(176,65,62,0)}}' +
       '.dictado-panel{position:fixed;z-index:10051;display:none;background:var(--paper,#fff);border:1px solid var(--line,#ddd);border-radius:10px;' +
@@ -75059,6 +75162,25 @@ function envioDocumentos(p){
       (g.consejos = g.consejos || []).push('«Resumen para pagos» (verde) arma la hoja de giros para el cliente y guarda el registro de cada envío.');
     }
   }
+})();
+
+</script>
+<script id="v18-1-ayuda-js">
+/* ARKEN CONTROL v18.1 · Ayuda de ortografía, dictado y pestañas. */
+(function(){
+  if (typeof AYUDA_CONTENIDO === 'undefined') return;
+  const otros = AYUDA_CONTENIDO.otros || (AYUDA_CONTENIDO.otros = []);
+  otros.push(
+    { q:'¿Cómo corrijo una palabra subrayada en rojo?',
+      a:'<p>Haga <b>clic derecho</b> sobre la palabra subrayada. Arriba del menú aparecen las palabras sugeridas: pulse la correcta y queda reemplazada. ' +
+        'Si la palabra está bien escrita (un apellido, una marca, un término de obra), elija <b>Agregar al diccionario</b> y no se vuelve a marcar en este equipo.</p>' +
+        '<p>El mismo menú trae Cortar, Copiar, Pegar y Seleccionar todo. En el celular, toque la palabra subrayada para ver las sugerencias del teclado.</p>' },
+    { q:'¿Dónde aparece el micrófono del dictado?',
+      a:'<p>Al entrar a un campo de texto, el micrófono aparece <b>fuera del campo</b>, a su derecha o sobre su esquina derecha, para que nunca tape lo que está escribiendo. ' +
+        'Púlselo, o use <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd>, para dictar.</p>' },
+    { q:'¿Por qué cada pestaña tiene un color distinto?',
+      a:'<p>Cada pestaña lleva un tono muy suave propio (champaña, salvia, acero, palo de rosa, ciruela y piedra) y un punto del mismo color delante del nombre. ' +
+        'Así se reconoce de un vistazo en qué pestaña está y cuál busca. La pestaña activa toma su color con más intensidad y un filete inferior.</p>' });
 })();
 
 </script>
