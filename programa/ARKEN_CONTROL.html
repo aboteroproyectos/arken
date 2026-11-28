@@ -62021,9 +62021,10 @@ adPUC = function(c){
    segunda fórmula— y cada indicador se calcula aislado: si un dato falta,
    ese indicador muestra «—» y el resto del tablero sigue en pie.
    ════════════════════════════════════════════════════════════════════════ */
-const ARKEN_VERSION = '18.1.0';
+const ARKEN_VERSION = '18.2.0';
 const ARKEN_VERSION_FECHA = '2026-11-08';
 const HISTORIAL_VERSIONES = [
+  ['18.2.0', '2026-11-28', 'Datos entre equipos con Firebase de Google: el computador y los celulares comparten los datos por Cloud Firestore, cada persona entra con su correo de Firebase y sólo los correos autorizados por el dueño pueden leer o escribir (reglas de seguridad incluidas). Los datos siguen viajando cifrados con AES-256: Firebase no los puede leer. El servicio de Google Drive sigue disponible.'],
   ['18.1.0', '2026-11-26', 'Pestañas con un tono suave propio y un punto de color para reconocerlas de un vistazo. Corrección de ortografía con clic derecho: sugerencias, Agregar al diccionario, Cortar, Copiar y Pegar (app de escritorio). El micrófono del dictado aparece fuera del campo y ya no tapa el texto.'],
   ['18.0.1', '2026-11-25', 'Resumen para pagos: el valor de cada documento es el neto a pagar, con la amortización del anticipo y las retenciones descontadas, igual que en Envío de documentos.'],
   ['18.0.0', '2026-11-25', 'Resumen para pagos en Causaciones: se escogen documentos de pago y cortes de obra y sale para el cliente una hoja con beneficiario, cuenta bancaria, número y neto a pagar de cada documento, el total por beneficiario y la tabla de giros. Vista previa, impresión o PDF, y registro con consecutivo de cada resumen enviado. Envío de documentos también lleva ahora su registro de remisiones (RM-###) con reimpresión.'],
@@ -73475,6 +73476,363 @@ function adCorreo(c){ CorreoGmail.pintarAdmin(c); }
 })();
 
 </script>
+<script id="v18-2-firebase">
+/* ARKEN CONTROL 18.2 · Datos entre equipos por Firebase (Firestore + Authentication).
+   Es otro «camino» para la misma sincronización de la v17 (objeto Nube): las piezas,
+   la combinación registro por registro y el cifrado AES-256 son los mismos. Aquí sólo
+   cambia dónde se guardan las piezas cifradas: en Cloud Firestore del proyecto Firebase
+   de la empresa, en vez del Google Drive a través de Apps Script.
+   · Cada equipo entra con un correo y contraseña de Firebase Authentication.
+   · Las reglas de seguridad sólo dejan entrar a los correos que el dueño autoriza.
+   · Firebase sólo ve texto cifrado: la llave viaja en el código QR, nunca a Firebase.
+   · No usa librerías externas: habla con Firebase por su API REST (funciona igual
+     en el computador, en la app de escritorio y en el iPhone/Android). */
+const NubeFirebase = (function(){
+  const PIEZA_MAX = 900000;                 // caracteres por documento (Firestore admite ~1 MB)
+  const MAX_ESCRITURAS = 450;               // por envío (Firestore admite 500)
+  const LOTE_BAJADA = 4500000;              // caracteres por bajada en lote
+  const LIMPIAR_DIAS = 2;
+  const H = {
+    auth: 'https://identitytoolkit.googleapis.com/v1/',
+    token: 'https://securetoken.googleapis.com/v1/token',
+    fs: 'https://firestore.googleapis.com/v1/'
+  };
+  let token = null;      // { id, vence, uid, email } sólo en memoria
+  let docCache = null;   // último documento del espacio leído { updateTime, x, correos, dueno }
+
+  /* ───────── Configuración pegada desde la consola de Firebase ───────── */
+  function leerConfig(txt){
+    const t = String(txt || '');
+    const val = k => { const m = t.match(new RegExp('["\']?' + k + '["\']?\\s*[:=]\\s*["\']([^"\']+)["\']')); return m ? m[1].trim() : ''; };
+    const apiKey = val('apiKey'), projectId = val('projectId');
+    if (!apiKey || !projectId) throw new Error('No se encontró «apiKey» y «projectId». Copie el bloque firebaseConfig completo desde la consola de Firebase (Configuración del proyecto › Tus apps › Web).');
+    if (!/^AIza[0-9A-Za-z_\-]{30,}$/.test(apiKey)) throw new Error('La apiKey no tiene el formato de Firebase (empieza por «AIza»).');
+    if (!/^[a-z0-9\-]{4,40}$/.test(projectId)) throw new Error('El projectId no es válido.');
+    return { apiKey, projectId };
+  }
+
+  /* ───────── Errores con mensajes claros ───────── */
+  function errorRed(){ const e = new Error('Sin conexión con Firebase.'); e.red = true; return e; }
+  const MENSAJES_AUTH = {
+    EMAIL_NOT_FOUND: 'Ese correo no está creado en Firebase (Authentication › Usuarios).',
+    INVALID_PASSWORD: 'Contraseña incorrecta.',
+    INVALID_LOGIN_CREDENTIALS: 'Correo o contraseña incorrectos.',
+    INVALID_EMAIL: 'El correo no es válido.',
+    USER_DISABLED: 'Ese usuario está deshabilitado en Firebase.',
+    TOO_MANY_ATTEMPTS_TRY_LATER: 'Demasiados intentos. Espere unos minutos.',
+    OPERATION_NOT_ALLOWED: 'En Firebase falta habilitar «Correo electrónico/contraseña» (Authentication › Método de acceso).',
+    PASSWORD_LOGIN_DISABLED: 'En Firebase falta habilitar «Correo electrónico/contraseña» (Authentication › Método de acceso).',
+    TOKEN_EXPIRED: 'La sesión de Firebase venció. Vuelva a ingresar.',
+    USER_NOT_FOUND: 'El usuario ya no existe en Firebase. Vuelva a ingresar.',
+    INVALID_REFRESH_TOKEN: 'La sesión de Firebase venció. Vuelva a ingresar.',
+    'API key not valid. Please pass a valid API key.': 'La apiKey no es válida. Cópiela otra vez desde la consola de Firebase.'
+  };
+  function msgAuth(j){
+    const m = String((j && j.error && j.error.message) || '').split(' : ')[0].trim();
+    return MENSAJES_AUTH[m] || ('Firebase no aceptó el ingreso (' + (m || 'error') + ').');
+  }
+
+  /* ───────── Autenticación ───────── */
+  async function postJson(url, cuerpo, cab){
+    let r;
+    try { r = await fetch(url, { method:'POST', headers: Object.assign({ 'Content-Type':'application/json' }, cab || {}), body: JSON.stringify(cuerpo) }); }
+    catch(e){ throw errorRed(); }
+    let j = null; try { j = await r.json(); } catch(e){}
+    return { r, j };
+  }
+  /** Ingreso con correo y contraseña: devuelve la sesión que se guarda en el equipo (sin la contraseña). */
+  async function ingresar(fb, cred){
+    const correo = String(cred && cred.correo || '').trim().toLowerCase();
+    const clave = String(cred && cred.clave || '');
+    if (!correo || !clave) throw new Error('Escriba el correo y la contraseña de Firebase.');
+    const { r, j } = await postJson(H.auth + 'accounts:signInWithPassword?key=' + encodeURIComponent(fb.apiKey), { email: correo, password: clave, returnSecureToken: true });
+    if (!r.ok || !j || !j.idToken) throw new Error(msgAuth(j));
+    token = { id: j.idToken, vence: Date.now() + (Number(j.expiresIn || 3600) - 120) * 1000, uid: j.localId, email: (j.email || correo).toLowerCase(), refresh: j.refreshToken };
+    return { uid: j.localId, email: token.email, refresh: j.refreshToken };
+  }
+  async function idToken(fb){
+    if (token && token.uid === fb.uid && Date.now() < token.vence) return token.id;
+    if (!fb.refresh){ const e = new Error('Falta ingresar con la cuenta de Firebase en este equipo.'); e.sesion = true; throw e; }
+    let r, j = null;
+    try {
+      r = await fetch(H.token + '?key=' + encodeURIComponent(fb.apiKey), { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(fb.refresh) });
+    } catch(e){ throw errorRed(); }
+    try { j = await r.json(); } catch(e){}
+    if (!r.ok || !j || !j.id_token){ const e = new Error(msgAuth(j)); e.sesion = true; throw e; }
+    if (j.refresh_token && j.refresh_token !== fb.refresh) fb.refresh = j.refresh_token;   // queda en la config del equipo
+    token = { id: j.id_token, vence: Date.now() + (Number(j.expires_in || 3600) - 120) * 1000, uid: j.user_id, email: fb.email };
+    return token.id;
+  }
+
+  /* ───────── Firestore por REST ───────── */
+  const raiz = fb => 'projects/' + fb.projectId + '/databases/(default)/documents';
+  const nomEspacio = fb => raiz(fb) + '/arken/' + fb.espacio;
+  const nomPieza = (fb, h, i) => nomEspacio(fb) + '/piezas/' + h + '_' + i;
+  function val(v){
+    if (typeof v === 'string') return { stringValue: v };
+    if (typeof v === 'number') return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+    if (typeof v === 'boolean') return { booleanValue: v };
+    if (Array.isArray(v)) return { arrayValue: { values: v.map(val) } };
+    if (v === null || v === undefined) return { nullValue: null };
+    const f = {}; Object.keys(v).forEach(k => f[k] = val(v[k])); return { mapValue: { fields: f } };
+  }
+  function desval(x){
+    if (!x) return undefined;
+    if ('stringValue' in x) return x.stringValue;
+    if ('integerValue' in x) return Number(x.integerValue);
+    if ('doubleValue' in x) return x.doubleValue;
+    if ('booleanValue' in x) return x.booleanValue;
+    if ('nullValue' in x) return null;
+    if ('arrayValue' in x) return (x.arrayValue.values || []).map(desval);
+    if ('mapValue' in x){ const o = {}, f = x.mapValue.fields || {}; Object.keys(f).forEach(k => o[k] = desval(f[k])); return o; }
+    return undefined;
+  }
+  const campos = o => { const f = {}; Object.keys(o).forEach(k => f[k] = val(o[k])); return f; };
+  const leerCampos = d => { const o = {}, f = (d && d.fields) || {}; Object.keys(f).forEach(k => o[k] = desval(f[k])); return o; };
+
+  async function pedir(fb, metodo, ruta, cuerpo){
+    const t = await idToken(fb);
+    let r;
+    try {
+      r = await fetch(H.fs + ruta, { method: metodo, headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + t },
+        body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo) });
+    } catch(e){ throw errorRed(); }
+    let j = null; try { j = await r.json(); } catch(e){}
+    if (r.ok) return j;
+    const st = (j && j.error && j.error.status) || '', msg = (j && j.error && j.error.message) || '';
+    const e = new Error(
+      st === 'PERMISSION_DENIED' || r.status === 403 ? 'Firebase no deja entrar a ' + (fb.email || 'esta cuenta') + ': el correo no está autorizado en este espacio o faltan las reglas de seguridad de ARKEN (Firestore › Reglas).' :
+      r.status === 401 || st === 'UNAUTHENTICATED' ? 'La sesión de Firebase venció. Vuelva a ingresar.' :
+      st === 'NOT_FOUND' ? 'No se encontró el espacio de datos en Firebase. Revise que el código de vinculación sea del proyecto correcto.' :
+      st === 'RESOURCE_EXHAUSTED' ? 'Se llegó al cupo gratuito diario de Firebase. Se reintenta solo; si se repite, revise el plan en la consola de Firebase.' :
+      /database.*does not exist|not exist for project|has not been used|is disabled/i.test(msg) ? 'Falta crear la base de datos Firestore en el proyecto de Firebase (Firestore Database › Crear base de datos).' :
+      'Firebase respondió con un error (' + (st || r.status) + ').');
+    e.estado = st; e.http = r.status;
+    if (st === 'FAILED_PRECONDITION' || st === 'ABORTED' || r.status === 409) e.carrera = true;
+    if (r.status === 401) e.sesion = true;
+    if (r.status >= 500 || st === 'UNAVAILABLE' || st === 'RESOURCE_EXHAUSTED') e.red = true;
+    throw e;
+  }
+  const commit = (fb, writes) => pedir(fb, 'POST', raiz(fb) + ':commit', { writes });
+  async function batchGet(fb, nombres, mascara){
+    const out = {};
+    for (let i = 0; i < nombres.length; i += 200){
+      const cuerpo = { documents: nombres.slice(i, i + 200) };
+      if (mascara) cuerpo.mask = { fieldPaths: mascara };
+      const r = await pedir(fb, 'POST', raiz(fb) + ':batchGet', cuerpo);
+      (Array.isArray(r) ? r : [r]).forEach(x => { if (x && x.found) out[x.found.name] = x.found; });
+    }
+    return out;
+  }
+  async function leerEspacio(fb){
+    const d = await pedir(fb, 'GET', nomEspacio(fb));
+    const o = leerCampos(d);
+    let x; try { x = JSON.parse(o.indice || '{}'); } catch(e){ x = {}; }
+    x.unidades = x.unidades || {}; x.blobs = x.blobs || {};
+    docCache = { updateTime: d.updateTime, x, correos: o.correos || [], dueno: o.dueno || '' };
+    return docCache;
+  }
+
+  /* ───────── Las mismas acciones del servicio de Apps Script ───────── */
+  async function servicio(cuerpo, c){
+    const fb = c.fb, a = cuerpo.accion;
+    if (a === 'estado') return { ok:true, version: 2, cuenta: fb.email };
+    if (a === 'nubeIndice'){
+      const { x } = await leerEspacio(fb);
+      const blobs = {}; let bytes = 0;
+      Object.keys(x.blobs).forEach(h => { blobs[h] = { listo:true, partes: x.blobs[h].p || 1 }; bytes += x.blobs[h].n || 0; });
+      return { ok:true, unidades: x.unidades, blobs, verif: x.verif || '', bytes };
+    }
+    if (a === 'nubeSubirLote'){
+      const ws = (cuerpo.lote || []).map(p => {
+        if (!/^[0-9a-f]{32}$/.test(p.hash)) throw new Error('Pedido inválido.');
+        return { update: { name: nomPieza(fb, p.hash, 0), fields: campos({ d: p.datos, partes: 1, n: p.datos.length, ts: Date.now() }) } };
+      });
+      for (let i = 0; i < ws.length; ){
+        let peso = 0, j = i;
+        while (j < ws.length && j - i < MAX_ESCRITURAS && (j === i || peso + ws[j].update.fields.d.stringValue.length < 8000000)){ peso += ws[j].update.fields.d.stringValue.length; j++; }
+        await commit(fb, ws.slice(i, j)); i = j;
+      }
+      return { ok:true };
+    }
+    if (a === 'nubeSubir'){
+      if (!/^[0-9a-f]{32}$/.test(cuerpo.hash) || !(cuerpo.parte >= 0) || !(cuerpo.partes >= 1)) throw new Error('Pedido inválido.');
+      if (cuerpo.datos.length > PIEZA_MAX + 1000) throw new Error('Parte demasiado grande para Firebase.');
+      await commit(fb, [{ update: { name: nomPieza(fb, cuerpo.hash, cuerpo.parte), fields: campos({ d: cuerpo.datos, partes: cuerpo.partes, n: cuerpo.datos.length, ts: Date.now() }) } }]);
+      return { ok:true };
+    }
+    if (a === 'nubeBajarLote'){
+      const x = docCache ? docCache.x : (await leerEspacio(fb)).x;
+      const pedir_ = []; let total = 0;
+      for (const h of cuerpo.hashes || []){
+        const n = (x.blobs[h] && x.blobs[h].n) || 0;
+        if (pedir_.length && total + n > LOTE_BAJADA) break;
+        pedir_.push(h); total += n;
+      }
+      const docs = await batchGet(fb, pedir_.map(h => nomPieza(fb, h, 0)), ['d']);
+      const datos = {};
+      pedir_.forEach(h => { const d = docs[nomPieza(fb, h, 0)]; if (d) datos[h] = leerCampos(d).d; });
+      return { ok:true, datos };
+    }
+    if (a === 'nubeBajar'){
+      const d = await pedir(fb, 'GET', nomPieza(fb, cuerpo.hash, cuerpo.parte)).catch(e => { if (e.estado === 'NOT_FOUND') throw new Error('Esa parte de los datos no está en la nube.'); throw e; });
+      return { ok:true, datos: leerCampos(d).d };
+    }
+    if (a === 'nubeConfirmar') return confirmar(fb, cuerpo);
+    throw new Error('Acción desconocida: ' + a);
+  }
+
+  /** Confirma una versión nueva de una unidad, sólo si nadie la cambió entre tanto (como el LockService de Apps Script). */
+  async function confirmar(fb, d){
+    const u = String(d.unidad || '');
+    if (!u) throw new Error('Pedido inválido.');
+    for (let intento = 0; intento < 8; intento++){
+      const esp = await leerEspacio(fb), x = esp.x;
+      const actual = x.unidades[u], rev = actual ? actual.rev : 0;
+      if ((d.base || 0) !== rev){ const e = new Error('Otro equipo acaba de cambiar estos datos; se combinan en un momento.'); e.conflicto = true; e.actual = rev; throw e; }
+      const ahora = Date.now();
+      if (!d.borrado){
+        const hs = Array.from(new Set(Object.values(d.piezas || {})));
+        const nuevas = hs.filter(h => !x.blobs[h]);
+        if (nuevas.length){
+          const docs = await batchGet(fb, nuevas.map(h => nomPieza(fb, h, 0)), ['partes', 'n']);
+          const multi = [];
+          for (const h of nuevas){
+            const doc = docs[nomPieza(fb, h, 0)];
+            if (!doc) throw new Error('Faltan partes por subir; se reintenta.');
+            const o = leerCampos(doc);
+            x.blobs[h] = { p: o.partes || 1, n: (o.n || 0) * (o.partes || 1), ts: ahora };
+            if ((o.partes || 1) > 1) multi.push(h);
+          }
+          if (multi.length){
+            const ult = await batchGet(fb, multi.map(h => nomPieza(fb, h, x.blobs[h].p - 1)), ['partes']);
+            if (multi.some(h => !ult[nomPieza(fb, h, x.blobs[h].p - 1)])) throw new Error('Faltan partes por subir; se reintenta.');
+          }
+        }
+        hs.forEach(h => { x.blobs[h].ts = ahora; });
+      }
+      x.unidades[u] = { rev: rev + 1, ts: ahora, piezas: d.borrado ? {} : d.piezas, nombre: d.nombre || (actual && actual.nombre) || u,
+                        borrado: !!d.borrado, equipo: d.equipo || '', usuario: d.usuario || '' };
+      if (d.verif && !x.verif) x.verif = d.verif;
+      // Piezas que ninguna versión usa desde hace dos días: se borran.
+      const usadas = {};
+      Object.keys(x.unidades).forEach(k => Object.values(x.unidades[k].piezas || {}).forEach(h => usadas[h] = 1));
+      const limite = ahora - LIMPIAR_DIAS * 86400000, borrar = [];
+      for (const h of Object.keys(x.blobs)){
+        if (usadas[h] || x.blobs[h].ts > limite || borrar.length > 300) continue;
+        for (let i = 0; i < (x.blobs[h].p || 1); i++) borrar.push({ delete: nomPieza(fb, h, i) });
+        delete x.blobs[h];
+      }
+      const writes = [{ update: { name: nomEspacio(fb), fields: campos({ indice: JSON.stringify(x), act: ahora }) },
+                        updateMask: { fieldPaths: ['indice', 'act'] }, currentDocument: { updateTime: esp.updateTime } }].concat(borrar.slice(0, MAX_ESCRITURAS - 1));
+      try {
+        await commit(fb, writes);
+        docCache = null;
+        return { ok:true, rev: rev + 1 };
+      } catch(e){
+        docCache = null;
+        if (!e.carrera) throw e;
+        await new Promise(r => setTimeout(r, 300 + Math.random() * 900));   // otro equipo escribió al mismo tiempo: se reintenta
+      }
+    }
+    throw new Error('Firebase está ocupado con otro equipo; se reintenta en un momento.');
+  }
+
+  /* ───────── Espacio de la empresa y correos autorizados ───────── */
+  async function crearEspacio(fb){
+    const espacio = 'e' + Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(36).padStart(2, '0')).join('').slice(0, 20);
+    fb.espacio = espacio;
+    await commit(fb, [{ update: { name: nomEspacio(fb), fields: campos({ dueno: fb.uid, correos: [fb.email], indice: JSON.stringify({ unidades:{}, blobs:{} }), act: Date.now(), creado: Date.now() }) },
+                        currentDocument: { exists: false } }]);
+    return espacio;
+  }
+  async function correos(fb){ const e = await leerEspacio(fb); return { correos: e.correos, dueno: e.dueno, soyDueno: e.dueno === fb.uid }; }
+  async function guardarCorreos(fb, lista){
+    const limpia = Array.from(new Set(lista.map(x => String(x).trim().toLowerCase()).filter(x => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x))));
+    if (!limpia.includes(fb.email)) limpia.unshift(fb.email);   // el dueño no se puede sacar a sí mismo
+    if (limpia.length > 50) throw new Error('Máximo 50 correos.');
+    await commit(fb, [{ update: { name: nomEspacio(fb), fields: campos({ correos: limpia }) }, updateMask: { fieldPaths: ['correos'] } }]);
+    return limpia;
+  }
+  function olvidarSesion(){ token = null; docCache = null; }
+
+  /* Texto de las reglas, para copiarlo en Firestore › Reglas. */
+  const REGLAS = `rules_version = '2';
+// ARKEN CONTROL · reglas de seguridad de Firestore (datos entre equipos)
+// Sólo entran los correos que el dueño autorizó en ARKEN CONTROL. Todo lo demás está cerrado.
+// El contenido llega cifrado (AES-256) desde el programa: Firebase no puede leerlo.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function espacio(e) { return get(/databases/$(database)/documents/arken/$(e)).data; }
+    function correo() { return request.auth.token.email.lower(); }
+    function miembro(e) {
+      return request.auth != null && request.auth.token.email != null && correo() in espacio(e).correos;
+    }
+
+    match /arken/{e} {
+      allow get: if miembro(e);
+      allow list: if false;
+      // Crear un espacio: el dueño es quien lo crea y su correo queda autorizado.
+      allow create: if request.auth != null && request.auth.token.email != null
+        && e.matches('^e[a-z0-9]{16,40}$')
+        && request.resource.data.dueno == request.auth.uid
+        && request.resource.data.correos is list
+        && request.resource.data.correos.size() <= 50
+        && correo() in request.resource.data.correos
+        && request.resource.data.indice is string;
+      // Actualizar el índice: cualquier miembro. La lista de correos y el dueño sólo los cambia el dueño.
+      allow update: if miembro(e)
+        && request.resource.data.dueno == resource.data.dueno
+        && request.resource.data.indice is string
+        && request.resource.data.correos is list
+        && request.resource.data.correos.size() <= 50
+        && (request.resource.data.correos == resource.data.correos || request.auth.uid == resource.data.dueno);
+      allow delete: if false;
+
+      match /piezas/{p} {
+        allow get: if miembro(e);
+        allow list: if false;
+        allow create, update: if miembro(e)
+          && p.matches('^[0-9a-f]{32}_[0-9]{1,4}$')
+          && request.resource.data.d is string
+          && request.resource.data.d.size() <= 1000000;
+        allow delete: if miembro(e);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+`;
+
+  return { leerConfig, ingresar, servicio, crearEspacio, correos, guardarCorreos, olvidarSesion, REGLAS,
+           get cuenta(){ return token ? token.email : ''; } };
+})();
+
+/* ARKEN CONTROL v18.2 · Ayuda de los datos entre equipos con Firebase. */
+(function(){
+  if (typeof AYUDA_CONTENIDO === 'undefined') return;
+  const otros = AYUDA_CONTENIDO.otros || (AYUDA_CONTENIDO.otros = []);
+  otros.push(
+    { q:'¿Cómo conecto el computador y los celulares con Firebase?',
+      a:'<p>En la consola de Firebase (console.firebase.google.com) cree un proyecto, habilite <b>Authentication › Correo electrónico/contraseña</b>, ' +
+        'cree un usuario por persona, cree la base <b>Firestore</b> y pegue en <b>Reglas</b> las reglas de ARKEN (botón «Copiar reglas de seguridad»). ' +
+        'Luego, en el computador principal, entre a <b>Administración › Datos entre equipos › Conectar con Firebase</b>, pegue el bloque firebaseConfig de la app web e ingrese con su correo.</p>' +
+        '<p>Para cada celular: en el computador pulse <b>Vincular otro equipo</b>; en el celular toque <b>☁ Unir este equipo</b>, escanee el código y escriba el correo y la contraseña de Firebase de esa persona. ' +
+        'Antes, el dueño agrega ese correo en <b>Correos autorizados</b>.</p>' },
+    { q:'¿Firebase puede ver los datos de la empresa? ¿Quién puede entrar?',
+      a:'<p>No los puede leer: todo viaja y se guarda cifrado con AES-256 y la llave sólo la tienen los equipos vinculados (va en el código QR, nunca a Firebase). ' +
+        'Para entrar hacen falta tres cosas: un usuario creado en Firebase Authentication, que su correo esté en la lista de <b>Correos autorizados</b> (las reglas de seguridad lo exigen) y la llave del código de vinculación. ' +
+        'La contraseña de Firebase no se guarda en el equipo: queda una sesión que se puede cerrar con «Desvincular este equipo» o deshabilitando el usuario en la consola.</p>' },
+    { q:'¿Cuánto cuesta Firebase?',
+      a:'<p>El plan gratuito Spark incluye 1 GB guardado, 50.000 lecturas y 20.000 escrituras al día. Cada equipo abierto consulta un solo documento cada 45 segundos, ' +
+        'así que un computador y varios celulares quedan muy por debajo del límite. No hace falta poner tarjeta de crédito.</p>' });
+})();
+
+</script>
 <script id="v17-nube">
 /* ARKEN CONTROL v17 · Datos compartidos entre equipos (sincronización automática).
    Los datos de la empresa y de cada proyecto se guardan cifrados en el Google
@@ -73496,6 +73854,7 @@ const Nube = (function(){
   const DBN = 'arken_nube', ST = 'kv';
   const PIEZA_GRANDE = 256 * 1024;       // una llave más pesada que esto viaja como pieza propia
   const PARTE = 4 * 1024 * 1024;         // tamaño de cada envío al servicio (texto base64)
+  function PARTE_(){ return cfg().fb ? 900000 : PARTE; }   // Firebase: un documento por parte (máx. ~1 MB)
   const POLL_VISIBLE = 45000, POLL_OCULTO = 300000, ESPERA_CAMBIO = 6000;
   const LOCALES_RAIZ = ['meta', 'licenciaVisto'];
   const LOCALES_CONFIG = ['cifradoArchivo', 'noPedirEnlace'];
@@ -73518,7 +73877,7 @@ const Nube = (function(){
     return cfgMem;
   }
   function guardarCfg(){ try { localStorage.setItem(CLAVE_CFG, JSON.stringify(cfgMem)); } catch(e){} }
-  function activo(){ const c = cfg(); return !!(c.activo && c.url && c.clave && c.llave); }
+  function activo(){ const c = cfg(); return !!(c.activo && c.llave && (c.fb ? (c.fb.projectId && c.fb.espacio) : (c.url && c.clave))); }
   function nombreEquipoPorDefecto(){
     const ua = navigator.userAgent || '';
     if (/iPhone/.test(ua)) return 'iPhone';
@@ -73770,6 +74129,7 @@ const Nube = (function(){
   /* ═══════════ Servicio de Google ═══════════ */
   async function servicio(cuerpo, c){
     c = c || cfg();
+    if (c.fb){ const j = await NubeFirebase.servicio(cuerpo, c); if (c === cfgMem) guardarCfg(); return j; }
     let r;
     try {
       r = await fetch(c.url, { method:'POST', redirect:'follow', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
@@ -73804,16 +74164,16 @@ const Nube = (function(){
     };
     for (const x of faltan){
       const sobre = await sellar(x.t);
-      if (sobre.length > PARTE){
+      if (sobre.length > PARTE_()){
         await enviar();
-        const partes = Math.ceil(sobre.length / PARTE);
+        const partes = Math.ceil(sobre.length / PARTE_());
         for (let i = 0; i < partes; i++)
-          await servicio({ accion:'nubeSubir', hash:x.h, parte:i, partes, datos: sobre.slice(i * PARTE, (i + 1) * PARTE) });
+          await servicio({ accion:'nubeSubir', hash:x.h, parte:i, partes, datos: sobre.slice(i * PARTE_(), (i + 1) * PARTE_()) });
         indice.blobs[x.h] = { listo:true, partes };
         hechas++; if (alProgreso) alProgreso(hechas, faltan.length);
         continue;
       }
-      if (peso + sobre.length > PARTE) await enviar();
+      if (peso + sobre.length > PARTE_()) await enviar();
       lote.push({ hash:x.h, datos:sobre }); peso += sobre.length;
     }
     await enviar();
@@ -73967,7 +74327,7 @@ const Nube = (function(){
     } catch(e){
       console.warn('ARKEN · sincronización', e && e.message, e && e.stack);
       if (e.conflicto){ poner('trabajando', 'Otro equipo acaba de guardar; combinando…'); setTimeout(() => ciclo('conflicto'), 2500); }
-      else if (e.red) poner('sinred', 'Sin conexión con Google: se reintenta solo');
+      else if (e.red) poner('sinred', 'Sin conexión: se reintenta solo');
       else if (e.viejo) poner('error', 'Actualice el servicio de Google (Administración › Datos entre equipos)', { error: e.message });
       else { poner('error', e.message, { error: e.message }); cfg().error = e.message; guardarCfg(); }
       sucio = true;
@@ -74123,13 +74483,18 @@ const Nube = (function(){
   /* ═══════════ Vincular, activar y unir equipos ═══════════ */
   function codigoVinculo(){
     const c = cfg();
+    if (c.fb) return 'ARKEN-NUBE2.' + b64url(new TextEncoder().encode(JSON.stringify({ t:'fb', a:c.fb.apiKey, p:c.fb.projectId, e:c.fb.espacio, k:c.llave, n: (S.empresa && S.empresa.razonSocial) || '' })));
     return 'ARKEN-NUBE1.' + b64url(new TextEncoder().encode(JSON.stringify({ u:c.url, c:c.clave, k:c.llave, n: (S.empresa && S.empresa.razonSocial) || '' })));
   }
   function leerCodigo(txt){
     const t = String(txt || '').trim().replace(/\s+/g, '');
-    if (!t.startsWith('ARKEN-NUBE1.')) throw new Error('Ese no es un código de vinculación de ARKEN CONTROL.');
+    if (!/^ARKEN-NUBE[12]\./.test(t)) throw new Error('Ese no es un código de vinculación de ARKEN CONTROL.');
     let o;
     try { o = JSON.parse(new TextDecoder().decode(deb64url(t.slice(12)))); } catch(e){ throw new Error('El código está incompleto. Cópielo otra vez.'); }
+    if (t.startsWith('ARKEN-NUBE2.')){
+      if (!o || o.t !== 'fb' || !o.a || !o.p || !o.e || !o.k) throw new Error('El código está incompleto. Cópielo otra vez.');
+      return { fb: { apiKey:o.a, projectId:o.p, espacio:o.e }, k:o.k, n:o.n };
+    }
     if (!o.u || !o.c || !o.k) throw new Error('El código está incompleto. Cópielo otra vez.');
     return o;
   }
@@ -74155,14 +74520,134 @@ const Nube = (function(){
     await ciclo('activar');
   }
 
+  /* ═══════════ 18.2 · Camino Firebase (Firestore + Authentication) ═══════════ */
+  /** Primer equipo con Firebase: ingresa, crea el espacio de la empresa y sube todo. */
+  async function activarFirebase(texto, cred){
+    const conf = NubeFirebase.leerConfig(texto);
+    const ses = await NubeFirebase.ingresar(conf, cred);
+    const fb = Object.assign({}, conf, ses);
+    await NubeFirebase.crearEspacio(fb);
+    const k = new Uint8Array(32); crypto.getRandomValues(k);
+    Object.assign(cfg(), { fb, url:'', clave:'', llave: b64url(k), activo:true, verificado:true, filtro:null, error:'' });
+    llaveCripto = null; guardarCfg();
+    await escribir('bases', {});
+    sucio = true; ultimaInstantanea = null;
+    Modelo.auditar('configurar', 'datos entre equipos', 'activado con Firebase (' + fb.projectId + ') en ' + cfg().equipo.nombre);
+    await ciclo('activar');
+  }
+  /** Volver a ingresar en este equipo (contraseña cambiada o sesión vencida). */
+  async function reingresarFirebase(cred){
+    const c = cfg();
+    if (!c.fb) return;
+    const ses = await NubeFirebase.ingresar(c.fb, cred);
+    Object.assign(c.fb, ses); guardarCfg();
+    sucio = true; await ciclo('manual');
+  }
+  function copiarReglas(){
+    const t = NubeFirebase.REGLAS;
+    navigator.clipboard.writeText(t).then(() => UI.toast('Reglas copiadas. Péguelas en Firestore › Reglas y pulse Publicar', 'ok'))
+      .catch(() => UI.modal({ titulo:'Reglas de seguridad de Firestore', ancho:'wide', cuerpo:'<textarea readonly style="width:100%;min-height:380px;font-family:monospace;font-size:12px" onclick="this.select()">' + esc(t) + '</textarea>', botones:[{ texto:'Cerrar' }] }));
+  }
+  const PASOS_FIREBASE =
+    '<ol class="small" style="line-height:1.75;padding-left:20px;margin:0 0 10px">' +
+      '<li>En <b>console.firebase.google.com</b> cree un proyecto (por ejemplo «arken-control»). Analytics no hace falta.</li>' +
+      '<li><b>Authentication › Comenzar › Correo electrónico/contraseña › Habilitar</b>. En <b>Usuarios › Agregar usuario</b> cree su correo y una contraseña, y uno por cada persona que vaya a usar un celular.</li>' +
+      '<li>En <b>Authentication › Configuración › Acciones del usuario</b> desmarque <b>Habilitar creación (registro)</b>, para que nadie más pueda crearse una cuenta.</li>' +
+      '<li><b>Firestore Database › Crear base de datos</b> (ubicación <b>southamerica-east1</b> o <b>us-east1</b>, modo producción). En <b>Reglas</b> borre todo, pegue las reglas de ARKEN (botón de abajo) y pulse <b>Publicar</b>.</li>' +
+      '<li>En <b>Configuración del proyecto ⚙ › Tus apps › Web (&lt;/&gt;)</b> registre la app «ARKEN CONTROL» y copie el bloque <b>firebaseConfig</b>.</li>' +
+      '<li>Aquí pulse <b>Conectar con Firebase</b>, pegue ese bloque e ingrese con su correo y contraseña.</li></ol>';
+  function ventanaFirebase(){
+    UI.modal({ titulo:'Conectar con Firebase', eyebrow:'Datos entre equipos', ancho:'wide',
+      cuerpo:'<p class="small">Pegue el bloque <b>firebaseConfig</b> de su proyecto (Configuración del proyecto › Tus apps › Web) e ingrese con un usuario creado en Authentication.</p>' +
+        '<div class="field"><label>Configuración de Firebase</label><textarea id="fbConf" style="width:100%;min-height:120px;font-family:monospace;font-size:11px" placeholder="const firebaseConfig = {\n  apiKey: &quot;AIza…&quot;,\n  projectId: &quot;arken-control&quot;, …"></textarea></div>' +
+        '<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">' +
+          '<div class="field"><label>Correo (Firebase)</label><input id="fbCorreo" type="email" autocomplete="username"></div>' +
+          '<div class="field"><label>Contraseña (Firebase)</label><input id="fbClave" type="password" autocomplete="current-password"></div></div>' +
+        '<div class="muted small" style="margin-top:8px">La contraseña no se guarda: este equipo queda con una sesión de Firebase. La llave de cifrado se crea aquí y nunca se envía a Firebase.</div>' +
+        '<div id="fbProg" class="small muted" style="margin-top:8px"></div>',
+      botones:[{ texto:'Conectar y subir los datos', clase:'primary', accion: async m => {
+          const btn = m.el.querySelector('[data-b="0"]'); if (btn) btn.disabled = true;
+          const p = $('#fbProg', m.el); p.textContent = 'Conectando con Firebase…';
+          try {
+            await activarFirebase($('#fbConf', m.el).value, { correo: $('#fbCorreo', m.el).value, clave: $('#fbClave', m.el).value });
+            m.cerrar(); UI.toast('☁ Sincronización con Firebase activada en ' + cfg().equipo.nombre, 'ok');
+          } catch(e){ p.textContent = ''; if (btn) btn.disabled = false; UI.aviso('No se pudo conectar', '<p>' + esc(e.message) + '</p>'); }
+          try { Admin.pintar(); } catch(e){}
+        } }, { texto:'Cancelar' }] });
+  }
+  function ventanaReingresar(){
+    UI.modal({ titulo:'Ingresar a Firebase en este equipo', eyebrow:'Datos entre equipos',
+      cuerpo:'<div class="field"><label>Correo (Firebase)</label><input id="fbCorreo" type="email" autocomplete="username" value="' + esc((cfg().fb || {}).email || '') + '"></div>' +
+        '<div class="field" style="margin-top:8px"><label>Contraseña (Firebase)</label><input id="fbClave" type="password" autocomplete="current-password"></div>',
+      botones:[{ texto:'Ingresar', clase:'primary', accion: async m => {
+          try { await reingresarFirebase({ correo: $('#fbCorreo', m.el).value, clave: $('#fbClave', m.el).value }); m.cerrar(); UI.toast('Sesión de Firebase renovada', 'ok'); try { Admin.pintar(); } catch(e){} }
+          catch(e){ UI.aviso('No se pudo ingresar', '<p>' + esc(e.message) + '</p>'); }
+        } }, { texto:'Cancelar' }] });
+  }
+  async function ventanaCorreos(){
+    const fb = cfg().fb;
+    let info;
+    try { info = await NubeFirebase.correos(fb); } catch(e){ UI.aviso('No se pudo consultar', '<p>' + esc(e.message) + '</p>'); return; }
+    UI.modal({ titulo:'Correos autorizados', eyebrow:'Firebase · ' + esc(fb.projectId),
+      cuerpo:'<p class="small">Sólo estos correos pueden leer y escribir los datos de la empresa en Firebase. Cada uno debe existir además en <b>Authentication › Usuarios</b> de la consola de Firebase. Uno por línea.</p>' +
+        '<textarea id="fbLista" style="width:100%;min-height:160px;font-family:monospace;font-size:12px"' + (info.soyDueno ? '' : ' readonly') + '>' + esc(info.correos.join('\n')) + '</textarea>' +
+        (info.soyDueno ? '' : '<div class="muted small" style="margin-top:6px">Sólo el dueño del espacio (quien lo activó) puede cambiar esta lista.</div>') +
+        '<div class="alert warn" style="margin-top:8px"><div class="ic">⚠</div><div class="bd small">Para sacar a alguien: quítelo de esta lista y además deshabilítelo en Authentication › Usuarios. Si el celular se perdió, cree también un espacio nuevo (Desvincular y volver a conectar) para cambiar la llave.</div></div>',
+      botones: info.soyDueno ? [{ texto:'Guardar', clase:'primary', accion: async m => {
+          try { const l = await NubeFirebase.guardarCorreos(fb, $('#fbLista', m.el).value.split(/[\s,;]+/)); m.cerrar(); UI.toast(l.length + ' correo(s) autorizados', 'ok');
+                Modelo.auditar('configurar', 'datos entre equipos', 'correos autorizados en Firebase: ' + l.length); }
+          catch(e){ UI.aviso('No se pudo guardar', '<p>' + esc(e.message) + '</p>'); }
+        } }, { texto:'Cancelar' }] : [{ texto:'Cerrar' }] });
+  }
+  function pintarFirebase(cont){
+    const c = cfg();
+    const html = (!activo())
+      ? '<div class="alert ok" style="margin-bottom:12px"><div class="ic">🔥</div><div class="bd"><b>Recomendado: Firebase de Google</b>' +
+          '<div class="small" style="margin-bottom:6px">Más rápido y estable para el computador y varios celulares a la vez. Cada persona entra con su correo, las reglas de seguridad dejan pasar sólo a los correos autorizados y los datos viajan cifrados: Firebase no los puede leer. El plan gratuito (Spark) alcanza para una empresa.</div>' +
+          PASOS_FIREBASE +
+          '<div class="btn-row"><button class="btn sm" id="nbFbReglas" type="button">Copiar reglas de seguridad</button>' +
+          '<button class="btn sm primary" id="nbFb" type="button">Conectar con Firebase</button></div></div></div>' +
+        '<div class="p-sec">Otra opción: el servicio de Google Drive (Apps Script)</div>'
+      : c.fb
+        ? '<div class="alert info" style="margin:0 0 12px"><div class="ic">🔥</div><div class="bd"><b>Servicio: Firebase</b>' +
+            '<div class="small">Proyecto <span style="font-weight:600">' + esc(c.fb.projectId) + '</span> · cuenta <span style="font-weight:600">' + esc(c.fb.email || '') + '</span></div>' +
+            '<div class="btn-row" style="margin-top:8px"><button class="btn sm" id="nbFbCorreos" type="button">Correos autorizados</button>' +
+            '<button class="btn sm" id="nbFbIngresar" type="button">Volver a ingresar</button>' +
+            '<button class="btn sm" id="nbFbReglas" type="button">Copiar reglas de seguridad</button></div></div></div>'
+        : '<div class="alert info" style="margin:0 0 12px"><div class="ic">🔥</div><div class="bd"><b>Servicio: Google Drive (Apps Script)</b>' +
+            '<div class="small">Puede pasar a Firebase, más rápido con varios celulares. Este equipo sube todo a Firebase y los celulares se vuelven a unir con el código nuevo.</div>' +
+            '<div class="btn-row" style="margin-top:8px"><button class="btn sm" id="nbFbPasar" type="button">Pasar a Firebase</button></div></div></div>';
+    const primero = cont.firstElementChild;
+    if (activo()){ const al = cont.querySelector('.alert'); (al || primero).insertAdjacentHTML('afterend', html); }
+    else primero.insertAdjacentHTML('afterend', html);
+    const $c = s => cont.querySelector(s);
+    if ($c('#nbFb')) $c('#nbFb').onclick = ventanaFirebase;
+    if ($c('#nbFbReglas')) $c('#nbFbReglas').onclick = copiarReglas;
+    if ($c('#nbFbCorreos')) $c('#nbFbCorreos').onclick = ventanaCorreos;
+    if ($c('#nbFbIngresar')) $c('#nbFbIngresar').onclick = ventanaReingresar;
+    if ($c('#nbFbPasar')) $c('#nbFbPasar').onclick = async () => {
+      const ok = await UI.confirmar({ titulo:'Pasar a Firebase', textoAceptar:'Continuar',
+        mensaje:'Este equipo deja el servicio de Google Drive y sube todo a Firebase. Antes, deje este equipo al día (Sincronizar ahora). Los celulares deberán unirse otra vez con el código nuevo.' });
+      if (!ok) return;
+      await desvincular(); Admin.pintar(); ventanaFirebase();
+    };
+  }
+
   /** Une este equipo a la nube con un código. modo: 'reemplazar' (trae todo) o 'combinar'. */
-  async function unir(codigo, modo, alProgreso){
+  async function unir(codigo, modo, alProgreso, cred){
     const o = leerCodigo(codigo);
-    const prueba = { url:o.u, clave:o.c };
-    const v = await versionServicio(prueba);
-    if (v < VERSION_SERVICIO) throw new Error('El servicio de Google del equipo principal es de una versión anterior. Actualícelo desde el equipo principal (Administración › Datos entre equipos).');
-    const anterior = Object.assign({}, cfg());
-    Object.assign(cfg(), { url:o.u, clave:o.c, llave:o.k, activo:false, verificado:false, error:'' });
+    let fbN = null;
+    if (o.fb){
+      if (alProgreso) alProgreso('Ingresando a Firebase…');
+      fbN = Object.assign({}, o.fb, await NubeFirebase.ingresar(o.fb, cred));
+    } else {
+      const prueba = { url:o.u, clave:o.c };
+      const v = await versionServicio(prueba);
+      if (v < VERSION_SERVICIO) throw new Error('El servicio de Google del equipo principal es de una versión anterior. Actualícelo desde el equipo principal (Administración › Datos entre equipos).');
+    }
+    const anterior = JSON.parse(JSON.stringify(cfg()));
+    Object.assign(cfg(), fbN ? { fb:fbN, url:'', clave:'', llave:o.k, activo:false, verificado:false, error:'' }
+                             : { fb:null, url:o.u, clave:o.c, llave:o.k, activo:false, verificado:false, error:'' });
     llaveCripto = null;
     try {
       const ind = await servicio({ accion:'nubeIndice' });
@@ -74217,7 +74702,8 @@ const Nube = (function(){
   }
 
   async function desvincular(){
-    Object.assign(cfg(), { activo:false, url:'', clave:'', llave:'', verificado:false, filtro:null });
+    Object.assign(cfg(), { activo:false, url:'', clave:'', fb:null, llave:'', verificado:false, filtro:null });
+    try { NubeFirebase.olvidarSesion(); } catch(e){}
     llaveCripto = null; guardarCfg();
     try { const B = await bases(); for (const u of Object.keys(B)) await borrar('base:' + u); await escribir('bases', {}); } catch(e){}
     poner('apagado', '');
@@ -74317,6 +74803,7 @@ const Nube = (function(){
       'una copia en <b>Cifrado y copias</b>. Las alertas por correo las envía sólo el equipo donde se crearon. La llave de cifrado y la dirección del servicio se guardan ' +
       'sólo en este navegador: no viajan dentro del archivo ni de los respaldos.</div>';
     cont.innerHTML = cuerpo;
+    pintarFirebase(cont);
     const $c = s => cont.querySelector(s);
     if ($c('#nbCodigo')) $c('#nbCodigo').onclick = async () => {
       try { await navigator.clipboard.writeText(CorreoGmail.codigo()); UI.toast('Código copiado. Péguelo en script.google.com encima del anterior', 'ok'); }
@@ -74353,7 +74840,7 @@ const Nube = (function(){
             esc(us[u].equipo || '') + (us[u].usuario ? ' · ' + esc(us[u].usuario) : '') + '</td><td>' + (us[u].ts ? esc(fmtSello(us[u].ts)) : '') + '</td></tr>').join('');
         const t = cont.querySelector('#nbTabla');
         if (t) t.innerHTML = '<div class="tw"><table class="tbl"><thead><tr><th>Contenido</th><th>Versión</th><th>Último cambio desde</th><th>Cuándo</th></tr></thead><tbody>' + filas + '</tbody></table></div>' +
-          '<div class="muted small" style="margin-top:4px">Espacio usado en Drive: ' + ((ind.bytes || 0) / 1048576).toFixed(1) + ' MB</div>';
+          '<div class="muted small" style="margin-top:4px">Espacio usado en ' + (cfg().fb ? 'Firebase' : 'Drive') + ': ' + ((ind.bytes || 0) / 1048576).toFixed(1) + ' MB</div>';
         const f = cont.querySelector('#nbFiltro');
         if (f){
           const sel = cfg().filtro;
@@ -74399,7 +74886,10 @@ const Nube = (function(){
           '<video id="nbVid" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover"></video></div>' +
         '<canvas id="nbCan" style="display:none"></canvas>' +
         '<div class="btn-row" style="margin:8px 0"><button class="btn sm" id="nbEsc" type="button">Escanear con la cámara</button></div>' +
-        '<div class="field"><label>Código de vinculación</label><textarea id="nbTxt" style="width:100%;min-height:80px;font-family:monospace;font-size:11px" placeholder="ARKEN-NUBE1.…"></textarea></div>' +
+        '<div class="field"><label>Código de vinculación</label><textarea id="nbTxt" style="width:100%;min-height:80px;font-family:monospace;font-size:11px" placeholder="ARKEN-NUBE2.… o ARKEN-NUBE1.…"></textarea></div>' +
+        '<div id="nbFbCred" class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;display:none">' +
+          '<div class="field"><label>Su correo de Firebase</label><input id="nbFbCorreo" type="email" autocomplete="username"></div>' +
+          '<div class="field"><label>Contraseña de Firebase</label><input id="nbFbClave" type="password" autocomplete="current-password"></div></div>' +
         '<div class="field" style="margin-top:8px"><label>Nombre de este equipo</label><input id="nbNom" value="' + esc(cfg().equipo.nombre) + '"></div>' +
         ((S && (S.proyectos || []).some(p => !S.meta || !S.meta.demo)) && !desdeIngreso
           ? '<label class="checkline" style="margin-top:8px"><input type="checkbox" id="nbComb"> Combinar con los proyectos que ya tiene este equipo (si no se marca, este equipo queda igual a la nube; antes se guarda una copia)</label>' : '') +
@@ -74413,7 +74903,7 @@ const Nube = (function(){
           const prog = t => { const p = $('#nbProg', mm.el); if (p) p.textContent = t; };
           prog('Conectando con la nube…');
           try {
-            const r = await unir(txt, comb ? 'combinar' : 'reemplazar', prog);
+            const r = await unir(txt, comb ? 'combinar' : 'reemplazar', prog, { correo: $('#nbFbCorreo', mm.el).value, clave: $('#nbFbClave', mm.el).value });
             detener();
             try { Modelo.auditar('configurar', 'datos entre equipos', 'equipo unido: ' + cfg().equipo.nombre); } catch(e){}
             prog('✓ Listo.');
@@ -74431,6 +74921,8 @@ const Nube = (function(){
       alCerrar: () => detener()
     });
     function detener(){ vivo = false; if (flujo) { flujo.getTracks().forEach(t => t.stop()); flujo = null; } }
+    const verCred = () => { $('#nbFbCred', m.el).style.display = /^\s*ARKEN-NUBE2\./.test($('#nbTxt', m.el).value) ? '' : 'none'; };
+    $('#nbTxt', m.el).addEventListener('input', verCred);
     $('#nbEsc', m.el).onclick = () => {
       if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ UI.toast('Este navegador no permite la cámara aquí: pegue el texto', 'info'); return; }
       vivo = true;
@@ -74444,8 +74936,8 @@ const Nube = (function(){
             const W = 640, H = Math.round(640 * v.videoHeight / v.videoWidth);
             c.width = W; c.height = H; g.drawImage(v, 0, 0, W, H);
             const r = jsQR(g.getImageData(0, 0, W, H).data, W, H, { inversionAttempts:'dontInvert' });
-            if (r && r.data && r.data.startsWith('ARKEN-NUBE1.')){
-              $('#nbTxt', m.el).value = r.data; detener(); $('#nbCamZona', m.el).style.display = 'none';
+            if (r && r.data && /^ARKEN-NUBE[12]\./.test(r.data)){
+              $('#nbTxt', m.el).value = r.data; verCred(); detener(); $('#nbCamZona', m.el).style.display = 'none';
               try { if (navigator.vibrate) navigator.vibrate(80); } catch(e){}
               UI.toast('Código leído. Toque «Unir este equipo».', 'ok'); return;
             }
@@ -74626,7 +75118,7 @@ function nubeLimpiar_(x) {
   }
 
   return { ciclo: () => { sucio = true; return ciclo('manual'); }, activo, esMia, pintarAdmin, codigoServidor, ventanaUnir, ventanaVincular,
-           unir, activarPrincipal, desvincular, fijarFiltro, codigoVinculo, VERSION_SERVICIO,
+           unir, activarPrincipal, activarFirebase, reingresarFirebase, desvincular, fijarFiltro, codigoVinculo, VERSION_SERVICIO,
            get estado(){ return Object.assign({}, estado); }, get config(){ return Object.assign({}, cfg(), { llave: cfg().llave ? '••••' : '' }); },
            _combinar: (b, l, r) => { const ctx = { conflictos:[], ganaLocal:true }; const o = combinar(b, l, r, ctx, ''); return { o, conflictos: ctx.conflictos }; } };
 })();

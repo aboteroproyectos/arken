@@ -38,7 +38,7 @@ En el celular, pase primero el archivo al teléfono (por ejemplo, por Google Dri
 - Cada cambio se guarda solo, en el equipo. El botón de la barra superior («Guardar copia») ya no es necesario para guardar: crea un `ARKEN_CONTROL.html` con todos los datos, que se abre en cualquier navegador o se restaura en otro equipo.
 - La app guarda además una **copia interna** en un archivo del equipo. Si el sistema llegara a borrar el almacenamiento interno de la app, al abrirla se recupera desde esa copia.
 - En Windows y macOS queda también una **copia por día de los últimos 10 días**. Se abren desde **Ayuda › Abrir la carpeta de copias diarias** o desde **Administración › Datos**.
-- **Cada equipo guarda sus propios datos: no se sincronizan solos.** Para pasar la información de un equipo a otro, exporte un respaldo y restáurelo en el otro equipo.
+- **Datos entre equipos:** el computador y los celulares pueden compartir los datos solos, cifrados, con **Firebase** (recomendado, desde la 18.2) o con el servicio de Google Drive (Apps Script). Se activa en **Administración › Datos entre equipos**; los pasos de Firebase y las reglas de seguridad están en [`firebase/`](firebase/LEAME.md). Sin activarlo, cada equipo guarda sus propios datos y se pasan con un respaldo.
 
 ## Diferencias con el navegador
 

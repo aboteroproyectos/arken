@@ -1,0 +1,48 @@
+rules_version = '2';
+// ARKEN CONTROL · reglas de seguridad de Firestore (datos entre equipos)
+// Sólo entran los correos que el dueño autorizó en ARKEN CONTROL. Todo lo demás está cerrado.
+// El contenido llega cifrado (AES-256) desde el programa: Firebase no puede leerlo.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function espacio(e) { return get(/databases/$(database)/documents/arken/$(e)).data; }
+    function correo() { return request.auth.token.email.lower(); }
+    function miembro(e) {
+      return request.auth != null && request.auth.token.email != null && correo() in espacio(e).correos;
+    }
+
+    match /arken/{e} {
+      allow get: if miembro(e);
+      allow list: if false;
+      // Crear un espacio: el dueño es quien lo crea y su correo queda autorizado.
+      allow create: if request.auth != null && request.auth.token.email != null
+        && e.matches('^e[a-z0-9]{16,40}$')
+        && request.resource.data.dueno == request.auth.uid
+        && request.resource.data.correos is list
+        && request.resource.data.correos.size() <= 50
+        && correo() in request.resource.data.correos
+        && request.resource.data.indice is string;
+      // Actualizar el índice: cualquier miembro. La lista de correos y el dueño sólo los cambia el dueño.
+      allow update: if miembro(e)
+        && request.resource.data.dueno == resource.data.dueno
+        && request.resource.data.indice is string
+        && request.resource.data.correos is list
+        && request.resource.data.correos.size() <= 50
+        && (request.resource.data.correos == resource.data.correos || request.auth.uid == resource.data.dueno);
+      allow delete: if false;
+
+      match /piezas/{p} {
+        allow get: if miembro(e);
+        allow list: if false;
+        allow create, update: if miembro(e)
+          && p.matches('^[0-9a-f]{32}_[0-9]{1,4}$')
+          && request.resource.data.d is string
+          && request.resource.data.d.size() <= 1000000;
+        allow delete: if miembro(e);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
